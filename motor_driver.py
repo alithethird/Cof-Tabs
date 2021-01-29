@@ -56,8 +56,10 @@ class motor_driver:
             self.tick = -1 # reset counter
 
         pin_state = gpio.input(STEP)
-        gpio.output(STEP, not pin_state) # output the reverse state to turn motor
-
+        if pin_state == 1:
+            gpio.output(STEP, gpio.LOW) # output the reverse state to turn motor
+        else:
+            gpio.output(STEP, gpio.HIGH)
 
 """
 # Main body of code
