@@ -41,7 +41,7 @@ class motor_driver_pc:
 
         #gpio.output(DIR, direction)
 
-        signal.signal(signal.SIGALRM, lambda: self.send_tick(ticks))
+        signal.signal(signal.SIGALRM, self.send_tick(ticks))
         signal.setitimer(signal.ITIMER_REAL, time, time)
 
     def send_tick(self, ticks):
