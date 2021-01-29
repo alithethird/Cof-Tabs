@@ -10,8 +10,9 @@ CCW = 0
 
 class motor_driver_pc:
     tick = -1
+    tick_goal = 0
     pin_state = 0
-    def __init__(self):
+
 
     def run_standard_test(self):
         time, ticks, direction = self.calculate_ticks(60, 100, 1)
@@ -36,30 +37,25 @@ class motor_driver_pc:
     def motor_run(self, time, ticks, direction):
 
         #gpio.output(DIR, direction)
-
+        self.tick_goal = ticks
         signal.signal(signal.SIGALRM, self.handler)
         signal.setitimer(signal.ITIMER_REAL, time, time)
 
     def handler(self, signum, _):
-        self.tick = 10
         self.send_tick()
 
     def send_tick(self):
         # change it to pin_status != pin_status
         # gpio.input(pin)
-        #self.tick = ticks
+        # self.tick = self.tick_goal
         if self.tick > 0: # countdown the ticks
             self.tick = self.tick - 1
-        elif self.tick == -1: # if tick counter is reset set the counter
-            self.tick = 10
+        elif self.tick == -1: # if tick counter is reset, set the counter
+            self.tick = self.tick_goal
         elif self.tick == 0:
             signal.setitimer(signal.ITIMER_REAL, 0, 0) # if ticks done stop timer
             self.tick = -1 # reset counter
+            self.tick_goal = -1 # reset tick_goal
 
         self.pin_state = not self.pin_state
-        if self.pin_state == 1:
-            print(0)
-            self.pin_state = 0
-        else:
-            print(1)
-            self.pin_state = 1
+        print(self.pin_state)

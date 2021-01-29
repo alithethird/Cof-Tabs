@@ -9,13 +9,15 @@ CW = 1
 CCW = 0
 
 class motor_driver:
-
+    tick = -1
+    tick_goal = 0
+    pin_state = 0
     def __init__(self):
         #gpio.setmode(gpio.BCM)
         gpio.setup(DIR, gpio.OUT)
         gpio.setup(STEP, gpio.OUT)
         gpio.output(DIR, CW)
-        tick = -1
+
     def run_standard_test(self):
         time, ticks, direction = self.calculate_ticks(60, 100, 1)
         self.motor_run(time, ticks, direction)
@@ -39,9 +41,12 @@ class motor_driver:
     def motor_run(self, time, ticks, direction):
 
         gpio.output(DIR, direction)
-
-        signal.signal(signal.SIGALRM, lambda: self.send_tick(ticks))
+        self.tick_goal = ticks
+        signal.signal(signal.SIGALRM, self.handler)
         signal.setitimer(signal.ITIMER_REAL, time, time)
+
+    def handler(self, signum, _):
+        self.send_tick(self.tick_goal)
 
     def send_tick(self, ticks):
         # change it to pin_status != pin_status
