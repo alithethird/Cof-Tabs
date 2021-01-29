@@ -7,7 +7,7 @@ DIR = 20
 STEP = 16
 CW = 1
 CCW = 0
-
+tick = -1
 class motor_driver_pc:
 
     def __init__(self):
