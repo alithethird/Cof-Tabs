@@ -1,4 +1,5 @@
 from time import sleep
+import signal
 import RPi.GPIO as gpio
 
 EN = 21
@@ -14,7 +15,7 @@ class motor_driver:
         gpio.setup(DIR, gpio.OUT)
         gpio.setup(STEP, gpio.OUT)
         gpio.output(DIR, CW)
-
+        tick = -1
     def run_standard_test(self):
         time, ticks, direction = self.calculate_ticks(60, 100, 1)
         self.motor_run(time, ticks, direction)
@@ -33,24 +34,29 @@ class motor_driver:
         # 60mm için 60*180 tick
         ticks = speed * mm_per_tick
         time = 1/(ticks/60) # 0.003
-
+        time = round(time, 3)
         return time, ticks, direction
     def motor_run(self, time, ticks, direction):
 
         gpio.output(DIR, direction)
-        for x in range(ticks):
-            gpio.output(STEP, gpio.LOW)
-            sleep(time)
-            gpio.output(STEP, gpio.HIGH)
-            sleep(time)
-        gpio.output(STEP, gpio.LOW)
 
-    def send_tick(self, time, direction):
-        gpio.output(DIR, direction)
-        gpio.output(STEP, gpio.HIGH)
-        sleep(time)
-        gpio.output(STEP, gpio.LOW)
-        sleep(time)
+        signal.signal(signal.SIGALRM, lambda: self.send_tick(ticks))
+        signal.setitimer(signal.ITIMER_REAL, time, time)
+
+    def send_tick(self, ticks):
+        # change it to pin_status != pin_status
+        # gpio.input(pin)
+
+        if self.tick > 0: # countdown the ticks
+            self.tick = self.tick - 1
+        elif self.tick == -1: # if tick counter is reset set the counter
+            self.tick = ticks
+        elif self.tick == 0:
+            signal.setitimer(signal.ITIMER_REAL, 0, 0) # if ticks done stop timer
+            self.tick = -1 # reset counter
+
+        pin_state = gpio.input(STEP)
+        gpio.output(STEP, not pin_state) # output the reverse state to turn motor
 
 
 """

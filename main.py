@@ -112,15 +112,16 @@ class MyTableWidget(QWidget):
 
         hx.tare()
         self.timer = QtCore.QTimer()
-        self.timer.setInterval(5)
+        self.timer.setInterval(50)
         # md = motor_driver.motor_driver()
         # md.enable_motor()
         # md.run_standard_test()
 
         # md.motor_run(0.01, 400, 1)
         ttime, ticks, direction = self.md.calculate_ticks()
-        #motor_driver.motor_run(ttime, ticks, direction)
-        self.timer.timeout.connect(lambda: self.cof_test())
+        motor_driver.motor_run(ttime, ticks, direction)
+
+        self.timer.timeout.connect(self.update_plot)
         self.timer.start()
 
     def cof_test(self, ttime=0.01, ticks=400, direction=1):
