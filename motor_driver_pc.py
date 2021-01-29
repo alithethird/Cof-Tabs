@@ -37,17 +37,21 @@ class motor_driver_pc:
 
         #gpio.output(DIR, direction)
 
-        signal.signal(signal.SIGALRM, self.send_tick(ticks))
+        signal.signal(signal.SIGALRM, self.handler)
         signal.setitimer(signal.ITIMER_REAL, time, time)
 
-    def send_tick(self, ticks):
+    def handler(self, signum, _):
+        self.tick = 10
+        self.send_tick()
+
+    def send_tick(self):
         # change it to pin_status != pin_status
         # gpio.input(pin)
-        tick = self.tick
+        #self.tick = ticks
         if self.tick > 0: # countdown the ticks
             self.tick = self.tick - 1
         elif self.tick == -1: # if tick counter is reset set the counter
-            self.tick = ticks
+            self.tick = 10
         elif self.tick == 0:
             signal.setitimer(signal.ITIMER_REAL, 0, 0) # if ticks done stop timer
             self.tick = -1 # reset counter
