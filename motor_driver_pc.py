@@ -7,16 +7,12 @@ DIR = 20
 STEP = 16
 CW = 1
 CCW = 0
-tick = -1
-class motor_driver_pc:
 
+class motor_driver_pc:
+    tick = -1
+    pin_state = 0
     def __init__(self):
-        #gpio.setmode(gpio.BCM)
-        #gpio.setup(DIR, gpio.OUT)
-        #gpio.setup(STEP, gpio.OUT)
-        #gpio.output(DIR, CW)
-        tick = -1
-        pin_state = 0
+
     def run_standard_test(self):
         time, ticks, direction = self.calculate_ticks(60, 100, 1)
         self.motor_run(time, ticks, direction)
@@ -47,7 +43,7 @@ class motor_driver_pc:
     def send_tick(self, ticks):
         # change it to pin_status != pin_status
         # gpio.input(pin)
-
+        tick = self.tick
         if self.tick > 0: # countdown the ticks
             self.tick = self.tick - 1
         elif self.tick == -1: # if tick counter is reset set the counter
