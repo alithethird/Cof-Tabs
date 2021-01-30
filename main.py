@@ -109,7 +109,7 @@ class MyTableWidget(QWidget):
         # motor driver can already calculate wait time and tick count
 
     def start_test(self):
-
+        print("test basladi")
         hx.tare()
         self.timer = QtCore.QTimer()
         self.timer.setInterval(50)
@@ -120,7 +120,7 @@ class MyTableWidget(QWidget):
         # md.motor_run(0.01, 400, 1)
         ttime, ticks, direction = self.md.calculate_ticks()
         motor_driver.motor_run(ttime, ticks, direction)
-
+        print("motor driver kodundan cikildi")
         self.timer.timeout.connect(self.update_plot)
         self.timer.start()
 
