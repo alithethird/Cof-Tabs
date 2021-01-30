@@ -45,7 +45,7 @@ class motor_driver:
         gpio.output(DIR, direction)
         
         
-        self.motor_pwm.ChangeFrequency(STEP, frequency)
+        self.motor_pwm.ChangeFrequency(frequency)
         self.motor_pwm.start(50)
         print("motor pwm ayarlandi")
         signal.signal(signal.SIGALRM, self.handler)
