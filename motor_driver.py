@@ -1,9 +1,9 @@
 from time import sleep
 import signal
 import RPi.GPIO as gpio
-from mpu6050 import mpu6050
+#from mpu6050 import mpu6050
 
-imu_sensor = mpu6050(0x68)
+#imu_sensor = mpu6050(0x68)
 
 EN = 21
 DIR = 20
@@ -22,8 +22,8 @@ class motor_driver:
     gpio.setup(STEP, gpio.OUT)
     gpio.output(DIR, CW)
 
-    gpio.output(A_STEP, gpio.OUT)
-    gpio.output(A_DIR, gpio.OUT)
+    gpio.setup(A_STEP, gpio.OUT)
+    gpio.setup(A_DIR, gpio.OUT)
  
     motor_pwm = gpio.PWM(STEP, 100)
     angle_pwm = gpio.PWM(A_STEP, 1000)
