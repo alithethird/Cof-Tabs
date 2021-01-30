@@ -119,7 +119,7 @@ class MyTableWidget(QWidget):
 
         # md.motor_run(0.01, 400, 1)
         drive_time, frequency, direction = self.md.calculate_ticks()
-        self.md.motor_run(drive_time, frequency, direction)
+        self.md.motor_run(3, 100, direction)
         print("motor driver kodundan cikildi")
         self.timer.timeout.connect(self.update_plot)
         self.timer.start()

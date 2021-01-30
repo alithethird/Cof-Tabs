@@ -17,7 +17,7 @@ class motor_driver:
         gpio.setup(DIR, gpio.OUT)
         gpio.setup(STEP, gpio.OUT)
         gpio.output(DIR, CW)
-        motor_pwm = gpio.PWM(STEP, 0)
+        motor_pwm = gpio.PWM(STEP, 100)
 
     def run_standard_test(self):
         time, ticks, direction = self.calculate_ticks(60, 100, 1)
