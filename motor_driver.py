@@ -78,8 +78,6 @@ class motor_driver:
         print("aci motoru icin timer ayarlandi")
 
     def angle_test(self, signum, _):
-        self.angle_pwm.ChangeFrequency(100)
-        sleep(1)
         self.angle_pwm.stop()
     def angle_slow_down(self, signum, _):
 
