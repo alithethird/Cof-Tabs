@@ -82,6 +82,7 @@ class motor_driver:
 
     def angle_test(self, signum, _):
         self.angle_pwm.stop()
+        print("aci motoru durduruldu")
     def angle_slow_down(self, signum, _):
 
         angle = self.gyro_data() # açıyı okuyoruz
