@@ -7,7 +7,8 @@ def catcher(signum, _):
 
 
 signal.signal(signal.SIGALRM, catcher)
-signal.setitimer(signal.ITIMER_REAL, 3, 0.01)
+signal.setitimer(signal.ITIMER_REAL, 3, 0)
 
 while True:
-    time.sleep(5)
+    print("hell")
+    time.sleep(1)

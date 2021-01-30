@@ -17,6 +17,7 @@ class motor_driver:
         gpio.setup(DIR, gpio.OUT)
         gpio.setup(STEP, gpio.OUT)
         gpio.output(DIR, CW)
+        motor_pwm = gpio.PWM(STEP, 0)
 
     def run_standard_test(self):
         time, ticks, direction = self.calculate_ticks(60, 100, 1)
@@ -35,19 +36,27 @@ class motor_driver:
         mm_per_tick = 180
         # 60mm için 60*180 tick
         ticks = speed * mm_per_tick
-        time = 1/(ticks/60) # 0.003
-        time = round(time, 3)
-        return time, ticks, direction
-    def motor_run(self, time, ticks, direction):
+
+        drive_time = distance / speed
+        frequency = ticks/60
+
+        frequency = round(frequency, 3)
+        return drive_time, frequency, direction
+    def motor_run(self, drive_time, frequency, direction):
 
         gpio.output(DIR, direction)
-        self.tick_goal = ticks
+        
+        
+        self.motor_pwm.ChangeFrequency(STEP, frequency)
+        self.motor_pwm.start(50)
+        print("motor pwm ayarlandi")
         signal.signal(signal.SIGALRM, self.handler)
-        signal.setitimer(signal.ITIMER_REAL, time, time)
-        print("motor timer ayarlandi")
+        signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
+        print("motor stop timer ayarlandi")
 
     def handler(self, signum, _):
-        self.send_tick(self.tick_goal)
+        self.motor_pwm.stop()
+        print("motor pwm durduruldu")
 
     def send_tick(self, ticks):
         # change it to pin_status != pin_status
