@@ -160,6 +160,7 @@ class MyTableWidget(QWidget):
 
     def stop_test(self):
         self.timer.stop()
+        self.md.stop_motor()
         # motor_driver.motor_driver.disable_motor()
 
     def btn_tare(self):

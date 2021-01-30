@@ -64,6 +64,9 @@ class motor_driver:
         print("motor stop timer ayarlandi")
 
     def handler(self, signum, _):
+        self.stop_motor()
+
+    def stop_motor(self):
         self.motor_pwm.stop()
         print("motor pwm durduruldu")
 
