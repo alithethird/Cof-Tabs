@@ -1,6 +1,9 @@
 from time import sleep
 import signal
 import RPi.GPIO as gpio
+from mpu6050 import mpu6050
+
+imu_sensor = mpu6050(0x68)
 
 EN = 21
 DIR = 20
@@ -8,6 +11,9 @@ STEP = 16
 CW = 1
 CCW = 0
 
+A_STEP = 13 # açı motoru için step
+A_DIR = 19 # açı motoru için direction
+A_EN = 26 # açı motoru için enable
 class motor_driver:
     tick = -1
     tick_goal = 0
@@ -15,8 +21,12 @@ class motor_driver:
     gpio.setup(DIR, gpio.OUT)
     gpio.setup(STEP, gpio.OUT)
     gpio.output(DIR, CW)
+
+    gpio.output(A_STEP, gpio.OUT)
+    gpio.output(A_DIR, gpio.OUT)
  
     motor_pwm = gpio.PWM(STEP, 100)
+    angle_pwm = gpio.PWM(A_STEP, 1000)
     def run_standard_test(self):
         time, ticks, direction = self.calculate_ticks(60, 100, 1)
         self.motor_run(time, ticks, direction)
@@ -56,6 +66,42 @@ class motor_driver:
     def handler(self, signum, _):
         self.motor_pwm.stop()
         print("motor pwm durduruldu")
+
+    def set_angle_x(self, x):
+        gpio.output(A_DIR, CW)
+
+        self.angle_pwm.start(50)
+        print("aci motoru pozitif yonde calismaya basladı")
+        #signal.signal(signal.SIGALRM, self.angle_slow_down) # bu satır için mpu6050 lazım
+        signal.signal(signal.SIGALRM, self.angle_test) # test satırı
+        signal.setitimer(signal.ITIMER_REAL, x, 0)
+        print("aci motoru icin timer ayarlandi")
+
+    def angle_test(self, signum, _):
+        self.angle_pwm.ChangeFrequency(100)
+        sleep(1)
+        self.angle_pwm.stop()
+    def angle_slow_down(self, signum, _):
+
+        angle = self.gyro_data() # açıyı okuyoruz
+        if angle == 30: # açıya ulaştı ise motor duruyor
+            self.angle_pwm.stop()
+        elif angle < 30: # geride kaldı ise aradaki farka oranlı bir hızda ileri dönüyor
+            gpio.output(A_DIR, CW)
+            angle_freq = (angle - 30) * 10
+            self.angle_pwm.ChangeFrequency(angle_freq)
+        elif angle > 30: # fazla gittiyse aradaki farka oranlı bir hızda geri dönüyor
+            angle_freq = (30 - angle) * 10
+            gpio.output(A_DIR, CCW)
+            self.angle_pwm.ChangeFrequency(angle_freq)
+
+    def gyro_data(self):
+        gyro_data = imu_sensor.get_gyro_data() # sensörden gyro_data okundu
+        gyro_x = gyro_data['x']
+        gyro_y = gyro_data['y']
+        gyro_z = gyro_data['z']
+
+        return gyro_x #lazım olan eksendeki data geri dönüldü burada x'miş gibi davranıldı fakat başka bir eksen de olabilir
 
     def send_tick(self, ticks):
         # change it to pin_status != pin_status

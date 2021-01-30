@@ -80,7 +80,8 @@ class MyTableWidget(QWidget):
         self.pushButtonStart = QPushButton("Start the test")
         self.pushButtonStop = QPushButton("Stop the test")
         self.pushButtonWeight = QPushButton("Weight")
-
+        # açı butonu
+        self.pushButtonAngle = QPushButton("Set Angle")
 
 
         # Set Plotter
@@ -91,6 +92,7 @@ class MyTableWidget(QWidget):
         self.tab2.layout.addWidget(self.pushButtonStart)
         self.tab2.layout.addWidget(self.pushButtonStop)
         self.tab2.layout.addWidget(self.pushButtonWeight)
+        self.tab2.layout.addWidget(self.pushButtonAngle)
 
         self.tab2.setLayout(self.tab2.layout)
         self.tab2.layout.addWidget(self.graphicsView)
@@ -102,6 +104,7 @@ class MyTableWidget(QWidget):
         self.pushButtonStart.clicked.connect(self.start_test)  # plot when clicked
         self.pushButtonStop.clicked.connect(self.stop_test)  # tare when clicked
         self.pushButtonWeight.clicked.connect(self.btn_weight)  # weight when clicked
+        self.pushButtonAngle.clicked.connect(self.set_angle) # set angle when clicked
 
         self.md = motor_driver()
         # timer set and update plot
@@ -173,6 +176,14 @@ class MyTableWidget(QWidget):
         self.test_data.append(val)
         self.test_time.append(self.test_time[-1] + 0.05)
         self.data_line.setData(self.test_time, self.test_data)
+
+    def set_angle(self):
+        x = 2 # x süresi 2 saniye olsun mesela
+        self.md.set_angle_x(x)
+        # en azından x sn boyunca 30 dereceye ulaşmayacağını biliyoruz
+        # bu x saniye boyunca sistem kasmaması için pwm ile sürüyoruz
+        # signal timer ile x saniyeye ulaştığımızda interrupt giriyoruz
+        # x saniye sonunda açıya bakıp ona göre sürmeye başlıyoruz
 
     @pyqtSlot()
     def on_click(self):
