@@ -35,7 +35,8 @@ class motor_driver:
         # 60mm için 60*180 tick
         ticks = speed * mm_per_tick
 
-        drive_time = distance / speed
+        drive_time = (distance / speed)*60
+
         frequency = ticks/60
 
         frequency = round(frequency, 3)
