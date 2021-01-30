@@ -13,12 +13,13 @@ class motor_driver:
     tick_goal = 0
     pin_state = 0
     motor_pwm = gpio.PWM(STEP, 100)
+    gpio.setup(DIR, gpio.OUT)
+    gpio.setup(STEP, gpio.OUT)
+    gpio.output(DIR, CW)
+
     def __init__(self):
         #gpio.setmode(gpio.BCM)
-        gpio.setup(DIR, gpio.OUT)
-        gpio.setup(STEP, gpio.OUT)
-        gpio.output(DIR, CW)
-
+    
     def run_standard_test(self):
         time, ticks, direction = self.calculate_ticks(60, 100, 1)
         self.motor_run(time, ticks, direction)
