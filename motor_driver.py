@@ -77,10 +77,11 @@ class motor_driver:
         print("aci motoru pozitif yonde calismaya basladı")
         #signal.signal(signal.SIGALRM, self.angle_slow_down) # bu satır için mpu6050 lazım
         signal.signal(signal.SIGALRM, self.angle_test) # test satırı
-        signal.setitimer(signal.ITIMER_REAL, x, 0)
+        signal.setitimer(signal.ITIMER_VIRTUAL, x, 0)
         print("aci motoru icin timer ayarlandi")
 
     def angle_test(self, signum, _):
+
         self.angle_pwm.stop()
         print("aci motoru durduruldu")
     def angle_slow_down(self, signum, _):
