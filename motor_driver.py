@@ -1,9 +1,9 @@
 from time import sleep
 import signal
 import RPi.GPIO as gpio
-#from mpu6050 import mpu6050
+from mpu6050 import mpu6050
 
-#imu_sensor = mpu6050(0x68)
+imu_sensor = mpu6050(0x68)
 
 EN = 21
 DIR = 20
@@ -75,8 +75,8 @@ class motor_driver:
 
         self.angle_pwm.start(50)
         print("aci motoru pozitif yonde calismaya basladı")
-        #signal.signal(signal.SIGALRM, self.angle_slow_down) # bu satır için mpu6050 lazım
-        signal.signal(signal.SIGALRM, self.angle_test) # test satırı
+        signal.signal(signal.SIGALRM, self.angle_slow_down) # bu satır için mpu6050 lazım
+        #signal.signal(signal.SIGALRM, self.angle_test) # test satırı
         signal.setitimer(signal.ITIMER_REAL, x, 0)
         print("aci motoru icin timer ayarlandi")
 
