@@ -8,6 +8,10 @@ STEP = 16
 CW = 1
 CCW = 0
 
+A_STEP = 13 # açı motoru için step
+A_DIR = 19 # açı motoru için direction
+A_EN = 26 # açı motoru için enable
+
 class motor_driver_pc:
     tick = -1
     tick_goal = 0
@@ -27,22 +31,55 @@ class motor_driver_pc:
         # dakikada 100 mm için 18000 tick
         # saniyede 300 tick
         # 0.003 saniyede 1 tick
-
+        print("motor icin sure ve tick sayisi hesaplandi")
         mm_per_tick = 180
         # 60mm için 60*180 tick
         ticks = speed * mm_per_tick
-        time = 1/(ticks/60) # 0.003
-        time = round(time, 3)
-        return time, ticks, direction
+
+        drive_time = (distance / speed)*60
+
+        frequency = ticks/60
+
+        frequency = round(frequency, 3)
+        return drive_time, frequency, direction
+
     def motor_run(self, time, ticks, direction):
 
-        #gpio.output(DIR, direction)
-        self.tick_goal = ticks
+        print("motor pwm ayarlandi")
         signal.signal(signal.SIGALRM, self.handler)
-        signal.setitimer(signal.ITIMER_REAL, time, time)
+        signal.setitimer(signal.ITIMER_REAL, time, 0)
+        print("motor stop timer ayarlandi")
+    def stop_motor(self):
+        print("Motor stopped!")
 
     def handler(self, signum, _):
-        self.send_tick()
+        self.stop_motor()
+
+    def set_angle_x(self, x):
+
+        print("aci motoru pozitif yonde calismaya basladı")
+        signal.signal(signal.SIGALRM, self.angle_slow_down)  # bu satır için mpu6050 lazım
+        # signal.signal(signal.SIGALRM, self.angle_test) # test satırı
+        signal.setitimer(signal.ITIMER_REAL, x, 0)
+        print("aci motoru icin timer ayarlandi")
+
+    def angle_test(self, signum, _):
+
+        print("aci motoru durduruldu")
+
+    def angle_slow_down(self, signum, _):
+
+        angle = self.gyro_data()  # açıyı okuyoruz
+        if angle == 30:  # açıya ulaştı ise motor duruyor
+            print("açıya ulaştı açı motoru duruyor")
+        elif angle < 30:  # geride kaldı ise aradaki farka oranlı bir hızda ileri dönüyor
+            print("geride kaldı açı motoru oranlı ileri dönüyor")
+        elif angle > 30:  # fazla gittiyse aradaki farka oranlı bir hızda geri dönüyor
+            print("ileride kaldı açı motoru oranlı geri dönüyor")
+
+
+    def gyro_data(self):
+        return 30
 
     def send_tick(self):
         # change it to pin_status != pin_status

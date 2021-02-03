@@ -14,22 +14,8 @@ from PyQt5 import QtWidgets
 import pyqtgraph as pg
 # import numpy as np
 # pyqt 5.11.3
-import random
+from random import random
 
-#    import RPi.GPIO as gpio
-
-#gpio.setmode(gpio.BCM)
-#   from hx711 import HX711  ##simulate that
-"""
-    # set up the load cell
-    hx = HX711(5, 6)
-    hx.set_reading_format("MSB", "MSB")
-    hx.reset()
-    hx.tare()
-"""
-
-# L = np.zeros(1)
-# import force_read as f_r
 
 class App(QMainWindow):
 
