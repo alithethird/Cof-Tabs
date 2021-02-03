@@ -47,7 +47,7 @@ class motor_driver_pc:
 
         print("motor pwm ayarlandi")
         signal.signal(signal.SIGALRM, self.handler)
-        signal.setitimer(signal.ITIMER_REAL, time, 0)
+        signal.setitimer(signal.ITIMER_VIRTUAL, time, 0)
         print("motor stop timer ayarlandi")
     def stop_motor(self):
         print("Motor stopped!")
