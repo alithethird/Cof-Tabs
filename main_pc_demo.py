@@ -126,7 +126,7 @@ class MyTableWidget(QWidget):
         pixmap = QtGui.QPixmap('mini_logo.png')
         logo.setPixmap(pixmap)
         logo.resize(pixmap.width(), pixmap.height())
-        logo.move(pixmap.width() / 2, 0)
+        logo.move(180, 0)
 
         #logo.move(120,120)
         self.tab2.setLayout(self.tab2.layout)
