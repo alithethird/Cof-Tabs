@@ -131,7 +131,7 @@ class App(QMainWindow):
     def set_angle_30(self):
 
         self.update_angle_labels()
-        if not self.check_angle():
+        if not self.check_angle:
             self.md.set_angle_30()
         else:
             print("Angle is set!")
@@ -139,7 +139,7 @@ class App(QMainWindow):
     def set_angle_0(self):
 
         self.update_angle_labels()
-        if not self.check_angle_0():
+        if not self.check_angle_0:
             self.md.set_angle_0()
         else:
             print("Angle is set!")
