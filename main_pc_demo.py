@@ -37,7 +37,10 @@ class App(QMainWindow):
 
         self.button_events()
 
+        self.set_plotter()
+
         self.md = motor_driver_pc()
+
 
     def Alarge_logo(self):
         # Show Alarge logo
@@ -140,13 +143,9 @@ class App(QMainWindow):
     def set_plotter(self):
 
         # Set Plotter
-        pg.setConfigOption('background', 'w')
-        pg.setConfigOption('foreground', 'k')
-
-        self.graphicsView = pg.PlotWidget(title="Coefficient of Friction Test")
-
+        self.graphWidget.setBackground('w')
         pen = pg.mkPen(color=(255, 0, 0))
-        self.data_line = self.graphicsView.plot(self.test_time, self.test_data, pen=pen)
+        self.data_line = self.graphWidget.plot(self.test_time, self.test_data, pen=pen)
 
 
 
