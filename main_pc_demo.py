@@ -124,7 +124,8 @@ class App(QMainWindow):
         # signal timer ile x saniyeye ulaştığımızda interrupt giriyoruz
         # x saniye sonunda açıya bakıp ona göre sürmeye başlıyoruz
 
-
+    def show_imu(self):
+        
 
 
     @pyqtSlot()

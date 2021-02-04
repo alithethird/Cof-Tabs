@@ -1,9 +1,8 @@
 from time import sleep
 import signal
 import RPi.GPIO as gpio
-from mpu6050 import mpu6050
+import angle_read
 
-imu_sensor = mpu6050(0x68)
 
 EN = 21
 DIR = 20
@@ -79,6 +78,28 @@ class motor_driver:
         #signal.signal(signal.SIGALRM, self.angle_test) # test satırı
         signal.setitimer(signal.ITIMER_REAL, x, 0)
         print("aci motoru icin timer ayarlandi")
+    def set_angle_30(self):
+        angle = angle_read.get_rotation(1)  # açıyı okuyoruz, fonksiyon içine sayı almadan sayı döndürmüyor bu yüzden içeri 1 verdik, içeri verilen sayı işleme dahil edilmiyor istenen sayı verilebilir
+
+        if angle >= 28 and angle <= 32:  # açıya ulaştı ise motor duruyor
+            self.angle_pwm.stop()
+        elif angle < 28:  # geride kaldı ise aradaki farka oranlı bir hızda ileri dönüyor
+            gpio.output(A_DIR, CW)
+            angle_freq = (angle - 30) * 10
+            self.angle_pwm.ChangeFrequency(angle_freq)
+        elif angle > 32:  # fazla gittiyse aradaki farka oranlı bir hızda geri dönüyor
+            angle_freq = (30 - angle) * 10
+            gpio.output(A_DIR, CCW)
+            self.angle_pwm.ChangeFrequency(angle_freq)
+    def set_angle_0(self):
+        angle = angle_read.get_rotation(1)  # açıyı okuyoruz, fonksiyon içine sayı almadan sayı döndürmüyor bu yüzden içeri 1 verdik, içeri verilen sayı işleme dahil edilmiyor istenen sayı verilebilir
+
+        if angle <= 2:  # açıya ulaştı ise motor duruyor
+            self.angle_pwm.stop()
+        elif angle > 2:  # fazla gittiyse aradaki farka oranlı bir hızda geri dönüyor
+            angle_freq = angle * 10
+            gpio.output(A_DIR, CCW)
+            self.angle_pwm.ChangeFrequency(angle_freq)
 
     def angle_test(self, signum, _):
 
@@ -86,7 +107,8 @@ class motor_driver:
         print("aci motoru durduruldu")
     def angle_slow_down(self, signum, _):
 
-        angle = self.gyro_data() # açıyı okuyoruz
+        angle = angle_read.get_rotation(1)# açıyı okuyoruz, fonksiyon içine sayı almadan sayı döndürmüyor bu yüzden içeri 1 verdik, içeri verilen sayı işleme dahil edilmiyor istenen sayı verilebilir
+
         if angle == 30: # açıya ulaştı ise motor duruyor
             self.angle_pwm.stop()
         elif angle < 30: # geride kaldı ise aradaki farka oranlı bir hızda ileri dönüyor
@@ -98,13 +120,6 @@ class motor_driver:
             gpio.output(A_DIR, CCW)
             self.angle_pwm.ChangeFrequency(angle_freq)
 
-    def gyro_data(self):
-        gyro_data = imu_sensor.get_gyro_data() # sensörden gyro_data okundu
-        gyro_x = gyro_data['x']
-        gyro_y = gyro_data['y']
-        gyro_z = gyro_data['z']
-
-        return gyro_x #lazım olan eksendeki data geri dönüldü burada x'miş gibi davranıldı fakat başka bir eksen de olabilir
 
     def send_tick(self, ticks):
         # change it to pin_status != pin_status
@@ -125,31 +140,3 @@ class motor_driver:
         else:
             gpio.output(STEP, gpio.HIGH)
             print("motor 1")
-
-"""
-# Main body of code
-try:
-    while True:
-        sleep(1)
-        gpio.output(DIR, CW)
-        for x in range(400):
-            gpio.output(STEP, gpio.HIGH)
-            sleep(.0005)
-            gpio.output(STEP, gpio.LOW)
-            sleep(.0005)
-
-        sleep(1)
-        gpio.output(DIR, CCW)
-        for x in range(400):
-            gpio.output(STEP, gpio.HIGH)
-            sleep(.0010)
-            gpio.output(STEP, gpio.LOW)
-            sleep(.0010)
-
-
-
-
-except KeyboardInterrupt:  # If there is a KeyboardInterrupt (when you press ctrl+c), exit the program and cleanup
-    print("Cleaning up!")
-    gpio.cleanup()
-"""
