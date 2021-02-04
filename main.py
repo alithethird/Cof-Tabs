@@ -1,14 +1,12 @@
 import sys
 import os
-from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout, \
-    QHBoxLayout
+from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 from PyQt5 import QtCore
-from PyQt5 import QtWidgets
+from PyQt5 import QtGui
 import pyqtgraph as pg
-# import numpy as np
-# pyqt 5.11.3
+from PyQt5.uic import loadUi
 
 import RPi.GPIO as gpio
 
@@ -22,33 +20,13 @@ hx.set_reading_format("MSB", "MSB")
 hx.reset()
 hx.tare()
 
-
-# L = np.zeros(1)
-# import force_read as f_r
-
 class App(QMainWindow):
 
     def __init__(self):
-        super().__init__()
-        self.title = 'Alarge Coefficient of Friction Tester'
-        self.left = 0
-        self.top = 0
-        self.width = 800
-        self.height = 480
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
+        QMainWindow.__init__(self)
 
-        self.table_widget = MyTableWidget(self)
-        self.setCentralWidget(self.table_widget)
-
-        self.show()
-
-
-class MyTableWidget(QWidget):
-
-    def __init__(self, parent):
-        super(QWidget, self).__init__(parent)
-        self.layout = QVBoxLayout(self)
+        loadUi("cof.ui", self)
+        self.setWindowTitle("Alarge Coefficient of Friction Tester")
 
         self.test_time = [0]
         self.test_data = [0]
@@ -57,59 +35,41 @@ class MyTableWidget(QWidget):
         self.filtered_value = 0
         self.tick = 0
 
-        # Initialize tab screen
-        self.tabs = QTabWidget()
-        self.tab1 = QWidget()
-        self.tab2 = QWidget()
-        self.tab3 = QWidget()
-        self.tabs.resize(300, 200)
+        # go to test screen
+        self.pushButton1.clicked.connect(lambda: self.tabs.setCurrentIndex(1))
 
-        # Add tabs
-        self.tabs.addTab(self.tab1, "Main Menu")
-        self.tabs.addTab(self.tab2, "Test")
-        self.tabs.addTab(self.tab3, "Results")
+        self.Alarge_logo() # Show Alarge logo
 
-        # Create first tab
-        self.tab1.layout = QVBoxLayout(self)
-        self.pushButton1 = QPushButton("PyQt5 button")
-        self.tab1.layout.addWidget(self.pushButton1)
-        self.tab1.setLayout(self.tab1.layout)
+        self.tabs.tabBar().hide() # hide tab bar
 
-        # Create second tab
-        self.tab2.layout = QVBoxLayout(self)
-        self.pushButtonStart = QPushButton("Start the test")
-        self.pushButtonStop = QPushButton("Stop the test")
-        self.pushButtonWeight = QPushButton("Weight")
-        # açı butonu
-        self.pushButtonAngle = QPushButton("Set Angle")
+        self.button_events()
 
+        self.set_plotter()
 
-        # Set Plotter
-        pg.setConfigOption('background', 'w')
-        pg.setConfigOption('foreground', 'k')
+        self.md = motor_driver()
 
-        self.graphicsView = pg.PlotWidget(title="Coefficient of Friction Test")
-        self.tab2.layout.addWidget(self.pushButtonStart)
-        self.tab2.layout.addWidget(self.pushButtonStop)
-        self.tab2.layout.addWidget(self.pushButtonWeight)
-        self.tab2.layout.addWidget(self.pushButtonAngle)
+    def Alarge_logo(self):
+        # Show Alarge logo
+        pixmap = QtGui.QPixmap('mini_logo.png')
+        self.logo.setPixmap(pixmap)
+        self.logo.resize(pixmap.width(), pixmap.height())
+        self.logo.move(180, 0)
 
-        self.tab2.setLayout(self.tab2.layout)
-        self.tab2.layout.addWidget(self.graphicsView)
-        self.layout.addWidget(self.tabs)
-        self.setLayout(self.layout)
-        pen = pg.mkPen(color=(255, 0, 0))
-        self.data_line = self.graphicsView.plot(self.test_time, self.test_data, pen=pen)
-        # button events
+    def button_events(self):
+        self.pushButton1.clicked.connect(lambda: self.tabs.setCurrentIndex(1))  # go to test screen when clicked
         self.pushButtonStart.clicked.connect(self.start_test)  # plot when clicked
         self.pushButtonStop.clicked.connect(self.stop_test)  # tare when clicked
         self.pushButtonWeight.clicked.connect(self.btn_weight)  # weight when clicked
-        self.pushButtonAngle.clicked.connect(self.set_angle) # set angle when clicked
+        self.pushButtonAngle.clicked.connect(self.set_angle)  # set angle when clicked
+        self.pushButtonResults.clicked.connect(lambda: self.tabs.setCurrentIndex(2))  # go to results tab and calculate results
+        self.pushButtonTests.clicked.connect(lambda: self.tabs.setCurrentIndex(1))
 
-        self.md = motor_driver()
-        # timer set and update plot
-        # integrate motor driving with QTtimer
-        # motor driver can already calculate wait time and tick count
+    def set_plotter(self):
+
+        # Set Plotter
+        self.graphWidget.setBackground('w')
+        pen = pg.mkPen(color=(255, 0, 0))
+        self.data_line = self.graphWidget.plot(self.test_time, self.test_data, pen=pen)
 
     def start_test(self):
         print("test basladi")
@@ -127,24 +87,7 @@ class MyTableWidget(QWidget):
         self.timer.timeout.connect(self.update_plot)
         self.timer.start()
 
-    def cof_test(self, ttime=0.01, ticks=400, direction=1):
-        # counts down ticks
-        if self.tick == 0:
-            self.tick = ticks
 
-        self.md.send_tick(ttime, direction)
-
-        self.tick = self.tick - 1
-
-        print(self.tick)
-
-        if self.tick < 1:
-            self.tick = 0
-
-        self.update_plot()
-
-        if self.tick == 0:
-            self.stop_test()
 
     def filter_force(self):
         # hx711 library already does that :(
@@ -186,6 +129,7 @@ class MyTableWidget(QWidget):
         # signal timer ile x saniyeye ulaştığımızda interrupt giriyoruz
         # x saniye sonunda açıya bakıp ona göre sürmeye başlıyoruz
 
+
     @pyqtSlot()
     def on_click(self):
         print("\n")
@@ -193,26 +137,8 @@ class MyTableWidget(QWidget):
             print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
 
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = App()
-    sys.exit(app.exec_())
 
-    """
-            # Add plot to second tab
-            self.graphicsView = pg.PlotWidget()
-            self.tab2.layout = QVBoxLayout(self)
-            self.graphicsView.setObjectName("graphicsView")
-            self.tab2.layout.addWidget(self.graphicsView)
-            self.pushButtonStart = QPushButton("Plot that shit")
-
-            self.pushButtonStart.clicked.connect(self.btn_clk)
-    """
-
-    """
-        def btn_clk(self):
-            val = hx.get_weight(5)
-            np.append(L, val)
-
-            self.graphicsView.plot(L, pen=pg.mkPen('r', width=3))  # this line plots red
-    """
+app = QApplication([])
+window = App()
+window.show()
+app.exec_()

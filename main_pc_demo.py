@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import *
 # from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 from PyQt5 import QtCore
-# from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 import pyqtgraph as pg
 from PyQt5.uic import loadUi
@@ -55,8 +54,15 @@ class App(QMainWindow):
         self.pushButtonStop.clicked.connect(self.stop_test)  # tare when clicked
         self.pushButtonWeight.clicked.connect(self.btn_weight)  # weight when clicked
         self.pushButtonAngle.clicked.connect(self.set_angle)  # set angle when clicked
-        self.pushButtonResults.clicked.connect(self.goto_results_tab)  # go to results tab and calculate results
+        self.pushButtonResults.clicked.connect(lambda: self.tabs.setCurrentIndex(2))  # go to results tab and calculate results
         self.pushButtonTests.clicked.connect(lambda: self.tabs.setCurrentIndex(1))
+
+    def set_plotter(self):
+
+        # Set Plotter
+        self.graphWidget.setBackground('w')
+        pen = pg.mkPen(color=(255, 0, 0))
+        self.data_line = self.graphWidget.plot(self.test_time, self.test_data, pen=pen)
 
 
     def start_test(self):
@@ -76,24 +82,7 @@ class App(QMainWindow):
         self.timer.timeout.connect(self.update_plot)
         self.timer.start()
 
-    def cof_test(self, ttime=0.01, ticks=400, direction=1):
-        # counts down ticks
-        if self.tick == 0:
-            self.tick = ticks
 
-        self.md.send_tick(ttime, direction)
-
-        self.tick = self.tick - 1
-
-        print(self.tick)
-
-        if self.tick < 1:
-            self.tick = 0
-
-        self.update_plot()
-
-        if self.tick == 0:
-            self.stop_test()
 
     def filter_force(self):
         # hx711 library already does that :(
@@ -135,17 +124,6 @@ class App(QMainWindow):
         # signal timer ile x saniyeye ulaştığımızda interrupt giriyoruz
         # x saniye sonunda açıya bakıp ona göre sürmeye başlıyoruz
 
-    def goto_results_tab(self):
-        self.tabs.setCurrentIndex(2)
-
-
-
-    def set_plotter(self):
-
-        # Set Plotter
-        self.graphWidget.setBackground('w')
-        pen = pg.mkPen(color=(255, 0, 0))
-        self.data_line = self.graphWidget.plot(self.test_time, self.test_data, pen=pen)
 
 
 
