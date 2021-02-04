@@ -75,7 +75,7 @@ class App(QMainWindow):
         self.data_line = self.graphWidget.plot(self.test_time, self.test_data, pen=pen)
 
     def update_angle_labels(self):
-        val = angle_read.get_rotation(1)
+        val = round(angle_read.get_rotation(1), 2)
         self.AngleValue.setText(val)
 
     def start_test(self):
@@ -130,35 +130,45 @@ class App(QMainWindow):
 
     def set_angle_30(self):
 
-        self.update_angle_labels()
-        if not self.check_angle:
-            self.md.set_angle_30()
-        else:
-            print("Angle is set!")
+        while self.check_angle_30:
+            self.update_angle_labels()
+            val = round(angle_read.get_rotation(1), 2)
+            self.AngleValue.setText(val)
+            if val <= 28:
+                freq = (30 - val)*20
+                self.md.start_angle_motor_rise(freq)
+            else:
+                self.md.stop_angle_motor()
+        print("Angle is set!")
 
     def set_angle_0(self):
 
-        self.update_angle_labels()
-        if not self.check_angle_0:
-            self.md.set_angle_0()
-        else:
-            print("Angle is set!")
 
+        while self.check_angle_0:
+            self.update_angle_labels()
+            val = round(angle_read.get_rotation(1), 2)
+            self.AngleValue.setText(val)
+            if val >= 2:
+                freq = val*20
+                self.md.start_angle_motor_fall(freq)
+            else:
+                self.md.stop_angle_motor()
+        print("Angle is set!")
     def check_angle_30(self):
         val = angle_read.get_rotation(1)
         self.AngleValue.setText(val)
         if val >= 28 and val <= 32:
-            return True
-        else:
             return False
+        else:
+            return True
 
     def check_angle_0(self):
         val = angle_read.get_rotation(1)
         self.AngleValue.setText(val)
         if val <= 2:
-            return True
-        else:
             return False
+        else:
+            return True
 
     @pyqtSlot()
     def on_click(self):

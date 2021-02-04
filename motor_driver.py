@@ -78,6 +78,21 @@ class motor_driver:
         #signal.signal(signal.SIGALRM, self.angle_test) # test satırı
         signal.setitimer(signal.ITIMER_REAL, x, 0)
         print("aci motoru icin timer ayarlandi")
+
+    def start_angle_motor_rise(self, frequency = 1000):
+        gpio.output(A_DIR, CW)
+
+        self.angle_pwm.ChangeFrequency(frequency)
+        self.angle_pwm.start()
+    def start_angle_motor_fall(self, frequency = 1000):
+        gpio.output(A_DIR, CCW)
+
+        self.angle_pwm.ChangeFrequency(frequency)
+        self.angle_pwm.start()
+
+    def stop_angle_motor(self):
+        self.angle_pwm.stop()
+
     def set_angle_30(self):
         angle = angle_read.get_rotation(1)  # açıyı okuyoruz, fonksiyon içine sayı almadan sayı döndürmüyor bu yüzden içeri 1 verdik, içeri verilen sayı işleme dahil edilmiyor istenen sayı verilebilir
 
