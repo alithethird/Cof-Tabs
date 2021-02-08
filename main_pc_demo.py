@@ -1,24 +1,26 @@
-
 # import os
-from PyQt5.QtWidgets import *
-# from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSlot
+import datetime
+from random import random
+
+import pyqtgraph as pg
 from PyQt5 import QtCore
 from PyQt5 import QtGui
-import pyqtgraph as pg
+# from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtWidgets import *
 from PyQt5.uic import loadUi
-import datetime
+
+# from fpdf import FPDF
+from fpdf_handler import fpdf_handler
 from motor_driver_pc import motor_driver_pc
 
-#from fpdf import FPDF
-from fpdf_handler import fpdf_handler
-from random import random
 
 class sample:
     name = ""
     width = 0
     height = 0
     age = 0
+
 
 class App(QMainWindow):
 
@@ -38,9 +40,9 @@ class App(QMainWindow):
         self.sample1 = sample()
         self.sample2 = sample()
 
-        self.Alarge_logo() # Show Alarge logo
+        self.Alarge_logo()  # Show Alarge logo
 
-        self.tabs.tabBar().hide() # hide tab bar
+        self.tabs.tabBar().hide()  # hide tab bar
 
         self.button_events()
 
@@ -56,7 +58,7 @@ class App(QMainWindow):
         self.logo.move(180, 0)
 
     def button_events(self):
-        self.pushButtonTestScreen.clicked.connect(self.test_screen) # go to test screen
+        self.pushButtonTestScreen.clicked.connect(self.test_screen)  # go to test screen
         self.pushButtonStart.clicked.connect(self.start_test)  # plot when clicked
         self.pushButtonStop.clicked.connect(self.stop_test)  # tare when clicked
         self.pushButtonWeight.clicked.connect(self.btn_weight)  # weight when clicked
@@ -65,6 +67,7 @@ class App(QMainWindow):
         self.pushButtonTests.clicked.connect(lambda: self.tabs.setCurrentIndex(1))
         self.pushButtonCreatePDF.clicked.connect(self.createPDF)
         self.pushButtonMain.clicked.connect(lambda: self.tabs.setCurrentIndex(0))
+
     def set_plotter(self):
 
         # Set Plotter
@@ -85,10 +88,10 @@ class App(QMainWindow):
             self.sample2.height = self.sampleHeigth2.text()
             self.sample2.age = self.sampleAge2.text()
             self.tabs.setCurrentIndex(1)  # go to test screen
-        elif  self.is_second_sample_properties_empty() and self.checkBoxDiff.isChecked():
+        elif self.is_second_sample_properties_empty() and self.checkBoxDiff.isChecked():
             self.labelSecondSampleError.setText("You need to enter Second sample properties!")
             pass
-        elif  not self.is_second_sample_properties_empty() and not self.checkBoxDiff.isChecked():
+        elif not self.is_second_sample_properties_empty() and not self.checkBoxDiff.isChecked():
             self.labelSecondSampleError.setText("You need check the checkbox to test against different sample!")
             pass
         elif self.is_second_sample_properties_empty() and not self.checkBoxDiff.isChecked():
@@ -137,7 +140,7 @@ class App(QMainWindow):
         self.data_line.setData(self.test_time, self.test_data)
 
     def set_angle(self):
-        x = 2 # x süresi 2 saniye olsun mesela
+        x = 2  # x süresi 2 saniye olsun mesela
         self.md.set_angle_x(x)
         # en azından x sn boyunca 30 dereceye ulaşmayacağını biliyoruz
         # bu x saniye boyunca sistem kasmaması için pwm ile sürüyoruz
@@ -146,6 +149,7 @@ class App(QMainWindow):
 
     def show_imu(self):
         print("imu shown!")
+
     def results_tab(self):
         self.tabs.setCurrentIndex(2)
         self.create_results()
@@ -183,19 +187,3 @@ app = QApplication([])
 window = App()
 window.show()
 app.exec_()
-
-"""
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
-
-        date_today = datetime.datetime.today()
-        date = date_today.strftime("%Y:%m:%d")
-        time = date_today.strftime("%H:%M:%S")
-        date_and_time = date_today.strftime("%Y:%m:%d--%H:%M:%S")
-
-        pdf.cell(200, 10, txt="Deneme!", ln=1, align="C")
-        pdf.cell(10, 10, txt=date_and_time, ln=1, align="L")
-        pdf.cell(200, 50, txt=time, ln=1, align="L")
-        pdf.output("COF Test " + date_and_time +".pdf")
-"""
