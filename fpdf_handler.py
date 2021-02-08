@@ -1,5 +1,6 @@
 from fpdf import FPDF
 import datetime
+import shutil
 
 class sample:
     name = "Sample Name"
@@ -56,7 +57,19 @@ class fpdf_handler(FPDF):
             self.single_table(sample1, static, dynamic)
         else:
             self.diff_table(sample1, sample2, static, dynamic)
-        self.output("COF Test " + self.date_and_time + ".pdf")
+
+        filename = "COF Test " + self.date_and_time + ".pdf"
+
+        self.output(filename)
+        source = "./" + filename
+        destination = "/media/pi/USB1/" + filename
+
+        try:
+            shutil.copy2(source, destination)
+        except shutil.Error as e:
+            print("Error: %s" % e)
+        except IOError as e:
+            print("Error: %s" % e.strerror)
         self.close()
 
 
