@@ -1,17 +1,33 @@
-import sys
-import os
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSlot
-from PyQt5 import QtCore
-from PyQt5 import QtGui
-import pyqtgraph as pg
-from PyQt5.uic import loadUi
-
-import RPi.GPIO as gpio
+from kivy.lang import Builder
+from kivy.uix.label import Label
+from kivy.app import App
+from kivy.core.window import Window
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy_garden.graph import MeshLinePlot
+from kivy.clock import Clock
 
 import datetime
 from fpdf_handler import fpdf_handler
+
+import RPi.GPIO as gpio
+import angle_read
+from math import cos
+
+gpio.setmode(gpio.BCM)
+from hx711 import HX711
+from motor_driver import motor_driver
+
+# set up the load cell
+
+hx = HX711(5, 6)
+hx.set_reading_format("MSB", "MSB")
+hx.reset()
+hx.tare()
+
+Builder.load_file('cof.kv')
+
+md = motor_driver()
+
 
 class sample:
     name = ""
@@ -19,216 +35,184 @@ class sample:
     height = 0
     age = 0
 
-import angle_read
 
-gpio.setmode(gpio.BCM)
-from hx711 import HX711
-from motor_driver import motor_driver
+sample1 = sample()
+sample2 = sample()
 
-# set up the load cell
-hx = HX711(5, 6)
-hx.set_reading_format("MSB", "MSB")
-hx.reset()
-hx.tare()
+global normal_force # üstte kayan metal malzemenin kütlesi (kg)
+normal_force = 0.1
+global test_angle
+test_angle = 0
 
-class App(QMainWindow):
+def get_force():
+    global forces
 
-    def __init__(self):
-        QMainWindow.__init__(self)
+    val = hx.get_weight(5)
+    calib = 1  # kalibrasyon sayısı
+    val /= calib
+    forces.append(val)
 
-        loadUi("cof.ui", self)
-        self.setWindowTitle("Alarge Coefficient of Friction Tester")
 
-        self.test_time = [0]
-        self.test_data = [0]
-        self.filter_counter = 0
-        self.filter_storage = 0
-        self.filtered_value = 0
-        self.tick = 0
-
-        self.sample1 = sample()
-        self.sample2 = sample()
-
-        self.Alarge_logo() # Show Alarge logo
-
-        self.tabs.tabBar().hide() # hide tab bar
-
-        self.button_events()
-
-        self.set_plotter()
-
-        self.md = motor_driver()
-
-    def Alarge_logo(self):
-        # Show Alarge logo
-        pixmap = QtGui.QPixmap('mini_logo.png')
-        self.logo.setPixmap(pixmap)
-        self.logo.resize(pixmap.width(), pixmap.height())
-        self.logo.move(180, 0)
-
-    def button_events(self):
-        self.pushButtonTestScreen.clicked.connect(self.test_screen)  # go to test screen
-        self.pushButtonStart.clicked.connect(self.start_test)  # plot when clicked
-        self.pushButtonStop.clicked.connect(self.stop_test)  # tare when clicked
-        self.pushButtonWeight.clicked.connect(self.btn_weight)  # weight when clicked
-        self.pushButtonAngle_30.clicked.connect(self.set_angle_30)  # set angle to 30 when clicked
-        self.pushButtonResults.clicked.connect(lambda: self.tabs.setCurrentIndex(2))  # go to results tab and calculate results
-        self.pushButtonTests.clicked.connect(lambda: self.tabs.setCurrentIndex(1))
-        self.pushButtonAngle_0.clicked.connect(self.set_angle_0)  # set angle to 0 when clicked
-        self.pushButtonCreatePDF.clicked.connect(self.createPDF)
-        self.pushButtonMain.clicked.connect(lambda: self.tabs.setCurrentIndex(0))
-
-    def set_plotter(self):
-
-        # Set Plotter
-        self.graphWidget.setBackground('w')
-        pen = pg.mkPen(color=(255, 0, 0))
-        self.data_line = self.graphWidget.plot(self.test_time, self.test_data, pen=pen)
-
-    def test_screen(self):
-        # set the sample name
-        self.sample1.name = self.sampleName1.text()
-        self.sample1.width = self.sampleWidth1.text()
-        self.sample1.height = self.sampleHeight1.text()
-        self.sample1.age = self.sampleAge1.text()
-        # if second sample checkbox is checked and properties are filled
-        if not self.is_second_sample_properties_empty() and self.checkBoxDiff.isChecked():
-            self.sample2.name = self.sampleName2.text()
-            self.sample2.width = self.sampleWidth2.text()
-            self.sample2.height = self.sampleHeigth2.text()
-            self.sample2.age = self.sampleAge2.text()
-            self.tabs.setCurrentIndex(1)  # go to test screen
-        elif  self.is_second_sample_properties_empty() and self.checkBoxDiff.isChecked():
-            self.labelSecondSampleError.setText("You need to enter Second sample properties!")
-            pass
-        elif  not self.is_second_sample_properties_empty() and not self.checkBoxDiff.isChecked():
-            self.labelSecondSampleError.setText("You need check the checkbox to test against different sample!")
-            pass
-        elif self.is_second_sample_properties_empty() and not self.checkBoxDiff.isChecked():
-            self.tabs.setCurrentIndex(1)  # go to test screen
-
-    def is_second_sample_properties_empty(self):
-        if self.sampleName2.text() == "" or self.sampleWidth2.text() == 0 or self.sampleHeigth2.text() == 0 or self.sampleAge2.text() == 0:
-            return True
+def find_biggest(array):
+    biggest = 0
+    for i in array:
+        if i > biggest:
+            biggest = i
         else:
-            return False
+            pass
+    return biggest
 
-    def update_angle_labels(self):
+def find_static_force(array):
+    static = 0
+    count = 0
+    for i in array:
+        if static == i:
+            count += 1
+            if count == 5:
+                return static
+        else:
+            static = i
+
+
+class ScreenOne(Screen):
+
+    def btn_text(self):
+        sample1.name = self.ids.first_name.text
+        sample1.width = self.ids.first_width.text
+        sample1.height = self.ids.first_height.text
+        sample1.age = self.ids.first_age.text
+        if self.ids.switch.active:
+            sample2.name = self.ids.second_name.text
+            sample2.width = self.ids.second_width.text
+            sample2.height = self.ids.second_height.text
+            sample2.age = self.ids.second_age.text
+
+
+class ScreenTwo(Screen):
+    plot = MeshLinePlot(color=[1, 0, 0, 1])
+
+    def start(self):
+        forces.clear()
+        self.ids.graph.remove_plot(self.plot)
+        self.ids.graph.add_plot(self.plot)
+        Clock.schedule_interval(self.get_value, 0.1)
+
+        drive_time, frequency, direction = md.calculate_ticks()
+        md.motor_run(drive_time, frequency, direction)
+
+    def stop(self):
+        Clock.unschedule(self.get_value)
+        md.stop_motor()
+
+    def get_value(self, dt):
+        get_force()
+        b = list(enumerate(forces))
+        self.a = len(b)
+        # print(self.a)
+        self.ids.graph.xmax = self.a / 10
+        if forces[-1] > self.ids.graph.ymax:
+            self.ids.graph.ymax = forces[-1]
+
+        print(forces[-1])
+        self.plot.points = [(i, j * 10) for i, j in enumerate(forces)]
+
+    def show_angle(self, angle):
+
+        angle = "[color=454545]" + "Current Angle: " + str(angle) + "[/color]"
+        l = Label(text= angle, markup=True)
+        l.pos_hint = {"center_x": 0.8, "center_y": 0.78}
+        ScreenTwo.add_widget(self, l)
+
+    def set_angle(self):
+        angle = self.ids.angle_text.text
+        if angle != "":
+            while self.check_angle(angle):
+                val = round(angle_read.get_rotation(1), 2)
+                freq = (angle - val) * 20
+                if freq > 0:
+                    md.start_angle_motor_rise(freq)
+                else:
+                    freq *= -1
+                    md.start_angle_motor_fall(freq)
+            md.stop_angle_motor()
+        else:
+            pass
+
+    def check_angle(self, angle):
         val = round(angle_read.get_rotation(1), 2)
-        self.AngleValue.setText(str(val))
-
-    def start_test(self):
-        print("test basladi")
-        hx.tare()
-        self.timer = QtCore.QTimer()
-        self.timer.setInterval(50)
-        # md = motor_driver.motor_driver()
-        # md.enable_motor()
-        # md.run_standard_test()
-
-        # md.motor_run(0.01, 400, 1)
-        drive_time, frequency, direction = self.md.calculate_ticks()
-        self.md.motor_run(drive_time, frequency, direction)
-        print("motor driver kodundan cikildi")
-        self.timer.timeout.connect(self.update_plot)
-        self.timer.start()
-
-    def stop_test(self):
-        self.timer.stop()
-        self.md.stop_motor()
-        # motor_driver.motor_driver.disable_motor()
-
-    def btn_tare(self):
-        hx.tare()
-
-    def btn_weight(self):
-        val = hx.get_weight(5)
-
-        print(val)
-
-    def update_plot(self):
-        val = hx.get_weight(5)
-        # print(val)
-        self.test_data.append(val)
-        self.test_time.append(self.test_time[-1] + 0.05)
-        self.data_line.setData(self.test_time, self.test_data)
-
-    def set_angle_30(self):
-
-        while self.check_angle_30:
-            self.update_angle_labels()
-            val = round(angle_read.get_rotation(1), 2)
-            self.AngleValue.setText(str(val))
-            if val <= 28:
-                freq = (30 - val)*20
-                self.md.start_angle_motor_rise(freq)
-            else:
-                self.md.stop_angle_motor()
-        print("Angle is set!")
-
-    def set_angle_0(self):
-
-        while self.check_angle_0:
-            self.update_angle_labels()
-            val = round(angle_read.get_rotation(1), 2)
-            self.AngleValue.setText(str(val))
-            if val >= 2:
-                freq = val*20
-                self.md.start_angle_motor_fall(freq)
-            else:
-                self.md.stop_angle_motor()
-        print("Angle is set!")
-    def check_angle_30(self):
-        val = angle_read.get_rotation(1)
-        self.AngleValue.setText(val)
-        if val >= 28 and val <= 32:
+        self.show_angle(val)
+        if val <= angle + 1 and val >= angle - 1:
             return False
         else:
             return True
 
-    def check_angle_0(self):
-        val = angle_read.get_rotation(1)
-        self.AngleValue.setText(val)
-        if val <= 2:
-            return False
-        else:
-            return True
 
-    def results_tab(self):
-        self.tabs.setCurrentIndex(2)
-        self.create_results()
+class ScreenThree(Screen):
+    date_today = datetime.date.today()
+    date_text = str(date_today)
+    date_text = "[color=454545]" + date_text + "[/color]"
+
+    def __init__(self, **args):
+        Screen.__init__(self, **args)
+        self.static_cof_text = "0"
+        self.l_static = Label(text=self.static_cof_text, markup=True)
+        self.l_static.pos = (-90, 95)
+        self.l_static.pos_hint_x = 0.5
+        self.dynamic_cof_text = "0"
+        self.l_dynamic = Label(text=self.dynamic_cof_text, markup=True)
+        self.l_dynamic.pos = -90, 0
+
+        self.add_widget(self.l_static)
+        self.add_widget(self.l_dynamic)
+
 
     def create_results(self):
-        date_today = datetime.date.today()
-        self.label_date.setText(str(date_today))
-
-        dynamic_cof = self.find_dynamic_cof()
-        static_cof = self.find_static_cof()
-
-        self.label_static_cof_result.setText(str(static_cof))
-        self.label_dynamic_cof_result.setText(str(dynamic_cof))
+        dynamic_cof = str(self.find_dynamic_cof())
+        static_cof = str(self.find_static_cof())
+        return dynamic_cof, static_cof
 
     def find_dynamic_cof(self):
-        dynamic_cof = 1
+        dynamic_force = find_biggest(forces)
+        dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
+        dynamic_cof = round(dynamic_cof, 3)
         return dynamic_cof
 
     def find_static_cof(self):
-        static_cof = 2
+        static_force = round(find_static_force(forces), 3)
+        static_cof = static_force / (normal_force * 9.81 * cos(test_angle))
+        static_cof = round(static_cof, 3)
         return static_cof
+
+    def update_results(self):
+        dynamic, static =  self.create_results()
+        print( "this is dynamic " + dynamic + " end")
+        self.static_cof_text = "[color=454545]"+ str(static) +"[/color]"
+        self.dynamic_cof_text = "[color=454545]"+ str(dynamic) +"[/color]"
+        print(self.dynamic_cof_text)
+        self.l_dynamic.text = self.dynamic_cof_text
+        self.l_static.text = self.static_cof_text
 
     def createPDF(self):
         self.pdf = fpdf_handler()
-        self.pdf.create_pdf(1, 2, self.sample1, self.sample2)
-
-    @pyqtSlot()
-    def on_click(self):
-        print("\n")
-        for currentQTableWidgetItem in self.tableWidget.selectedItems():
-            print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
+        self.pdf.create_pdf(1, 2, sample1, sample2)
+        print("PDF created!")
 
 
+screen_manager = ScreenManager()
 
-app = QApplication([])
-window = App()
-window.show()
-app.exec_()
+screen_manager.add_widget(ScreenOne(name="screen_one"))
+screen_manager.add_widget(ScreenTwo(name="screen_two"))
+screen_manager.add_widget(ScreenThree(name="screen_three"))
+
+
+class AwesomeApp(App):
+    def build(self):
+        Window.clearcolor = (1, 1, 1, 1)
+        Window.size = (800, 480)  # pencere boyutu
+        return screen_manager
+
+
+if __name__ == "__main__":
+    forces = []  # store forces
+    AwesomeApp().run()
+

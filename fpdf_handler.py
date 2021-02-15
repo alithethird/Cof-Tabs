@@ -33,17 +33,23 @@ class fpdf_handler(FPDF):
         self.cell(0, 10, 'Time: ' + self.time, ln=1, align="L")
         self.cell(0, 10, "COF Test Results", ln=1, align="C")
         # Line break
-        self.ln(20)
+        self.ln(5)
+
+        self.set_line_width(1)
+        self.line(x1=10, y1=30, x2=200, y2=30)
+        #self.ln(10)
 
     def footer(self):
         self.set_y(-10)
 
-        self.set_font('Arial', 'I', 8)
+        self.set_font('Arial', 'I', 12)
 
-        self.cell(0,10,"This Test has been done by the rules of ISO 8295:1995")
-        # Add a page number
-        page = 'Page ' + str(self.page_no()) + '/{nb}'
-        self.cell(0, 10, page, 0, 0, 'C')
+        self.set_line_width(1)
+        self.line(x1=10, y1=285, x2=200, y2=285)
+
+        self.cell(0,10,"Alarge Laboratuvar ve Plastik Kaynak Teknolojileri - https://www.alarge.com.tr - info@alarge.com.tr")
+
+
 
     def print_obj(self, obj):
         print(obj.name)
@@ -74,7 +80,8 @@ class fpdf_handler(FPDF):
 
 
     def single_table(self, sample, staticCof, dynamicCof):
-        data = [['Sample Name: ', sample.name],
+        data = [['Standard: ', "ISO 8295"],
+                ['Sample Name: ', sample.name],
                 ['Sample Width: ', str(sample.width)],
                 ['Sample Heigth: ', str(sample.height)],
                 ['Sample Age: ', str(sample.age)],
@@ -89,12 +96,13 @@ class fpdf_handler(FPDF):
         for row in data:
             for item in row:
                 self.cell(col_width, row_height * spacing,
-                         txt=item, border=1)
+                         txt=item, border=0)
             self.ln(row_height * spacing)
 
 
     def diff_table(self, sample1, sample2, staticCof, dynamicCof):
-        data = [['Sample Name: ', sample1.name],
+        data = [['Standard: ', "ISO 8295"],
+                ['Sample Name: ', sample1.name],
                 ['Sample Width: ', str(sample1.width)],
                 ['Sample Heigth: ', str(sample1.height)],
                 ['Sample Age: ', str(sample1.age)],
@@ -113,5 +121,5 @@ class fpdf_handler(FPDF):
         for row in data:
             for item in row:
                 self.cell(col_width, row_height * spacing,
-                         txt=item, border=1)
+                         txt=item, border=0)
             self.ln(row_height * spacing)
