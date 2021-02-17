@@ -83,12 +83,12 @@ class motor_driver:
         gpio.output(A_DIR, CW)
 
         self.angle_pwm.ChangeFrequency(frequency)
-        self.angle_pwm.start()
+        self.angle_pwm.start(50)
     def start_angle_motor_fall(self, frequency = 1000):
         gpio.output(A_DIR, CCW)
 
         self.angle_pwm.ChangeFrequency(frequency)
-        self.angle_pwm.start()
+        self.angle_pwm.start(50 )
 
     def stop_angle_motor(self):
         self.angle_pwm.stop()

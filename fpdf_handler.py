@@ -1,7 +1,7 @@
 from fpdf import FPDF
 import datetime
 import shutil
-
+from os import popen
 class sample:
     name = "Sample Name"
     width = 10
@@ -65,10 +65,15 @@ class fpdf_handler(FPDF):
             self.diff_table(sample1, sample2, static, dynamic)
 
         filename = "COF Test " + self.date_and_time + ".pdf"
-
+        mount_dir = "/media/pi/*"
         self.output(filename)
         source = "./" + filename
-        destination = "/media/pi/USB1/" + filename
+        usb_dir = popen("ls " + mount_dir).read()
+        usb_dir = usb_dir.split()
+        if usb_dir.find("media/pi/ALI") > 0:
+            usb_dir = usb_dir.remove("/media/pi/ALI")
+        usb_dir = usb_dir[0]
+        destination = usb_dir + filename
 
         try:
             shutil.copy2(source, destination)

@@ -65,13 +65,16 @@ def find_biggest(array):
 def find_static_force(array):
     static = 0
     count = 0
-    for i in array:
-        if static == i:
-            count += 1
-            if count == 5:
-                return static
-        else:
-            static = i
+    if len(array) > 0:
+        for i in array:
+            if static == i:
+                count += 1
+                if count == 5:
+                    return static
+            else:
+                static = i
+    else:
+        return 1
 
 
 class ScreenOne(Screen):
@@ -90,6 +93,13 @@ class ScreenOne(Screen):
 
 class ScreenTwo(Screen):
     plot = MeshLinePlot(color=[1, 0, 0, 1])
+
+    def __init__(self, **args):
+        Screen.__init__(self, **args)
+        self.angle = "0"
+        self.angle_label = Label(text=self.angle, markup=True)
+        self.angle_label.pos_hint = {"center_x": 0.8, "center_y": 0.78}
+        self.add_widget(self.angle_label)
 
     def start(self):
         forces.clear()
@@ -119,22 +129,24 @@ class ScreenTwo(Screen):
     def show_angle(self, angle):
 
         angle = "[color=454545]" + "Current Angle: " + str(angle) + "[/color]"
-        l = Label(text= angle, markup=True)
-        l.pos_hint = {"center_x": 0.8, "center_y": 0.78}
-        ScreenTwo.add_widget(self, l)
+        self.angle_label.text = angle
 
     def set_angle(self):
         angle = self.ids.angle_text.text
         if angle != "":
-            while self.check_angle(angle):
-                val = round(angle_read.get_rotation(1), 2)
-                freq = (angle - val) * 20
-                if freq > 0:
-                    md.start_angle_motor_rise(freq)
-                else:
-                    freq *= -1
-                    md.start_angle_motor_fall(freq)
-            md.stop_angle_motor()
+            try:
+                angle = int(angle)
+                while self.check_angle(angle):
+                    val = round(angle_read.get_rotation(1), 2)
+                    freq = (angle - val) * 20
+                    if freq > 0:
+                        md.start_angle_motor_rise(freq)
+                    else:
+                        freq *= -1
+                        md.start_angle_motor_fall(freq)
+                md.stop_angle_motor()
+            except:
+                print("açı girilmedi!")
         else:
             pass
 
@@ -167,8 +179,8 @@ class ScreenThree(Screen):
 
 
     def create_results(self):
-        dynamic_cof = str(self.find_dynamic_cof())
-        static_cof = str(self.find_static_cof())
+        dynamic_cof = self.find_dynamic_cof()
+        static_cof = self.find_static_cof()
         return dynamic_cof, static_cof
 
     def find_dynamic_cof(self):
@@ -178,17 +190,16 @@ class ScreenThree(Screen):
         return dynamic_cof
 
     def find_static_cof(self):
-        static_force = round(find_static_force(forces), 3)
+        static_force = find_static_force(forces)
         static_cof = static_force / (normal_force * 9.81 * cos(test_angle))
         static_cof = round(static_cof, 3)
         return static_cof
 
     def update_results(self):
-        dynamic, static =  self.create_results()
-        print( "this is dynamic " + dynamic + " end")
+        dynamic, static = self.create_results()
         self.static_cof_text = "[color=454545]"+ str(static) +"[/color]"
         self.dynamic_cof_text = "[color=454545]"+ str(dynamic) +"[/color]"
-        print(self.dynamic_cof_text)
+
         self.l_dynamic.text = self.dynamic_cof_text
         self.l_static.text = self.static_cof_text
 
