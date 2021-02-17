@@ -126,12 +126,10 @@ class ScreenTwo(Screen):
         self.a = len(b)
         # print(self.a)
         self.ids.graph.xmax = self.a / 10
-        """
-        if forces[-1] > self.ids.graph.ymax:
-            self.ids.graph.ymax = forces[-1]
-        """
-        print(forces[-1])
-        self.plot.points = [(i, j * 10) for i, j in enumerate(forces)]
+        self.ids.graph.ymax = find_biggest(forces) * 1.1
+
+        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax)
+        self.plot.points = [(i/10, j) for i, j in enumerate(forces)]
 
     def show_angle(self, angle):
 

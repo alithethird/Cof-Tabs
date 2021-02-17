@@ -22,6 +22,9 @@ class sample:
     height = 0
     age = 0
 
+global forces
+forces = [0]
+
 
 sample1 = sample()
 sample2 = sample()
@@ -31,9 +34,12 @@ normal_force = 0.1
 global test_angle
 test_angle = 0
 def get_level():
-    global forces
+
     if len(forces) > 1:
-        forces.append(forces[-1] + 1)
+        if len(forces) < 100:
+            forces.append(forces[-1] + 100)
+        else:
+            forces.append(forces[-1] - 100)
     else:
         forces.append(random())
 
@@ -88,6 +94,7 @@ class ScreenTwo(Screen):
     def stop(self):
         Clock.unschedule(self.get_value)
         md.stop_motor()
+
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
 
@@ -98,11 +105,17 @@ class ScreenTwo(Screen):
         self.a = len(b)
         #print(self.a)
         self.ids.graph.xmax = self.a / 10
-        if forces[-1] > self.ids.graph.ymax:
-            self.ids.graph.ymax = forces[-1]
+        self.ids.graph.ymax = find_biggest(forces) * 1.1
 
+        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax)
+        """
+        if forces[-1]*2 > self.ids.graph.ymax:
+            self.ids.graph.ymax = forces[-1] * 2
+"""
         print(forces[-1])
-        self.plot.points = [(i, j*10) for i, j in enumerate(forces)]
+        print(self.a)
+        print(self.ids.graph.xmax)
+        self.plot.points = [(i/10, j) for i, j in enumerate(forces)]
 
     def btn_angle_text(self):
         text = self.ids.angle_text.text

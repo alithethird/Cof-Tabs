@@ -75,6 +75,7 @@ class fpdf_handler(FPDF):
         usb_dir = usb_dir.split()
         if usb_dir.count("media/pi/ALI") > 0:
             usb_dir = usb_dir.remove("/media/pi/ALI")
+            print("ALI'yi buldum ve silmeye calistim")
         usb_dir = usb_dir[0]
         destination = usb_dir + filename
 
