@@ -141,6 +141,7 @@
             pos_hint: {'center_x': 0.5, "center_y": 0.92}
             size_hint: (1/8, 1/16)
             on_press:
+                root.save_graph()
                 root.manager.transition.direction = "left"
                 root.manager.transition.duration = 0.5
                 root.manager.current = "screen_three"

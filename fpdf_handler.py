@@ -49,6 +49,8 @@ class fpdf_handler(FPDF):
 
         self.cell(0,10,"Alarge Laboratuvar ve Plastik Kaynak Teknolojileri - https://www.alarge.com.tr - info@alarge.com.tr")
 
+    def graph_to_pdf(self):
+        self.image('graph.png', x=30, y=100, w=150)
 
 
     def print_obj(self, obj):
@@ -63,14 +65,15 @@ class fpdf_handler(FPDF):
             self.single_table(sample1, static, dynamic)
         else:
             self.diff_table(sample1, sample2, static, dynamic)
-
+        self.graph_to_pdf()
+        popen("rm graph.png")
         filename = "COF Test " + self.date_and_time + ".pdf"
         mount_dir = "/media/pi/*"
         self.output(filename)
         source = "./" + filename
         usb_dir = popen("ls " + mount_dir).read()
         usb_dir = usb_dir.split()
-        if usb_dir.find("media/pi/ALI") > 0:
+        if usb_dir.count("media/pi/ALI") > 0:
             usb_dir = usb_dir.remove("/media/pi/ALI")
         usb_dir = usb_dir[0]
         destination = usb_dir + filename

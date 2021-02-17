@@ -49,7 +49,10 @@ forces = [0]
 def get_force():
     val = hx.get_weight(5)
     calib = 1  # kalibrasyon sayısı
+
     val /= calib
+    if val < 0:
+        val = 0
     forces.append(val)
 
 
@@ -113,6 +116,9 @@ class ScreenTwo(Screen):
     def stop(self):
         Clock.unschedule(self.get_value)
         md.stop_motor()
+
+    def save_graph(self):
+        self.ids.graph.export_to_png("graph.png")
 
     def get_value(self, dt):
         get_force()
