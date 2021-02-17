@@ -44,9 +44,9 @@ normal_force = 0.1
 global test_angle
 test_angle = 0
 
+global forces
+forces = [0]
 def get_force():
-    global forces
-    forces = [0]
     val = hx.get_weight(5)
     calib = 1  # kalibrasyon sayısı
     val /= calib
