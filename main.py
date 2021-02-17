@@ -46,7 +46,7 @@ test_angle = 0
 
 def get_force():
     global forces
-
+    forces = [0]
     val = hx.get_weight(5)
     calib = 1  # kalibrasyon sayısı
     val /= calib
@@ -65,7 +65,7 @@ def find_biggest(array):
 def find_static_force(array):
     static = 0
     count = 0
-    if len(array) > 0:
+    if len(array) > 10:
         for i in array:
             if static == i:
                 count += 1
@@ -191,7 +191,7 @@ class ScreenThree(Screen):
 
     def find_static_cof(self):
         static_force = find_static_force(forces)
-        static_cof = static_force / (normal_force * 9.81 * cos(test_angle))
+        static_cof = float(static_force) / (normal_force * 9.81 * cos(test_angle))
         static_cof = round(static_cof, 3)
         return static_cof
 
