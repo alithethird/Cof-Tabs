@@ -115,7 +115,7 @@ class ScreenTwo(Screen):
         self.angle_current_label.color = (0,0,0,1)
         self.add_widget(self.angle_current_label)
 
-        self.angle_text = str(10)
+        self.angle_text = str(round(angle_read.get_rotation(1), 2))
         self.angle_current = Label(text=self.angle_text, markup=True)
         self.angle_current.pos = (300, 170)
         self.angle_current.color = (0,0,0,1)
@@ -151,7 +151,7 @@ class ScreenTwo(Screen):
 
     def show_angle(self, angle):
 
-        angle = "[color=454545]" + "Current Angle: " + str(angle) + "[/color]"
+        angle = "[color=454545]" + str(angle) + "[/color]"
         self.angle_current.text = angle
 
     def set_angle(self):
@@ -162,6 +162,7 @@ class ScreenTwo(Screen):
                 while self.check_angle(angle):
                     val = round(angle_read.get_rotation(1), 2)
                     freq = (angle - val) * 20
+                    self.show_angle(val)
                     if freq > 0:
                         md.start_angle_motor_rise(freq)
                     else:
