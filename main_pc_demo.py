@@ -175,16 +175,15 @@ class ScreenThree(Screen):
         return static_cof
 
     def update_results(self):
-        dynamic, static =  self.create_results()
-        print( "this is dynamic " + dynamic + " end")
-        self.static_cof_text = "[color=454545]"+ str(static) +"[/color]"
-        self.dynamic_cof_text = "[color=454545]"+ str(dynamic) +"[/color]"
+        self.dynamic, self.static =  self.create_results()
+        self.static_cof_text = "[color=454545]"+ str(self.static) +"[/color]"
+        self.dynamic_cof_text = "[color=454545]"+ str(self.dynamic) +"[/color]"
         print(self.dynamic_cof_text)
         self.l_dynamic.text = self.dynamic_cof_text
         self.l_static.text = self.static_cof_text
     def createPDF(self):
         self.pdf = fpdf_handler()
-        self.pdf.create_pdf(1, 2, sample1, sample2)
+        self.pdf.create_pdf( self.static, self.dynamic, sample1, sample2)
         print("PDF created!")
 
 
