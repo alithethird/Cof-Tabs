@@ -40,20 +40,23 @@ sample1 = sample()
 sample2 = sample()
 
 global normal_force # üstte kayan metal malzemenin kütlesi (kg)
-normal_force = 0.1
+normal_force = 0.2
 global test_angle
 test_angle = 0
 
 global forces
-forces = [1]
+forces = [[0,0]]
+
+sample_time = 0.1
+
+
 def get_force():
     val = hx.get_weight(5)
     calib = 1  # kalibrasyon sayısı
-
     val /= calib
     if val < 0:
         val = 1
-    forces.append(val)
+    forces.append([round((forces[-1][0] + sample_time),4), val])
 
 
 def find_biggest(array):
@@ -125,7 +128,7 @@ class ScreenTwo(Screen):
         forces.clear()
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        Clock.schedule_interval(self.get_value, 0.1)
+        Clock.schedule_interval(self.get_value, sample_time)
 
         drive_time, frequency, direction = md.calculate_ticks()
         md.motor_run(drive_time, frequency, direction)
@@ -139,15 +142,21 @@ class ScreenTwo(Screen):
 
     def get_value(self, dt):
         get_force()
-        b = list(enumerate(forces))
-        self.a = len(b)
-        # print(self.a)
-        self.ids.graph.xmax = self.a / 10
-        self.ids.graph.ymax = find_biggest(forces) * 1.1
+
+        if forces[-1][0] == 0:
+            self.ids.graph.xmax = 1
+        else:
+            self.ids.graph.xmax = forces[-1][0]
+
+        if forces[-1][1] == 0:
+            self.ids.graph.ymax = 1
+        else:
+            self.ids.graph.ymax = find_biggest(forces) * 1.1
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax)
-        self.plot.points = [(i/10, j) for i, j in enumerate(forces)]
-        self.force_current.text = str(round(forces[-1],2))
+
+        self.plot.points = forces
+        self.force_current.text = str(round(forces[-1][1],2))
 
     def show_angle(self, angle):
 
@@ -170,7 +179,7 @@ class ScreenTwo(Screen):
                         md.start_angle_motor_fall(freq)
                 md.stop_angle_motor()
             except:
-                print("açı girilmedi!")
+                pass
         else:
             pass
 
@@ -230,7 +239,6 @@ class ScreenThree(Screen):
     def createPDF(self):
         self.pdf = fpdf_handler()
         self.pdf.create_pdf( self.static, self.dynamic, sample1, sample2)
-        print("PDF created!")
 
 
 screen_manager = ScreenManager()

@@ -23,31 +23,32 @@ class sample:
     age = 0
 
 global forces
-forces = [0]
+forces = [[0,0]]
 
+sample_time = 0.1
 
 sample1 = sample()
 sample2 = sample()
 
 global normal_force # üstte kayan metal malzemenin kütlesi (kg)
-normal_force = 0.1
+normal_force = 0.2
 global test_angle
 test_angle = 0
-def get_level():
+def get_force(forces):
 
     if len(forces) > 1:
         if len(forces) < 100:
-            forces.append(forces[-1] + 100)
+            forces.append([round((forces[-1][0] + sample_time),4), (forces[-1][1] + 100)])
         else:
-            forces.append(forces[-1] - 100)
+            forces.append([round((forces[-1][0] + sample_time),4), (forces[-1][1] - 100)])
     else:
-        forces.append(random())
+        forces.append([0,random()])
 
 def find_biggest(array):
-    biggest = 0
-    for i in array:
-        if i > biggest:
-            biggest = i
+    biggest = 1
+    for i in array[:][:]:
+        if i[1] > biggest:
+            biggest = i[1]
         else:
             pass
     return biggest
@@ -55,13 +56,13 @@ def find_biggest(array):
 def find_static_force(array):
     static = 0
     count = 0
-    for i in array:
-        if static == i:
+    for i in array[:][:]:
+        if static == i[1]:
             count += 1
             if count == 5:
                 return static
         else:
-            static = i
+            static = i[1]
 
 class ScreenOne(Screen):
 
@@ -124,23 +125,28 @@ class ScreenTwo(Screen):
 
     def get_value(self, dt):
         print("gettin value")
-        get_level()
-        b = list(enumerate(forces))
-        self.a = len(b)
-        #print(self.a)
-        self.ids.graph.xmax = self.a / 10
-        self.ids.graph.ymax = find_biggest(forces) * 1.1
+
+        get_force(forces)
+
+        if forces[-1][0] == 0:
+            self.ids.graph.xmax = 1
+        else:
+            self.ids.graph.xmax = forces[-1][0]
+
+        if forces[-1][1] == 0:
+            self.ids.graph.ymax = 1
+        else:
+            self.ids.graph.ymax = find_biggest(forces) * 1.1
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax)
         """
         if forces[-1]*2 > self.ids.graph.ymax:
             self.ids.graph.ymax = forces[-1] * 2
 """
-        print(forces[-1])
-        print(self.a)
-        print(self.ids.graph.xmax)
-        self.plot.points = [(i/10, j) for i, j in enumerate(forces)]
-        self.force_current.text = str(round(forces[-1],2))
+        self.plot.points = forces
+        print( "y: "+ str(forces[-1][1]))
+        print( "x: " + str(forces[-1][0]))
+        self.force_current.text = str(round(forces[-1][1],2))
 
     def btn_angle_text(self):
         text = self.ids.angle_text.text
@@ -150,7 +156,7 @@ class ScreenTwo(Screen):
         angle = 10
         self.angle_current.text = str(angle)
     def set_angle(self):
-        Clock.schedule_interval(self.show_angle, 0.1)
+        Clock.schedule_interval(self.show_angle, sample_time)
         angle = self.ids.angle_text.text
         if angle != "":
             print("angle is set to: " + angle)
