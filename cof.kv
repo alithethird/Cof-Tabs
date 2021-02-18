@@ -134,7 +134,6 @@
                 root.manager.transition.direction = "right"
                 root.manager.transition.duration = 0.5
                 root.manager.current = "screen_one"
-
         Button:
             id: btn
             text: "Results"
@@ -148,7 +147,7 @@
 
         Button:
             text: "Set Angle"
-            pos_hint: {'center_x': 0.8, "center_y": 0.84}
+            pos_hint: {'center_x': 0.75, "center_y": 0.92}
             size_hint: (1/8, 1/16)
             on_press:
                 root.set_angle()
@@ -156,8 +155,8 @@
         TextInput:
             id: angle_text
             hint_text: 'Angle'
-            pos_hint: {'center_x': 0.8, "center_y": 0.92}
-            size_hint: 0.2, 0.06
+            pos_hint: {'center_x': 0.9, "center_y": 0.92}
+            size_hint: 0.1, 0.06
 
 
 

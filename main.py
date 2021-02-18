@@ -99,10 +99,27 @@ class ScreenTwo(Screen):
 
     def __init__(self, **args):
         Screen.__init__(self, **args)
-        self.angle = "0"
-        self.angle_label = Label(text=self.angle, markup=True)
-        self.angle_label.pos_hint = {"center_x": 0.8, "center_y": 0.78}
-        self.add_widget(self.angle_label)
+        self.force_current_label = Label(text="Current Force: ", markup=True)
+        self.force_current_label.pos = (-340, 170)
+        self.force_current_label.color = (0,0,0,1)
+        self.add_widget(self.force_current_label)
+
+        self.force_text = "0"
+        self.force_current = Label(text=self.force_text, markup=True)
+        self.force_current.pos = (-240, 170)
+        self.force_current.color = (0,0,0,1)
+        self.add_widget(self.force_current)
+
+        self.angle_current_label = Label(text="Current Angle: ", markup=True)
+        self.angle_current_label.pos = (200, 170)
+        self.angle_current_label.color = (0,0,0,1)
+        self.add_widget(self.angle_current_label)
+
+        self.angle_text = str(10)
+        self.angle_current = Label(text=self.angle_text, markup=True)
+        self.angle_current.pos = (300, 170)
+        self.angle_current.color = (0,0,0,1)
+        self.add_widget(self.angle_current)
 
     def start(self):
         forces.clear()
@@ -130,11 +147,12 @@ class ScreenTwo(Screen):
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax)
         self.plot.points = [(i/10, j) for i, j in enumerate(forces)]
+        self.force_current.text = str(round(forces[-1],2))
 
     def show_angle(self, angle):
 
         angle = "[color=454545]" + "Current Angle: " + str(angle) + "[/color]"
-        self.angle_label.text = angle
+        self.angle_current.text = angle
 
     def set_angle(self):
         angle = self.ids.angle_text.text

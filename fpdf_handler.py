@@ -49,9 +49,11 @@ class fpdf_handler(FPDF):
 
         self.cell(0,10,"Alarge Laboratuvar ve Plastik Kaynak Teknolojileri - https://www.alarge.com.tr - info@alarge.com.tr")
 
-    def graph_to_pdf(self):
-        self.image('graph.png', x=30, y=100, w=150)
-
+    def graph_to_pdf(self, choise):
+        if choise == 1:
+            self.image('graph.png', x=30, y=120, w=150)
+        else:
+            self.image('graph.png', x=30, y=150, w=150)
 
     def print_obj(self, obj):
         print(obj.name)
@@ -63,9 +65,10 @@ class fpdf_handler(FPDF):
         self.set_font('Times', '', 12)
         if sample2.name == "":
             self.single_table(sample1, static, dynamic)
+            self.graph_to_pdf(1)
         else:
             self.diff_table(sample1, sample2, static, dynamic)
-        self.graph_to_pdf()
+            self.graph_to_pdf(2)
         popen("rm graph.png")
         filename = "COF Test " + self.date_and_time + ".pdf"
         mount_dir = "/media/pi/*"
@@ -90,6 +93,7 @@ class fpdf_handler(FPDF):
 
     def single_table(self, sample, staticCof, dynamicCof):
         data = [['Standard: ', "ISO 8295"],
+                ['Testing Weight: ', '200 grams'],
                 ['Sample Name: ', sample.name],
                 ['Sample Width: ', str(sample.width)],
                 ['Sample Heigth: ', str(sample.height)],
@@ -111,6 +115,7 @@ class fpdf_handler(FPDF):
 
     def diff_table(self, sample1, sample2, staticCof, dynamicCof):
         data = [['Standard: ', "ISO 8295"],
+                ['Testing Weight: ', '200 grams'],
                 ['Sample Name: ', sample1.name],
                 ['Sample Width: ', str(sample1.width)],
                 ['Sample Heigth: ', str(sample1.height)],
