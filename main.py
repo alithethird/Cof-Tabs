@@ -45,14 +45,14 @@ global test_angle
 test_angle = 0
 
 global forces
-forces = [0]
+forces = [1]
 def get_force():
     val = hx.get_weight(5)
     calib = 1  # kalibrasyon sayısı
 
     val /= calib
     if val < 0:
-        val = 0
+        val = 1
     forces.append(val)
 
 
