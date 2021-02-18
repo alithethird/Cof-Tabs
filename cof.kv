@@ -11,15 +11,15 @@
 
         Label:
             id: first_sample_header
-            text: "[color=454545]Test Sample[/color]"
-            markup: True
+            text: "Test Sample"
+            color: (0,0,0,1)
             pos_hint: {"center_x": 0.2, "center_y": 0.7}
 
 
         Label:
             id: second_sample_header
-            text: "[color=454545]Second Sample[/color]"
-            markup: True
+            text: "Second Sample"
+            color: (0,0,0,1)
             pos_hint: {"center_x": 0.8, "center_y": 0.7}
 
         Button:
@@ -100,7 +100,7 @@
             y_ticks_minor:10
             y_grid_label:True
             x_grid_label:True
-            padding:5
+            padding:2
             x_grid:False
             y_grid:False
             xmin:0
@@ -109,9 +109,9 @@
             pos: 0, 0
             size_hint_y: 0.8
             size_hint_x: 0.98
-            border_color: (0,0,0,0)
+            border_color: (0,0,0,1)
             tick_color: (1,0,0,1)
-            label_options: {'color': (1,0,0,1), "bold": True}
+            label_options: {'color': (0,0,0,1), "bold": True}
 
 
         Button:
@@ -189,32 +189,32 @@
 
         Label:
             id: label_static_cof
-            text: "[color=454545]Static Coefficient of friction: [/color]"
-            markup: True
+            text: "Static Coefficient of friction: "
+            color: (0,0,0,1)
             pos_hint: {"center_x": 0.19, "center_y": 0.7}
             halign: "left"
-            bold: True
+            
 
         Label:
             id: label_dynamic_cof
-            text: "[color=454545]Dynamic Coefficient of friction: [/color]"
-            markup: True
+            text: "Dynamic Coefficient of friction:"
+            color: (0,0,0,1)
             pos_hint: {"center_x": 0.2, "center_y": 0.5}
             halign: "left"
-            bold: True
+            
 
 
         Label:
-            text: "[color=454545] Date: [/color]"
-            markup: True
+            text: "Date: "
+            color: (0,0,0,1)
             pos_hint: {"center_x": 0.1, "center_y": 0.1}
             halign: "left"
-            bold: True
+            
 
         Label:
             id: label_date
             text: root.date_text
-            markup: True
+            color: (0,0,0,1)
             pos_hint: {"center_x": 0.18, "center_y": 0.1}
             halign: "left"
-            bold: True
+            

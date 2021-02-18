@@ -83,24 +83,24 @@ class ScreenTwo(Screen):
     plot = MeshLinePlot(color=[1,0,0,1])
     def __init__(self, **args):
         Screen.__init__(self, **args)
-        self.force_current_label = Label(text="Current Force: ", markup=True)
-        self.force_current_label.pos = (-340, 170)
+        self.force_current_label = Label(text="Current Force: ")
+        self.force_current_label.pos = (-335, 170)
         self.force_current_label.color = (0,0,0,1)
         self.add_widget(self.force_current_label)
 
         self.force_text = "0"
-        self.force_current = Label(text=self.force_text, markup=True)
-        self.force_current.pos = (-240, 170)
+        self.force_current = Label(text=self.force_text)
+        self.force_current.pos = (-225, 170)
         self.force_current.color = (0,0,0,1)
         self.add_widget(self.force_current)
 
-        self.angle_current_label = Label(text="Current Angle: ", markup=True)
+        self.angle_current_label = Label(text="Current Angle: ")
         self.angle_current_label.pos = (200, 170)
         self.angle_current_label.color = (0,0,0,1)
         self.add_widget(self.angle_current_label)
 
         self.angle_text = str(10)
-        self.angle_current = Label(text=self.angle_text, markup=True)
+        self.angle_current = Label(text=self.angle_text)
         self.angle_current.pos = (300, 170)
         self.angle_current.color = (0,0,0,1)
         self.add_widget(self.angle_current)
@@ -110,7 +110,7 @@ class ScreenTwo(Screen):
         forces.clear()
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        Clock.schedule_interval(self.get_value, 0.1)
+        Clock.schedule_interval(self.get_value, sample_time)
 
         drive_time, frequency, direction = md.calculate_ticks()
         md.motor_run(drive_time, frequency, direction)
@@ -169,18 +169,20 @@ class ScreenTwo(Screen):
 class ScreenThree(Screen):
     date_today = datetime.date.today()
     date_text = str(date_today)
-    date_text = "[color=454545]"+ date_text +"[/color]"
+    date_text = date_text
     def __init__(self, **args):
         Screen.__init__(self, **args)
         self.static_cof_text = "0"
-        self.l_static = Label(text=self.static_cof_text, markup=True)
+        self.l_static = Label(text=self.static_cof_text)
         self.l_static.pos = (-90, 95)
         self.l_static.pos_hint_x = 0.5
-        self.dynamic_cof_text = "0"
-        self.l_dynamic = Label(text=self.dynamic_cof_text, markup=True)
-        self.l_dynamic.pos = -90, 0
-
+        self.l_static.color = (0,0,0,1)
         self.add_widget(self.l_static)
+
+        self.dynamic_cof_text = "0"
+        self.l_dynamic = Label(text=self.dynamic_cof_text)
+        self.l_dynamic.pos = -90, 0
+        self.l_dynamic.color = (0,0,0,1)
         self.add_widget(self.l_dynamic)
 
 
@@ -204,8 +206,8 @@ class ScreenThree(Screen):
 
     def update_results(self):
         self.dynamic, self.static =  self.create_results()
-        self.static_cof_text = "[color=454545]"+ str(self.static) +"[/color]"
-        self.dynamic_cof_text = "[color=454545]"+ str(self.dynamic) +"[/color]"
+        self.static_cof_text = str(self.static)
+        self.dynamic_cof_text = str(self.dynamic)
         print(self.dynamic_cof_text)
         self.l_dynamic.text = self.dynamic_cof_text
         self.l_static.text = self.static_cof_text
