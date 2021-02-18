@@ -209,6 +209,5 @@ class AwesomeApp(App):
 
 
 if __name__ == "__main__":
-    forces = []  # store forces
     AwesomeApp().run()
 

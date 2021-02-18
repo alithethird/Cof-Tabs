@@ -65,7 +65,7 @@ def find_biggest(array):
             pass
     return biggest
 
-def find_static_force(array):
+def find_dynamic_force(array):
     static = 0
     count = 0
     if len(array) > 10:
@@ -189,13 +189,13 @@ class ScreenThree(Screen):
         return dynamic_cof, static_cof
 
     def find_dynamic_cof(self):
-        dynamic_force = find_biggest(forces)
+        dynamic_force = find_dynamic_force(forces)
         dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
         dynamic_cof = round(dynamic_cof, 3)
         return dynamic_cof
 
     def find_static_cof(self):
-        static_force = find_static_force(forces)
+        static_force = find_biggest(forces)
         static_cof = float(static_force) / (normal_force * 9.81 * cos(test_angle))
         static_cof = round(static_cof, 3)
         return static_cof
@@ -229,6 +229,5 @@ class AwesomeApp(App):
 
 
 if __name__ == "__main__":
-    forces = []  # store forces
     AwesomeApp().run()
 
