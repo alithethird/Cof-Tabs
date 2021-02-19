@@ -59,10 +59,23 @@ def get_force():
     val /= calib
     if val < 0:
         val = 1
+
     if len(forces) > 1:
         forces.append([round((forces[-1][0] + sample_time), 4), val])
     else:
         forces.append([0, val])
+def get_force_angle():
+    val = hx.get_weight(5)
+    calib = 1  # kalibrasyon sayısı
+    val /= calib
+    if val < 0:
+        val = 1
+    angle = angle_read.get_rotation(1)
+    if len(forces) > 1:
+        forces.append([round(angle, 4), val])
+    else:
+        forces.append([0, val])
+
 
 def find_biggest(array):
     biggest = [0.1,0.1]
@@ -216,7 +229,6 @@ class ScreenTwo(Screen):
         else:
             return True
 
-
 class ScreenThree(Screen):
     date_today = datetime.date.today()
     date_text = str(date_today)
@@ -330,7 +342,7 @@ class ScreenFour(Screen):
     def get_value(self, dt):
         max_angle = 30
         if self.check_angle(max_angle):
-            get_force()
+            get_force_angle()
 
             if forces[-1][0] == 0:
                 self.ids.graph.xmax = 1
