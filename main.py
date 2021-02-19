@@ -59,7 +59,7 @@ def get_force():
     if len(forces) > 1:
         forces.append([round((forces[-1][0] + sample_time),4), val])
     else:
-        forces.append(0,val)
+        forces.append([0,val])
 
 def find_biggest(array):
     biggest = 0.1
@@ -71,16 +71,14 @@ def find_biggest(array):
     return biggest
 
 def find_dynamic_force(array):
-    static = 0
-    count = 0
+    # take last 20 elements of the list
+    # find the median
     if len(array) > 10:
-        for i in array[:][:]:
-            if static == i[1]:
-                count += 1
-                if count == 5:
-                    return static
-            else:
-                static = i[1]
+        median = 0
+        for i in range(20):
+            median += forces[-(i + 1)][1]
+        median /= 20
+        return median
     else:
         return 1
 
@@ -152,8 +150,8 @@ class ScreenTwo(Screen):
 
         if forces[-1][1] == 0:
             self.ids.graph.ymax = 1
-        else:
-            self.ids.graph.ymax = find_biggest(forces) * 1.1
+        elif forces[-1][1] > self.ids.graph.ymax:
+            self.ids.graph.ymax = forces[-1][1]
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax)
 
@@ -223,8 +221,13 @@ class ScreenThree(Screen):
 
     def find_dynamic_cof(self):
         dynamic_force = find_dynamic_force(forces)
-        dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
-        dynamic_cof = round(dynamic_cof, 3)
+        try:
+            dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
+            dynamic_cof = round(dynamic_cof, 3)
+        except TypeError:
+            dynamic_cof = "Testing Error (type Error)"
+        except:
+            dynamic_cof = "Testing Error something"
         return dynamic_cof
 
     def find_static_cof(self):

@@ -39,8 +39,11 @@ def get_force(forces):
     if len(forces) > 1:
         if len(forces) < 100:
             forces.append([round((forces[-1][0] + sample_time),4), (forces[-1][1] + 100)])
+        elif len(forces) > 100 and len(forces) < 200:
+            forces.append([round((forces[-1][0] + sample_time),4), (forces[-1][1] - 50)])
         else:
-            forces.append([round((forces[-1][0] + sample_time),4), (forces[-1][1] - 100)])
+            forces.append([round((forces[-1][0] + sample_time), 4), round((forces[-1][1] + (random()*60)-30),4)])
+
     else:
         forces.append([0,random()])
 
@@ -54,15 +57,13 @@ def find_biggest(array):
     return biggest
 
 def find_static_force(array):
-    static = 0
-    count = 0
-    for i in array[:][:]:
-        if static == i[1]:
-            count += 1
-            if count == 5:
-                return static
-        else:
-            static = i[1]
+    # take last 20 elements of the list
+    # find the median
+    median = 0
+    for i in range(20):
+        median += forces[-(i+1)][1]
+    median /= 20
+    return median
 
 class ScreenOne(Screen):
 
@@ -135,8 +136,8 @@ class ScreenTwo(Screen):
 
         if forces[-1][1] == 0:
             self.ids.graph.ymax = 1
-        else:
-            self.ids.graph.ymax = find_biggest(forces) * 1.1
+        elif forces[-1][1] > self.ids.graph.ymax:
+            self.ids.graph.ymax = forces[-1][1]
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax)
         """
