@@ -24,6 +24,9 @@ hx.set_reading_format("MSB", "MSB")
 hx.reset()
 hx.tare()
 
+start_switch = 12 # start kısmındaki switch
+stop_switch = 13 # stop kısmındaki switch
+reset_motor_speed = 200
 Builder.load_file('cof.kv')
 
 md = motor_driver()
@@ -74,6 +77,8 @@ def get_force_angle():
     if len(forces) > 1:
         if round(angle, 4) > forces[-1][0]:
             forces.append([round(angle, 4), val])
+        else:
+            pass
     else:
         forces.append([0, val])
 
@@ -148,6 +153,8 @@ class ScreenTwo(Screen):
         self.angle_current.color = (0,0,0,1)
         self.add_widget(self.angle_current)
 
+        self.reset() # reset when program starts
+
     def start(self):
         forces.clear()
         self.ids.graph.remove_plot(self.plot)
@@ -170,10 +177,13 @@ class ScreenTwo(Screen):
     def stop(self):
         Clock.unschedule(self.get_value)
         md.stop_motor()
+        self.reset() # reset when test ends
 
     def reset(self):
-        self.drive_time, self.frequency, self.direction = md.calculate_ticks(self.test_distance, self.test_speed, 0)
-        md.motor_run(self.drive_time, self.frequency, self.direction)
+
+        while start_switch:
+            md.motor_start(reset_motor_speed, 0)
+        md.stop_motor()
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
@@ -259,7 +269,7 @@ class ScreenThree(Screen):
 
     def find_dynamic_cof(self):
         dynamic_force = find_dynamic_force(forces)
-        if test_mode == 0:
+        if test_mode == 0:# motorize mod
             try:
                 dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
                 dynamic_cof = round(dynamic_cof, 3)
@@ -267,7 +277,7 @@ class ScreenThree(Screen):
                 dynamic_cof = "Testing Error (type Error)"
             except:
                 dynamic_cof = "Testing Error something"
-        elif test_mode == 1:
+        elif test_mode == 1:# açı mod
             try:
                 dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
                 dynamic_cof = round(dynamic_cof, 3)
@@ -280,11 +290,11 @@ class ScreenThree(Screen):
         return dynamic_cof
 
     def find_static_cof(self):
-        if test_mode == 0:
+        if test_mode == 0: # motorize mod
             static_angle, static_force = find_biggest(forces)
             static_cof = float(static_force) / (normal_force * 9.81 * cos(test_angle))
             static_cof = round(static_cof, 3)
-        elif test_mode == 1:
+        elif test_mode == 1: # açı mod
             static_angle, static_force = find_biggest(forces)
             static_cof = float(static_force) / (normal_force * 9.81 * cos(static_angle))
             static_cof = round(static_cof, 3)
