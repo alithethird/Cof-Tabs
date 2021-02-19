@@ -56,8 +56,10 @@ def get_force():
     val /= calib
     if val < 0:
         val = 1
-    forces.append([round((forces[-1][0] + sample_time),4), val])
-
+    if len(forces) > 1:
+        forces.append([round((forces[-1][0] + sample_time),4), val])
+    else:
+        forces.append(0,val)
 
 def find_biggest(array):
     biggest = 0.1
