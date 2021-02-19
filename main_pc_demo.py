@@ -123,14 +123,17 @@ class ScreenTwo(Screen):
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
         Clock.schedule_interval(self.get_value, sample_time)
-
-        drive_time, frequency, direction = md.calculate_ticks()
+        test_speed = 0
+        drive_time, frequency, direction = md.calculate_ticks(distance=60, speed=test_speed, direction=1)
         md.motor_run(drive_time, frequency, direction)
         print("motor driver kodundan cikildi")
 
     def stop(self):
         Clock.unschedule(self.get_value)
         md.stop_motor()
+
+    def reset(self):
+        pass
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
@@ -278,6 +281,10 @@ class ScreenFour(Screen):
     def stop(self):
         Clock.unschedule(self.get_value)
         md.stop_motor()
+
+    def reset(self):
+
+        pass #** buraları doldur
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")

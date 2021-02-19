@@ -140,12 +140,15 @@ class ScreenTwo(Screen):
         self.ids.graph.add_plot(self.plot)
         Clock.schedule_interval(self.get_value, sample_time)
 
-        drive_time, frequency, direction = md.calculate_ticks()
-        md.motor_run(drive_time, frequency, direction)
+        self.drive_time, self.frequency, self.direction = md.calculate_ticks()
+        md.motor_run(self.drive_time, self.frequency, self.direction)
 
     def stop(self):
         Clock.unschedule(self.get_value)
         md.stop_motor()
+
+    def reset(self):
+        md.motor_run(self.drive_time, self.frequency, 0)
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
@@ -305,6 +308,11 @@ class ScreenFour(Screen):
         Clock.unschedule(self.get_value)
         md.stop_angle_motor()
 
+    def reset(self):
+        while self.check_angle(0):
+            md.start_angle_motor_fall(50)
+        md.stop_angle_motor()
+
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
 
@@ -327,12 +335,14 @@ class ScreenFour(Screen):
 
             self.ids.graph.x_ticks_major = round(self.ids.graph.xmax,-1)/10
             self.plot.points = forces
-            self.force_current.text = str(round(forces[-1][1],2))
+            self.angle_current.text = str(round(forces[-1][1],2))
+        else:
+            md.stop_angle_motor()
+            Clock.unschedule(self.get_value)
 
 
     def check_angle(self, angle):
         val = round(angle_read.get_rotation(1), 2)
-        self.show_angle(val)
         if val <= angle + 1 and val >= angle - 1:
             return False
         else:
