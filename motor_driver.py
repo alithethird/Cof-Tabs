@@ -27,10 +27,10 @@ class motor_driver:
     motor_pwm = gpio.PWM(STEP, 100)
     angle_pwm = gpio.PWM(A_STEP, 1000)
     def run_standard_test(self):
-        time, ticks, direction = self.calculate_ticks(60, 100, 1)
+        time, ticks, direction = self.calculate_ticks(60, 150, 1)
         self.motor_run(time, ticks, direction)
 
-    def calculate_ticks(self, distance = 60, speed = 100, direction = 1):
+    def calculate_ticks(self, distance = 60, speed = 150, direction = 1):
         # speed decided in the standard ISO 8295 is 100mm/min
         # travel distance decided by me is 60 mm
         # vida aralığı 2mm

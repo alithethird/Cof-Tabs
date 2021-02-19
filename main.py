@@ -145,7 +145,7 @@ class ScreenTwo(Screen):
 
         if forces[-1][0] == 0:
             self.ids.graph.xmax = 1
-        else:
+        elif forces[-1][0] > self.ids.graph.xmax:
             self.ids.graph.xmax = forces[-1][0]
 
         if forces[-1][1] == 0:
@@ -153,8 +153,9 @@ class ScreenTwo(Screen):
         elif forces[-1][1] > self.ids.graph.ymax:
             self.ids.graph.ymax = forces[-1][1]
 
-        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax)
+        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax,-1)/10
 
+        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax,-1)/10
         self.plot.points = forces
         self.force_current.text = str(round(forces[-1][1],2))
 
