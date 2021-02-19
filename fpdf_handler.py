@@ -58,16 +58,16 @@ class fpdf_handler(FPDF):
     def print_obj(self, obj):
         print(obj.name)
 
-    def create_pdf(self, static, dynamic, sample1, sample2):
+    def create_pdf(self, static, dynamic, sample1, sample2, test_mode):
 
         self.set_time()
         self.add_page()
         self.set_font('Times', '', 12)
         if sample2.name == "":
-            self.single_table(sample1, static, dynamic)
+            self.single_table(sample1, static, dynamic, test_mode)
             self.graph_to_pdf(1)
         else:
-            self.diff_table(sample1, sample2, static, dynamic)
+            self.diff_table(sample1, sample2, static, dynamic, test_mode)
             self.graph_to_pdf(2)
         popen("rm graph.png")
         filename = "COF Test " + self.date_and_time + ".pdf"
@@ -91,9 +91,14 @@ class fpdf_handler(FPDF):
         self.close()
 
 
-    def single_table(self, sample, staticCof, dynamicCof):
+    def single_table(self, sample, staticCof, dynamicCof, test_mode):
+        if test_mode == 1:
+            test_mode = "Angle Test"
+        elif test_mode == 0:
+            test_mode = "Motorized Test"
         data = [['Standard: ', "ISO 8295"],
                 ['Testing Weight: ', '200 grams'],
+                ['Test Mode: ', test_mode],
                 ['Sample Name: ', sample.name],
                 ['Sample Width: ', str(sample.width)],
                 ['Sample Heigth: ', str(sample.height)],
@@ -113,9 +118,14 @@ class fpdf_handler(FPDF):
             self.ln(row_height * spacing)
 
 
-    def diff_table(self, sample1, sample2, staticCof, dynamicCof):
+    def diff_table(self, sample1, sample2, staticCof, dynamicCof, test_mode):
+        if test_mode == 1:
+            test_mode = "Angle Test"
+        elif test_mode == 0:
+            test_mode = "Motorized Test"
         data = [['Standard: ', "ISO 8295"],
                 ['Testing Weight: ', '200 grams'],
+                ['Test Mode: ', test_mode],
                 ['Sample Name: ', sample1.name],
                 ['Sample Width: ', str(sample1.width)],
                 ['Sample Heigth: ', str(sample1.height)],

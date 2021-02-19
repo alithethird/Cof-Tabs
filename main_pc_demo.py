@@ -12,7 +12,7 @@ from random import random
 from fpdf_handler import fpdf_handler
 from motor_driver_pc import motor_driver_pc
 
-from math import cos
+from math import cos, sin
 Builder.load_file('cof.kv')
 
 md = motor_driver_pc()
@@ -21,6 +21,10 @@ class sample:
     width = 0
     height = 0
     age = 0
+
+global test_mode
+test_mode = -1 # 0-motorized test
+               # 1-angle test
 
 global forces
 forces = [[0,0]]
@@ -66,6 +70,13 @@ def find_static_force(array):
     return median
 
 class ScreenOne(Screen):
+    def select_motorized_test(self):
+        global test_mode
+        test_mode = 0
+
+    def select_angle_test(self):
+        global test_mode
+        test_mode  = 1
 
     def btn_text(self):
         sample1.name = self.ids.first_name.text
@@ -195,16 +206,34 @@ class ScreenThree(Screen):
         return dynamic_cof, static_cof
 
     def find_dynamic_cof(self):
-        dynamic_force = find_biggest(forces)
-        dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
-        dynamic_cof = round(dynamic_cof, 3)
+        ## iki testte de find biggest olur heralde di mi ?
+        if test_mode == 0:
+            dynamic_force = find_biggest(forces)
+            dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
+            dynamic_cof = round(dynamic_cof, 3)
+
+        elif test_mode == 1:
+            dynamic_force = find_biggest(forces)
+            dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
+            dynamic_cof = round(dynamic_cof, 3)
+
+        else:
+            dynamic_cof = "Test mode select error"
+
         return dynamic_cof
 
     def find_static_cof(self):
 #        static_force = round(find_static_force(forces), 3)
-        static_force = 10
-        static_cof = static_force / (normal_force * 9.81 * cos(test_angle))
-        static_cof = round(static_cof)
+        if test_mode == 0:
+            static_force = 10
+            static_cof = static_force / (normal_force * 9.81 * cos(test_angle))
+            static_cof = round(static_cof)
+        elif test_mode == 1:
+            static_force = 10
+            static_cof = (normal_force * 9.81 * sin(test_angle)) / (normal_force * 9.81 * cos(test_angle))
+            static_cof = round(static_cof)
+        else:
+            static_cof = "Test mode select error"
         return static_cof
 
     def update_results(self):
@@ -216,10 +245,81 @@ class ScreenThree(Screen):
         self.l_static.text = self.static_cof_text
     def createPDF(self):
         self.pdf = fpdf_handler()
-        self.pdf.create_pdf( self.static, self.dynamic, sample1, sample2)
+        self.pdf.create_pdf( self.static, self.dynamic, sample1, sample2, test_mode)
         print("PDF created!")
 
+class ScreenFour(Screen):
+    plot = MeshLinePlot(color=[1, 0, 0, 1])
 
+    def __init__(self, **args):
+        Screen.__init__(self, **args)
+
+        self.angle_current_label = Label(text="Current Angle: ")
+        self.angle_current_label.pos = (-335, 170)
+        self.angle_current_label.color = (0, 0, 0, 1)
+        self.add_widget(self.angle_current_label)
+
+        self.angle_text = str(10)
+        self.angle_current = Label(text=self.angle_text)
+        self.angle_current.pos = (-225, 170)
+        self.angle_current.color = (0, 0, 0, 1)
+        self.add_widget(self.angle_current)
+
+    def start(self):
+        forces.clear()
+        self.ids.graph.remove_plot(self.plot)
+        self.ids.graph.add_plot(self.plot)
+        Clock.schedule_interval(self.get_value, sample_time)
+
+        drive_time, frequency, direction = md.calculate_ticks()
+        md.motor_run(drive_time, frequency, direction)
+        print("motor driver kodundan cikildi")
+
+    def stop(self):
+        Clock.unschedule(self.get_value)
+        md.stop_motor()
+
+    def save_graph(self):
+        self.ids.graph.export_to_png("graph.png")
+
+    def get_value(self, dt):
+        print("gettin value")
+
+        get_force(forces)
+
+        if forces[-1][0] == 0:
+            self.ids.graph.xmax = 1
+        elif forces[-1][0] > self.ids.graph.xmax:
+            self.ids.graph.xmax = forces[-1][0]
+
+        if forces[-1][1] == 0:
+            self.ids.graph.ymax = 1
+        elif forces[-1][1] > self.ids.graph.ymax:
+            self.ids.graph.ymax = forces[-1][1]
+
+        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
+
+        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
+        """
+        if forces[-1]*2 > self.ids.graph.ymax:
+            self.ids.graph.ymax = forces[-1] * 2
+"""
+        self.plot.points = forces
+        print("y: " + str(forces[-1][1]))
+        print("x: " + str(forces[-1][0]))
+        self.angle_current.text = str(round(forces[-1][1], 2))
+
+    #
+    # def set_angle(self):
+    #     Clock.schedule_interval(self.show_angle, sample_time)
+    #     angle = self.ids.angle_text.text
+    #     if angle != "":
+    #         print("angle is set to: " + angle)
+    #         md.set_angle_x(float(angle))  # bu fonksiyonu text açısına ulaşacak şekilde düzenle
+    #         test_angle = angle
+    #     else:
+    #         print("no angle given")
+    #         test_angle = 0
 
 
 screen_manager = ScreenManager()
@@ -230,6 +330,7 @@ ScreenThree.add_widget(ScreenThree.l_dynamic)
 screen_manager.add_widget(ScreenOne(name="screen_one"))
 screen_manager.add_widget(ScreenTwo(name="screen_two"))
 screen_manager.add_widget(ScreenThree(name="screen_three"))
+screen_manager.add_widget(ScreenFour(name="screen_four"))
 
 
 
