@@ -40,7 +40,7 @@ class motor_driver:
         # saniyede 300 tick
         # 0.003 saniyede 1 tick
         print("motor icin sure ve tick sayisi hesaplandi")
-        mm_per_tick = 180
+        mm_per_tick = 180 # kalibrasyon için
         # 60mm için 60*180 tick
         ticks = speed * mm_per_tick
 

@@ -29,6 +29,7 @@ test_mode = -1 # 0-motorized test
 global forces
 forces = [[0,0]]
 
+
 sample_time = 0.1
 
 sample1 = sample()
@@ -96,24 +97,24 @@ class ScreenTwo(Screen):
     def __init__(self, **args):
         Screen.__init__(self, **args)
         self.force_current_label = Label(text="Current Force: ")
-        self.force_current_label.pos = (-335, 170)
+        self.force_current_label.pos = (-335, 155)
         self.force_current_label.color = (0,0,0,1)
         self.add_widget(self.force_current_label)
 
         self.force_text = "0"
         self.force_current = Label(text=self.force_text)
-        self.force_current.pos = (-225, 170)
+        self.force_current.pos = (-225, 155)
         self.force_current.color = (0,0,0,1)
         self.add_widget(self.force_current)
 
         self.angle_current_label = Label(text="Current Angle: ")
-        self.angle_current_label.pos = (200, 170)
+        self.angle_current_label.pos = (200, 155)
         self.angle_current_label.color = (0,0,0,1)
         self.add_widget(self.angle_current_label)
 
         self.angle_text = str(10)
         self.angle_current = Label(text=self.angle_text)
-        self.angle_current.pos = (300, 170)
+        self.angle_current.pos = (300, 155)
         self.angle_current.color = (0,0,0,1)
         self.add_widget(self.angle_current)
 

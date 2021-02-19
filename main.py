@@ -48,7 +48,7 @@ global test_angle
 test_angle = 0
 
 global forces
-forces = [[0,0]]
+forces = [[0, 0]]
 
 sample_time = 0.1
 
@@ -60,9 +60,9 @@ def get_force():
     if val < 0:
         val = 1
     if len(forces) > 1:
-        forces.append([round((forces[-1][0] + sample_time),4), val])
+        forces.append([round((forces[-1][0] + sample_time), 4), val])
     else:
-        forces.append([0,val])
+        forces.append([0, val])
 
 def find_biggest(array):
     biggest = [0.1,0.1]
@@ -113,13 +113,13 @@ class ScreenTwo(Screen):
     def __init__(self, **args):
         Screen.__init__(self, **args)
         self.force_current_label = Label(text="Current Force: ")
-        self.force_current_label.pos = (-335, 170)
+        self.force_current_label.pos = (-335, 155)
         self.force_current_label.color = (0,0,0,1)
         self.add_widget(self.force_current_label)
 
         self.force_text = "0"
         self.force_current = Label(text=self.force_text)
-        self.force_current.pos = (-225, 170)
+        self.force_current.pos = (-225, 155)
         self.force_current.color = (0,0,0,1)
         self.add_widget(self.force_current)
 
@@ -140,7 +140,17 @@ class ScreenTwo(Screen):
         self.ids.graph.add_plot(self.plot)
         Clock.schedule_interval(self.get_value, sample_time)
 
-        self.drive_time, self.frequency, self.direction = md.calculate_ticks()
+        if self.ids.distance_text.text == "":
+            self.test_distance = 60
+        else:
+            self.test_distance = float(self.ids.distance_text.text)
+
+        if self.ids.speed_text.text == "":
+            self.test_speed = 150
+        else:
+            self.test_speed = float(self.ids.speed_text.text)
+
+        self.drive_time, self.frequency, self.direction = md.calculate_ticks( self.test_distance, self.test_speed, 1)
         md.motor_run(self.drive_time, self.frequency, self.direction)
 
     def stop(self):
@@ -148,7 +158,8 @@ class ScreenTwo(Screen):
         md.stop_motor()
 
     def reset(self):
-        md.motor_run(self.drive_time, self.frequency, 0)
+        self.drive_time, self.frequency, self.direction = md.calculate_ticks(self.test_distance, self.test_speed, 0)
+        md.motor_run(self.drive_time, self.frequency, self.direction)
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
@@ -166,11 +177,11 @@ class ScreenTwo(Screen):
         elif forces[-1][1] > self.ids.graph.ymax:
             self.ids.graph.ymax = forces[-1][1]
 
-        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax,-1)/10
+        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1)/10
 
-        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax,-1)/10
+        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1)/10
         self.plot.points = forces
-        self.force_current.text = str(round(forces[-1][1],2))
+        self.force_current.text = str(round(forces[-1][1], 2))
 
     def show_angle(self, angle):
 
