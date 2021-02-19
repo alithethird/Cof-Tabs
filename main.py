@@ -72,7 +72,8 @@ def get_force_angle():
         val = 1
     angle = angle_read.get_rotation(1)
     if len(forces) > 1:
-        forces.append([round(angle, 4), val])
+        if round(angle, 4) > forces[-1][0]:
+            forces.append([round(angle, 4), val])
     else:
         forces.append([0, val])
 
