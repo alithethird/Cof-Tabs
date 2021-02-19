@@ -47,7 +47,7 @@ class fpdf_handler(FPDF):
         self.set_line_width(1)
         self.line(x1=10, y1=285, x2=200, y2=285)
 
-        self.cell(0,10,"Alarge Laboratuvar ve Plastik Kaynak Teknolojileri - https://www.alarge.com.tr - info@alarge.com.tr")
+        self.cell(0,10,"Alarge Laboratory and Plastic Welding Teknologies - https://www.alarge.com.tr/en/ - info@alarge.com.tr")
 
     def graph_to_pdf(self, choise):
         if choise == 1:
