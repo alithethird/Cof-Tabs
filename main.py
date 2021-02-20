@@ -204,7 +204,7 @@ class ScreenTwo(Screen):
 
     def get_value(self, dt):
         get_force()
-        self.dist_current.text += 60(sample_time * float(self.test_speed)) # update current distance
+        self.dist_current.text += 60(sample_time * float(self.test_speed))  # update current distance
         if forces[-1][0] == 0:
             self.ids.graph.xmax = 1
         elif forces[-1][0] > self.ids.graph.xmax:
