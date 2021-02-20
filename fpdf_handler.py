@@ -1,7 +1,10 @@
-from fpdf import FPDF
 import datetime
 import shutil
 from os import popen
+
+from fpdf import FPDF
+
+
 class sample:
     name = "Sample Name"
     width = 10
@@ -14,6 +17,7 @@ class fpdf_handler(FPDF):
     time = "0"
     date_today = "0"
     date_and_time = "0"
+
     def set_time(self):
         self.date_today = datetime.datetime.today()
         self.date = self.date_today.strftime("%d:%m:%Y")
@@ -37,7 +41,7 @@ class fpdf_handler(FPDF):
 
         self.set_line_width(1)
         self.line(x1=10, y1=30, x2=200, y2=30)
-        #self.ln(10)
+        # self.ln(10)
 
     def footer(self):
         self.set_y(-10)
@@ -47,7 +51,8 @@ class fpdf_handler(FPDF):
         self.set_line_width(1)
         self.line(x1=10, y1=285, x2=200, y2=285)
 
-        self.cell(0,10,"Alarge Laboratory and Plastic Welding Teknologies - https://www.alarge.com.tr/en/ - info@alarge.com.tr")
+        self.cell(0, 10,
+                  "Alarge Laboratory and Plastic Welding Teknologies - https://www.alarge.com.tr/en/ - info@alarge.com.tr")
 
     def graph_to_pdf(self, choise):
         if choise == 1:
@@ -83,13 +88,12 @@ class fpdf_handler(FPDF):
         destination = usb_dir + filename
 
         try:
-            shutil.copy2(source, destination)
+            shutil.copy2(source, str(destination))
         except shutil.Error as e:
             print("Error: %s" % e)
         except IOError as e:
             print("Error: %s" % e.strerror)
         self.close()
-
 
     def single_table(self, sample, staticCof, dynamicCof, test_mode):
         if test_mode == 1:
@@ -114,9 +118,8 @@ class fpdf_handler(FPDF):
         for row in data:
             for item in row:
                 self.cell(col_width, row_height * spacing,
-                         txt=item, border=0)
+                          txt=item, border=0)
             self.ln(row_height * spacing)
-
 
     def diff_table(self, sample1, sample2, staticCof, dynamicCof, test_mode):
         if test_mode == 1:
@@ -145,5 +148,5 @@ class fpdf_handler(FPDF):
         for row in data:
             for item in row:
                 self.cell(col_width, row_height * spacing,
-                         txt=item, border=0)
+                          txt=item, border=0)
             self.ln(row_height * spacing)

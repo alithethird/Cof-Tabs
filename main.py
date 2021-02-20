@@ -1,17 +1,17 @@
-from kivy.lang import Builder
-from kivy.uix.label import Label
-from kivy.app import App
-from kivy.core.window import Window
-from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy_garden.graph import MeshLinePlot
-from kivy.clock import Clock
-
 import datetime
-from fpdf_handler import fpdf_handler
+from math import cos, sin
 
 import RPi.GPIO as gpio
+from kivy.app import App
+from kivy.clock import Clock
+from kivy.core.window import Window
+from kivy.lang import Builder
+from kivy.uix.label import Label
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy_garden.graph import MeshLinePlot
+
 import angle_read
-from math import cos, sin
+from fpdf_handler import fpdf_handler
 
 gpio.setmode(gpio.BCM)
 from hx711 import HX711
@@ -24,8 +24,8 @@ hx.set_reading_format("MSB", "MSB")
 hx.reset()
 hx.tare()
 
-start_switch = 12 # start kısmındaki switch
-stop_switch = 13 # stop kısmındaki switch
+start_switch = 12  # start kısmındaki switch
+stop_switch = 13  # stop kısmındaki switch
 reset_motor_speed = 200
 Builder.load_file('cof.kv')
 
@@ -38,14 +38,14 @@ class sample:
     height = 0
     age = 0
 
-test_mode = -1 # 0-motorized test
-               # 1-angle test
 
+test_mode = -1  # 0-motorized test
+# 1-angle test
 
 sample1 = sample()
 sample2 = sample()
 
-global normal_force # üstte kayan metal malzemenin kütlesi (kg)
+global normal_force  # üstte kayan metal malzemenin kütlesi (kg)
 normal_force = 0.2
 global test_angle
 test_angle = 0
@@ -67,6 +67,8 @@ def get_force():
         forces.append([round((forces[-1][0] + sample_time), 4), val])
     else:
         forces.append([0, val])
+
+
 def get_force_angle():
     val = hx.get_weight(5)
     calib = 1  # kalibrasyon sayısı
@@ -84,13 +86,14 @@ def get_force_angle():
 
 
 def find_biggest(array):
-    biggest = [0.1,0.1]
+    biggest = [0.1, 0.1]
     for i in array[:][:]:
         if i[1] > biggest[1]:
             biggest = i
         else:
             pass
     return biggest
+
 
 def find_dynamic_force(array):
     # take last 20 elements of the list
@@ -112,7 +115,7 @@ class ScreenOne(Screen):
 
     def select_angle_test(self):
         global test_mode
-        test_mode  = 1
+        test_mode = 1
 
     def btn_text(self):
         sample1.name = self.ids.first_name.text
@@ -132,28 +135,39 @@ class ScreenTwo(Screen):
     def __init__(self, **args):
         Screen.__init__(self, **args)
         self.force_current_label = Label(text="Current Force: ")
-        self.force_current_label.pos = (-335, 155)
-        self.force_current_label.color = (0,0,0,1)
+        self.force_current_label.pos = (230, 195)
+        self.force_current_label.color = (0, 0, 0, 1)
         self.add_widget(self.force_current_label)
 
         self.force_text = "0"
         self.force_current = Label(text=self.force_text)
-        self.force_current.pos = (-225, 155)
-        self.force_current.color = (0,0,0,1)
+        self.force_current.pos = (330, 195)
+        self.force_current.color = (0, 0, 0, 1)
         self.add_widget(self.force_current)
 
         self.angle_current_label = Label(text="Current Angle: ")
-        self.angle_current_label.pos = (200, 170)
-        self.angle_current_label.color = (0,0,0,1)
+        self.angle_current_label.pos = (230, 155)
+        self.angle_current_label.color = (0, 0, 0, 1)
         self.add_widget(self.angle_current_label)
 
         self.angle_text = str(round(angle_read.get_rotation(1), 2))
         self.angle_current = Label(text=self.angle_text)
-        self.angle_current.pos = (300, 170)
-        self.angle_current.color = (0,0,0,1)
+        self.angle_current.pos = (330, 155)
+        self.angle_current.color = (0, 0, 0, 1)
         self.add_widget(self.angle_current)
 
-        self.reset() # reset when program starts
+        self.dist_current_label = Label(text="Current Distance: ")
+        self.dist_current_label.pos = (230, 175)
+        self.dist_current_label.color = (0, 0, 0, 1)
+        self.add_widget(self.dist_current_label)
+
+        self.dist_text = str(0)
+        self.dist_current = Label(text=self.dist_text)
+        self.dist_current.pos = (330, 175)
+        self.dist_current.color = (0, 0, 0, 1)
+        self.add_widget(self.dist_current)
+
+        self.reset()  # reset when program starts
 
     def start(self):
         forces.clear()
@@ -161,23 +175,23 @@ class ScreenTwo(Screen):
         self.ids.graph.add_plot(self.plot)
         Clock.schedule_interval(self.get_value, sample_time)
 
+        self.test_distance = 60
+        self.test_speed = 150
         if self.ids.distance_text.text == "":
-            self.test_distance = 60
         else:
             self.test_distance = float(self.ids.distance_text.text)
 
         if self.ids.speed_text.text == "":
-            self.test_speed = 150
         else:
             self.test_speed = float(self.ids.speed_text.text)
 
-        self.drive_time, self.frequency, self.direction = md.calculate_ticks( self.test_distance, self.test_speed, 1)
+        self.drive_time, self.frequency, self.direction = md.calculate_ticks(self.test_distance, self.test_speed, 1)
         md.motor_run(self.drive_time, self.frequency, self.direction)
 
     def stop(self):
         Clock.unschedule(self.get_value)
         md.stop_motor()
-        self.reset() # reset when test ends
+        self.reset()  # reset when test ends
 
     def reset(self):
 
@@ -190,7 +204,7 @@ class ScreenTwo(Screen):
 
     def get_value(self, dt):
         get_force()
-
+        self.dist_current.text += 60(sample_time * float(self.test_speed)) # update current distance
         if forces[-1][0] == 0:
             self.ids.graph.xmax = 1
         elif forces[-1][0] > self.ids.graph.xmax:
@@ -201,9 +215,9 @@ class ScreenTwo(Screen):
         elif forces[-1][1] > self.ids.graph.ymax:
             self.ids.graph.ymax = forces[-1][1]
 
-        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1)/10
+        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
 
-        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1)/10
+        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
         self.plot.points = forces
         self.force_current.text = str(round(forces[-1][1], 2))
 
@@ -240,6 +254,7 @@ class ScreenTwo(Screen):
         else:
             return True
 
+
 class ScreenThree(Screen):
     date_today = datetime.date.today()
     date_text = str(date_today)
@@ -251,16 +266,15 @@ class ScreenThree(Screen):
         self.l_static = Label(text=self.static_cof_text)
         self.l_static.pos = (-90, 95)
         self.l_static.pos_hint_x = 0.5
-        self.l_static.color = (0,0,0,1)
+        self.l_static.color = (0, 0, 0, 1)
         self.add_widget(self.l_static)
 
         self.dynamic_cof_text = "0"
         self.l_dynamic = Label(text=self.dynamic_cof_text)
         self.l_dynamic.pos = -90, 0
-        self.l_dynamic.color = (0,0,0,1)
+        self.l_dynamic.color = (0, 0, 0, 1)
 
         self.add_widget(self.l_dynamic)
-
 
     def create_results(self):
         dynamic_cof = self.find_dynamic_cof()
@@ -269,7 +283,7 @@ class ScreenThree(Screen):
 
     def find_dynamic_cof(self):
         dynamic_force = find_dynamic_force(forces)
-        if test_mode == 0:# motorize mod
+        if test_mode == 0:  # motorize mod
             try:
                 dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
                 dynamic_cof = round(dynamic_cof, 3)
@@ -277,9 +291,9 @@ class ScreenThree(Screen):
                 dynamic_cof = "Testing Error (type Error)"
             except:
                 dynamic_cof = "Testing Error something"
-        elif test_mode == 1:# açı mod
+        elif test_mode == 1:  # açı mod
             try:
-                dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
+                dynamic_cof = (normal_force * 9.81 * sin(test_angle)) / (normal_force * 9.81 * cos(test_angle))
                 dynamic_cof = round(dynamic_cof, 3)
             except TypeError:
                 dynamic_cof = "Testing Error (type Error)"
@@ -290,11 +304,11 @@ class ScreenThree(Screen):
         return dynamic_cof
 
     def find_static_cof(self):
-        if test_mode == 0: # motorize mod
+        if test_mode == 0:  # motorize mod
             static_angle, static_force = find_biggest(forces)
             static_cof = float(static_force) / (normal_force * 9.81 * cos(test_angle))
             static_cof = round(static_cof, 3)
-        elif test_mode == 1: # açı mod
+        elif test_mode == 1:  # açı mod
             static_angle, static_force = find_biggest(forces)
             static_cof = float(static_force) / (normal_force * 9.81 * cos(static_angle))
             static_cof = round(static_cof, 3)
@@ -312,7 +326,8 @@ class ScreenThree(Screen):
 
     def createPDF(self):
         self.pdf = fpdf_handler()
-        self.pdf.create_pdf( self.static, self.dynamic, sample1, sample2, test_mode)
+        self.pdf.create_pdf(self.static, self.dynamic, sample1, sample2, test_mode)
+
 
 class ScreenFour(Screen):
     plot = MeshLinePlot(color=[1, 0, 0, 1])
@@ -321,20 +336,21 @@ class ScreenFour(Screen):
         Screen.__init__(self, **args)
         self.angle_current_label = Label(text="Current Angle: ")
         self.angle_current_label.pos = (-335, 170)
-        self.angle_current_label.color = (0,0,0,1)
+        self.angle_current_label.color = (0, 0, 0, 1)
         self.add_widget(self.angle_current_label)
 
         self.angle_text = str(round(angle_read.get_rotation(1), 2))
         self.angle_current = Label(text=self.angle_text)
         self.angle_current.pos = (-225, 170)
-        self.angle_current.color = (0,0,0,1)
+        self.angle_current.color = (0, 0, 0, 1)
         self.add_widget(self.angle_current)
 
     def start(self):
         forces.clear()
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        Clock.schedule_interval(self.get_value, sample_time) # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample kaymaya başlayınca durabilir
+        Clock.schedule_interval(self.get_value,
+                                sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample kaymaya başlayınca durabilir
 
         md.start_angle_motor_rise(50)
 
@@ -365,15 +381,14 @@ class ScreenFour(Screen):
             elif forces[-1][1] > self.ids.graph.ymax:
                 self.ids.graph.ymax = forces[-1][1]
 
-            self.ids.graph.y_ticks_major = round(self.ids.graph.ymax,-1)/10
+            self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
 
-            self.ids.graph.x_ticks_major = round(self.ids.graph.xmax,-1)/10
+            self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
             self.plot.points = forces
-            self.angle_current.text = str(round(forces[-1][1],2))
+            self.angle_current.text = str(round(forces[-1][1], 2))
         else:
             md.stop_angle_motor()
             Clock.unschedule(self.get_value)
-
 
     def check_angle(self, angle):
         val = round(angle_read.get_rotation(1), 2)
@@ -381,6 +396,7 @@ class ScreenFour(Screen):
             return False
         else:
             return True
+
 
 screen_manager = ScreenManager()
 
@@ -399,4 +415,3 @@ class AwesomeApp(App):
 
 if __name__ == "__main__":
     AwesomeApp().run()
-
