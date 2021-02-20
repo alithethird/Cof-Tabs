@@ -74,10 +74,12 @@ class fpdf_handler(FPDF):
         else:
             self.diff_table(sample1, sample2, static, dynamic, test_mode)
             self.graph_to_pdf(2)
-        popen("rm graph.png")
+
         filename = "COF Test " + self.date_and_time + ".pdf"
         mount_dir = "/media/pi/*"
         self.output(filename)
+        self.close()
+
         source = "./" + filename
         usb_dir = popen("ls " + mount_dir).read()
         usb_dir = usb_dir.split()
@@ -87,13 +89,13 @@ class fpdf_handler(FPDF):
         usb_dir = usb_dir[0]
         destination = usb_dir + filename
 
+        popen("cp " + source + " " + str(destination) +"/")
         try:
             shutil.copy2(source, str(destination))
         except shutil.Error as e:
             print("Error: %s" % e)
         except IOError as e:
             print("Error: %s" % e.strerror)
-        self.close()
 
     def single_table(self, sample, staticCof, dynamicCof, test_mode):
         if test_mode == 1:

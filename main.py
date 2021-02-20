@@ -99,7 +99,7 @@ def find_biggest(array):
 def find_dynamic_force(array):
     # take last 20 elements of the list
     # find the median
-    if len(array) > 10:
+    if len(array) > 20:
         median = 0
         for i in range(20):
             median += forces[-(i + 1)][1]
@@ -225,7 +225,7 @@ class ScreenTwo(Screen):
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
 
-        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
+        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
         self.plot.points = forces
         self.force_current.text = str(round(forces[-1][1], 2))
 
@@ -334,7 +334,11 @@ class ScreenThree(Screen):
 
     def createPDF(self):
         self.pdf = fpdf_handler()
-        self.pdf.create_pdf(self.static, self.dynamic, sample1, sample2, test_mode)
+        try:
+            self.pdf.create_pdf(self.static, self.dynamic, sample1, sample2, test_mode)
+        except:
+            self.update_results()
+            self.pdf.create_pdf(self.static, self.dynamic, sample1, sample2, test_mode)
 
 
 class ScreenFour(Screen):
