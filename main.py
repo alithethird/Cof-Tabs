@@ -211,6 +211,8 @@ class ScreenTwo(Screen):
     def get_value(self, dt):
         get_force()
         self.dist_current.text = str(float(self.dist_current.text) + 60*(sample_time * self.test_speed))  # update current distance
+        if forces[-1][1] > self.force_max.text:
+            self.force_max.text = forces[-1][1]
         if forces[-1][0] == 0:
             self.ids.graph.xmax = 1
         elif forces[-1][0] > self.ids.graph.xmax:
@@ -340,14 +342,37 @@ class ScreenFour(Screen):
 
     def __init__(self, **args):
         Screen.__init__(self, **args)
+
+        self.force_max_label = Label(text="Peak Force: ")
+        self.force_max_label.pos = (230, 215)
+        self.force_max_label.color = (0, 0, 0, 1)
+        self.add_widget(self.force_max_label)
+
+        self.force_max_text = "0"
+        self.force_max = Label(text=self.force_max_text)
+        self.force_max.pos = (330, 215)
+        self.force_max.color = (0, 0, 0, 1)
+        self.add_widget(self.force_max)
+
+        self.force_current_label = Label(text="Current Force: ")
+        self.force_current_label.pos = (230, 195)
+        self.force_current_label.color = (0, 0, 0, 1)
+        self.add_widget(self.force_current_label)
+
+        self.force_text = "0"
+        self.force_current = Label(text=self.force_text)
+        self.force_current.pos = (330, 195)
+        self.force_current.color = (0, 0, 0, 1)
+        self.add_widget(self.force_current)
+
         self.angle_current_label = Label(text="Current Angle: ")
-        self.angle_current_label.pos = (-335, 170)
+        self.angle_current_label.pos = (230, 155)
         self.angle_current_label.color = (0, 0, 0, 1)
         self.add_widget(self.angle_current_label)
 
         self.angle_text = str(round(angle_read.get_rotation(1), 2))
         self.angle_current = Label(text=self.angle_text)
-        self.angle_current.pos = (-225, 170)
+        self.angle_current.pos = (330, 155)
         self.angle_current.color = (0, 0, 0, 1)
         self.add_widget(self.angle_current)
 
@@ -376,7 +401,8 @@ class ScreenFour(Screen):
         max_angle = 30
         if self.check_angle(max_angle):
             get_force_angle()
-
+            if forces[-1][1] > self.force_max.text:
+                self.force_max.text = forces[-1][1]
             if forces[-1][0] == 0:
                 self.ids.graph.xmax = 1
             elif forces[-1][0] > self.ids.graph.xmax:
@@ -416,6 +442,7 @@ class AwesomeApp(App):
     def build(self):
         Window.clearcolor = (1, 1, 1, 1)
         Window.size = (800, 480)  # pencere boyutu
+        Window.fullscreen = True
         return screen_manager
 
 
