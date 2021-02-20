@@ -211,8 +211,7 @@ class ScreenTwo(Screen):
     def get_value(self, dt):
         get_force()
         self.dist_current.text = str(float(self.dist_current.text) + 60*(sample_time * self.test_speed))  # update current distance
-        if forces[-1][1] > self.force_max.text:
-            self.force_max.text = forces[-1][1]
+
         if forces[-1][0] == 0:
             self.ids.graph.xmax = 1
         elif forces[-1][0] > self.ids.graph.xmax:
@@ -221,6 +220,7 @@ class ScreenTwo(Screen):
         if forces[-1][1] == 0:
             self.ids.graph.ymax = 1
         elif forces[-1][1] > self.ids.graph.ymax:
+            self.force_max.text = str(round(forces[-1][1],3))
             self.ids.graph.ymax = forces[-1][1]
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
@@ -401,8 +401,7 @@ class ScreenFour(Screen):
         max_angle = 30
         if self.check_angle(max_angle):
             get_force_angle()
-            if forces[-1][1] > self.force_max.text:
-                self.force_max.text = forces[-1][1]
+
             if forces[-1][0] == 0:
                 self.ids.graph.xmax = 1
             elif forces[-1][0] > self.ids.graph.xmax:
@@ -411,6 +410,7 @@ class ScreenFour(Screen):
             if forces[-1][1] == 0:
                 self.ids.graph.ymax = 1
             elif forces[-1][1] > self.ids.graph.ymax:
+                self.force_max.text = str(round(forces[-1][1],3))
                 self.ids.graph.ymax = forces[-1][1]
 
             self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10

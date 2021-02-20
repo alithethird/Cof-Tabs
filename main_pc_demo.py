@@ -187,8 +187,7 @@ class ScreenTwo(Screen):
 
         get_force(forces)
         self.dist_current.text = str(float(self.dist_current.text) + 60*(sample_time * self.test_speed))
-        if forces[-1][1] > self.force_max.text:
-            self.force_max.text = forces[-1][1]
+
         if forces[-1][0] == 0:
             self.ids.graph.xmax = 1
         elif forces[-1][0] > self.ids.graph.xmax:
@@ -197,6 +196,7 @@ class ScreenTwo(Screen):
         if forces[-1][1] == 0:
             self.ids.graph.ymax = 1
         elif forces[-1][1] > self.ids.graph.ymax:
+            self.force_max.text = str(round(forces[-1][1],3))
             self.ids.graph.ymax = forces[-1][1]
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
@@ -307,6 +307,17 @@ class ScreenFour(Screen):
     def __init__(self, **args):
         Screen.__init__(self, **args)
 
+        self.force_max_label = Label(text="Peak Force: ")
+        self.force_max_label.pos = (230, 215)
+        self.force_max_label.color = (0, 0, 0, 1)
+        self.add_widget(self.force_max_label)
+
+        self.force_max_text = "0"
+        self.force_max = Label(text=self.force_max_text)
+        self.force_max.pos = (330, 215)
+        self.force_max.color = (0, 0, 0, 1)
+        self.add_widget(self.force_max)
+
         self.force_current_label = Label(text="Current Force: ")
         self.force_current_label.pos = (230, 195)
         self.force_current_label.color = (0, 0, 0, 1)
@@ -364,6 +375,7 @@ class ScreenFour(Screen):
         if forces[-1][1] == 0:
             self.ids.graph.ymax = 1
         elif forces[-1][1] > self.ids.graph.ymax:
+            self.force_max.text = str(round(forces[-1][1],3))
             self.ids.graph.ymax = forces[-1][1]
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
