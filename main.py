@@ -167,7 +167,7 @@ class ScreenTwo(Screen):
         self.dist_current.color = (0, 0, 0, 1)
         self.add_widget(self.dist_current)
 
-        self.reset()  # reset when program starts
+        #self.reset()  # reset when program starts
 
     def start(self):
         forces.clear()
@@ -178,10 +178,12 @@ class ScreenTwo(Screen):
         self.test_distance = 60
         self.test_speed = 150
         if self.ids.distance_text.text == "":
+            pass
         else:
             self.test_distance = float(self.ids.distance_text.text)
 
         if self.ids.speed_text.text == "":
+            pass
         else:
             self.test_speed = float(self.ids.speed_text.text)
 
@@ -204,7 +206,7 @@ class ScreenTwo(Screen):
 
     def get_value(self, dt):
         get_force()
-        self.dist_current.text += 60(sample_time * float(self.test_speed))  # update current distance
+        self.dist_current.text = str(float(self.dist_current.text) + 60*(sample_time * self.test_speed))  # update current distance
         if forces[-1][0] == 0:
             self.ids.graph.xmax = 1
         elif forces[-1][0] > self.ids.graph.xmax:

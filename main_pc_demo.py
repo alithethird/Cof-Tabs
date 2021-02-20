@@ -140,8 +140,19 @@ class ScreenTwo(Screen):
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
         Clock.schedule_interval(self.get_value, sample_time)
-        test_speed = 150
-        drive_time, frequency, direction = md.calculate_ticks(distance=60, speed=test_speed, direction=1)
+
+        self.test_distance = 60
+        self.test_speed = 150
+        if self.ids.distance_text.text == "":
+            pass
+        else:
+            self.test_distance = float(self.ids.distance_text.text)
+
+        if self.ids.speed_text.text == "":
+            pass
+        else:
+            self.test_speed = float(self.ids.speed_text.text)
+        drive_time, frequency, direction = md.calculate_ticks(distance=60, speed=self.test_speed, direction=1)
         md.motor_run(drive_time, frequency, direction)
         print("motor driver kodundan cikildi")
 
@@ -159,7 +170,7 @@ class ScreenTwo(Screen):
         print("gettin value")
 
         get_force(forces)
-
+        self.dist_current.text = str(float(self.dist_current.text) + 60*(sample_time * self.test_speed))
         if forces[-1][0] == 0:
             self.ids.graph.xmax = 1
         elif forces[-1][0] > self.ids.graph.xmax:
