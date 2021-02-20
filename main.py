@@ -37,7 +37,8 @@ class sample:
     width = 0
     height = 0
     age = 0
-
+    company_name = ""
+    operator_name = ""
 
 test_mode = -1  # 0-motorized test
 # 1-angle test
@@ -54,7 +55,7 @@ global forces
 forces = [[0, 0]]
 
 sample_time = 0.1
-
+sample_time_angle = 0.5
 
 def get_force():
     val = hx.get_weight(5)
@@ -122,6 +123,9 @@ class ScreenOne(Screen):
         sample1.width = self.ids.first_width.text
         sample1.height = self.ids.first_height.text
         sample1.age = self.ids.first_age.text
+        sample1.company_name = self.ids.company_name.text
+        sample1.operator_name = self.ids.operator_name.text
+
         if self.ids.switch.active:
             sample2.name = self.ids.second_name.text
             sample2.width = self.ids.second_width.text
@@ -193,7 +197,7 @@ class ScreenTwo(Screen):
     def stop(self):
         Clock.unschedule(self.get_value)
         md.stop_motor()
-        self.reset()  # reset when test ends
+        #self.reset()  # reset when test ends
 
     def reset(self):
 
@@ -295,7 +299,7 @@ class ScreenThree(Screen):
                 dynamic_cof = "Testing Error something"
         elif test_mode == 1:  # açı mod
             try:
-                dynamic_cof = (normal_force * 9.81 * sin(test_angle)) / (normal_force * 9.81 * cos(test_angle))
+                dynamic_cof = forces[-1][1] / (normal_force * 9.81 * cos(forces[-1][0])) #en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
                 dynamic_cof = round(dynamic_cof, 3)
             except TypeError:
                 dynamic_cof = "Testing Error (type Error)"
@@ -352,7 +356,7 @@ class ScreenFour(Screen):
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
         Clock.schedule_interval(self.get_value,
-                                sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample kaymaya başlayınca durabilir
+                                sample_time_angle)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample kaymaya başlayınca durabilir
 
         md.start_angle_motor_rise(50)
 

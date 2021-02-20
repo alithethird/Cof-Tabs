@@ -91,6 +91,18 @@
             pos_hint: {'center_x': 0.8, "center_y": 0.44}
             size_hint: (0.2, 0.06)  if switch.active else (0,0)
 
+        TextInput:
+            id: company_name
+            hint_text: 'Company Name'
+            pos_hint: {'center_x': 0.5, "center_y": 0.65}
+            size_hint: (0.2, 0.06)
+
+        TextInput:
+            id: operator_name
+            hint_text: 'Operator Name'
+            pos_hint: {'center_x': 0.5, "center_y": 0.58}
+            size_hint: (0.2, 0.06)
+
         Switch:
             id: switch
             pos_hint: {'center_x': 0.8, "center_y": 0.35}

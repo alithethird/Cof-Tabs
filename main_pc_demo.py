@@ -23,7 +23,8 @@ class sample:
     width = 0
     height = 0
     age = 0
-
+    company_name = ""
+    operator_name = ""
 
 global test_mode
 test_mode = -1  # 0-motorized test
@@ -90,6 +91,9 @@ class ScreenOne(Screen):
         sample1.width = self.ids.first_width.text
         sample1.height = self.ids.first_height.text
         sample1.age = self.ids.first_age.text
+        sample1.company_name = self.ids.company_name.text
+        sample1.operator_name = self.ids.operator_name.text
+
         if self.ids.switch.active:
             sample2.name = self.ids.second_name.text
             sample2.width = self.ids.second_width.text
