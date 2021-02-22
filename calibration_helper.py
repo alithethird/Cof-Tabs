@@ -16,7 +16,7 @@ print("2- 2 ağırlık ile kalibrasyon sayısı bulma")
 
 count = input("Mod seç Umut beybisi: ")
 
-if count == 1:
+if count == "1":
     bilinen_agirlik = input("Koyduğun ağırlık: ")
     olculen_agirlik = hx.get_weight(5)
     print("Ölçülen ağıklık: " + str(olculen_agirlik))
@@ -25,7 +25,7 @@ if count == 1:
     print("Kalibrasyon sayısı: " + str(kalibrasyon_sayisi))
     a = kalibrasyon_sayisi
     b = 0
-elif count == 2:
+elif count == "2":
     ilk_bilinen = input("İlk ağırlığın değeri: ")
     ilk_olculen = hx.get_weight(5)
     ikinci_bilinen = input("İkinci ağırlığın değeri: ")
@@ -44,7 +44,7 @@ elif count == 2:
 
 test = input("Kalibrasonu test etmek istersen 1'e bas")
 
-if test == 1:
+if test == "1":
     bilinen_test = print("Koyduğun ağırlık: ")
     olculen_test = hx.get_weight(5)
     print("Ölçülen: " + str(olculen_test))

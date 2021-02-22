@@ -16,6 +16,7 @@ from fpdf_handler import fpdf_handler
 gpio.setmode(gpio.BCM)
 from hx711 import HX711
 from motor_driver import motor_driver
+from json_dumper import JsonDumper
 
 # set up the load cell
 
@@ -30,6 +31,7 @@ reset_motor_speed = 200
 Builder.load_file('cof.kv')
 
 md = motor_driver()
+json_out = JsonDumper()
 
 
 class sample:
@@ -37,6 +39,7 @@ class sample:
     width = 0
     height = 0
     age = 0
+    testing_weight = 0
     company_name = ""
     operator_name = ""
 
@@ -125,7 +128,7 @@ class ScreenOne(Screen):
         sample1.age = self.ids.first_age.text
         sample1.company_name = self.ids.company_name.text
         sample1.operator_name = self.ids.operator_name.text
-
+        sample1.testing_weight = normal_force * 1000
         if self.ids.switch.active:
             sample2.name = self.ids.second_name.text
             sample2.width = self.ids.second_width.text
@@ -331,6 +334,9 @@ class ScreenThree(Screen):
 
         self.l_dynamic.text = self.dynamic_cof_text
         self.l_static.text = self.static_cof_text
+
+        json_out.dump_all(self.static, self.dynamic, sample1, sample2, test_mode, forces)
+
 
     def createPDF(self):
         self.pdf = fpdf_handler()

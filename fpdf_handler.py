@@ -105,15 +105,15 @@ class fpdf_handler(FPDF):
         data = [['Standard: ', "ISO 8295"],
                 ['Company Name: ', sample.company_name],
                 ['Operator Name: ', sample.operator_name],
-                ['Testing Weight: ', '200 grams'],
+                ['Testing Weight(gr): ', sample.testing_weight],
                 ['Test Mode: ', test_mode],
                 ['Sample Name: ', sample.name],
-                ['Sample Width: ', str(sample.width)],
-                ['Sample Heigth: ', str(sample.height)],
-                ['Sample Age: ', str(sample.age)],
+                ['Sample Width(mm): ', str(sample.width)],
+                ['Sample Height(mm): ', str(sample.height)],
+                ['Sample Age(months): ', str(sample.age)],
                 ['Testing Against: ', 'The same sample'],
-                ['Static Coefficient of Fricion: ', str(staticCof)],
-                ['Dynamic Coefficient of Fricion: ', str(dynamicCof)]
+                ['Static Coefficient of Friction: ', str(staticCof)],
+                ['Dynamic Coefficient of Friction: ', str(dynamicCof)]
                 ]
         spacing = 2
         self.set_font("Arial", size=12)
@@ -133,19 +133,19 @@ class fpdf_handler(FPDF):
         data = [['Standard: ', "ISO 8295"],
                 ['Company Name: ', sample1.company_name],
                 ['Operator Name: ', sample1.operator_name],
-                ['Testing Weight: ', '200 grams'],
+                ['Testing Weight(gr): ', sample1.testing_weight],
                 ['Test Mode: ', test_mode],
                 ['Sample Name: ', sample1.name],
-                ['Sample Width: ', str(sample1.width)],
-                ['Sample Heigth: ', str(sample1.height)],
+                ['Sample Width(mm): ', str(sample1.width)],
+                ['Sample Height(mm): ', str(sample1.height)],
                 ['Sample Age: ', str(sample1.age)],
                 ['Testing Against: ', 'Different Sample'],
                 ['Second Sample Name: ', sample2.name],
-                ['Second Sample Width: ', str(sample2.width)],
-                ['Second Sample Heigth: ', str(sample2.height)],
-                ['Second Sample Age: ', str(sample2.age)],
-                ['Static Coefficient of Fricion: ', str(staticCof)],
-                ['Dynamic Coefficient of Fricion: ', str(dynamicCof)]
+                ['Second Sample Width(mm): ', str(sample2.width)],
+                ['Second Sample Height(mm): ', str(sample2.height)],
+                ['Second Sample Age(months): ', str(sample2.age)],
+                ['Static Coefficient of Friction: ', str(staticCof)],
+                ['Dynamic Coefficient of Friction: ', str(dynamicCof)]
                 ]
         spacing = 2
         self.set_font("Arial", size=12)
