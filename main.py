@@ -433,6 +433,11 @@ class ScreenFour(Screen):
         else:
             return True
 
+    def angle_motor_rise(self):
+        md.start_angle_motor_rise(50)
+
+    def angle_motor_fall(self):
+        md.start_angle_motor_fall(50)
 
 screen_manager = ScreenManager()
 

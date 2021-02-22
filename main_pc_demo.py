@@ -390,6 +390,13 @@ class ScreenFour(Screen):
         print("x: " + str(forces[-1][0]))
         self.angle_current.text = str(round(forces[-1][1], 2))
 
+    def angle_motor_rise(self):
+        md.start_angle_motor_rise(50)
+        print("angle motor rise")
+
+    def angle_motor_fall(self):
+        md.start_angle_motor_fall(50)
+        print("angle motor fall")
     #
     # def set_angle(self):
     #     Clock.schedule_interval(self.show_angle, sample_time)

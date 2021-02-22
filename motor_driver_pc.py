@@ -77,7 +77,10 @@ class motor_driver_pc:
         elif angle > 30:  # fazla gittiyse aradaki farka oranlı bir hızda geri dönüyor
             print("ileride kaldı açı motoru oranlı geri dönüyor")
 
-
+    def start_angle_motor_rise(self, frequency=1000):
+        pass
+    def start_angle_motor_fall(self, frequency=1000):
+        pass
     def gyro_data(self):
         return 30
 
