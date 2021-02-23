@@ -1,16 +1,15 @@
 from time import sleep
-import signal
 # import RPi.GPIO as gpio
 
-EN = 21
-DIR = 20
-STEP = 16
+EN = 26
+DIR = 19
+STEP = 13
 CW = 1
 CCW = 0
 
-A_STEP = 13 # açı motoru için step
-A_DIR = 19 # açı motoru için direction
-A_EN = 26 # açı motoru için enable
+A_STEP = 16 # açı motoru için step
+A_DIR = 20 # açı motoru için direction
+A_EN = 21 # açı motoru için enable
 
 class motor_driver_pc:
     tick = -1
@@ -46,8 +45,6 @@ class motor_driver_pc:
     def motor_run(self, time, ticks, direction):
 
         print("motor pwm ayarlandi")
-        signal.signal(signal.SIGALRM, self.handler)
-        signal.setitimer(signal.ITIMER_VIRTUAL, time, 0)
         print("motor stop timer ayarlandi")
     def stop_motor(self):
         print("Motor stopped!")
@@ -55,13 +52,7 @@ class motor_driver_pc:
     def handler(self, signum, _):
         self.stop_motor()
 
-    def set_angle_x(self, x):
 
-        print("aci motoru pozitif yonde calismaya basladı")
-        signal.signal(signal.SIGALRM, self.angle_slow_down)  # bu satır için mpu6050 lazım
-        # signal.signal(signal.SIGALRM, self.angle_test) # test satırı
-        signal.setitimer(signal.ITIMER_REAL, x, 0)
-        print("aci motoru icin timer ayarlandi")
 
     def angle_test(self, signum, _):
 
@@ -83,19 +74,3 @@ class motor_driver_pc:
         pass
     def gyro_data(self):
         return 30
-
-    def send_tick(self):
-        # change it to pin_status != pin_status
-        # gpio.input(pin)
-        # self.tick = self.tick_goal
-        if self.tick > 0: # countdown the ticks
-            self.tick = self.tick - 1
-        elif self.tick == -1: # if tick counter is reset, set the counter
-            self.tick = self.tick_goal
-        elif self.tick == 0:
-            signal.setitimer(signal.ITIMER_REAL, 0, 0) # if ticks done stop timer
-            self.tick = -1 # reset counter
-            self.tick_goal = -1 # reset tick_goal
-
-        self.pin_state = not self.pin_state
-        print(self.pin_state)

@@ -90,18 +90,36 @@ class ScreenOne(Screen):
 
     def btn_text(self):
         sample1.name = self.ids.first_name.text
-        sample1.width = self.ids.first_width.text
-        sample1.height = self.ids.first_height.text
-        sample1.age = self.ids.first_age.text
+        if self.ids.first_width.text == "":
+            sample1.width = 0.00
+        else:
+            sample1.width = self.ids.first_width.text
+        if self.ids.first_height.text == "":
+            sample1.height = 0.00
+        else:
+            sample1.height = self.ids.first_height.text
+        if self.ids.first_age.text == "":
+            sample1.age = 0.00
+        else:
+            sample1.age = self.ids.first_age.text
         sample1.company_name = self.ids.company_name.text
         sample1.operator_name = self.ids.operator_name.text
         sample1.testing_weight = normal_force * 1000
 
         if self.ids.switch.active:
             sample2.name = self.ids.second_name.text
-            sample2.width = self.ids.second_width.text
-            sample2.height = self.ids.second_height.text
-            sample2.age = self.ids.second_age.text
+            if self.ids.second_width.text == "":
+                sample2.width = 0.00
+            else:
+                sample2.width = self.ids.second_width.text
+            if self.ids.second_height.text == "":
+                sample2.height = 0.00
+            else:
+                sample2.height = self.ids.second_height.text
+            if self.ids.second_age.text == "":
+                sample2.age = 0.00
+            else:
+                sample2.age = self.ids.second_age.text
 
 
 class ScreenTwo(Screen):
