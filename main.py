@@ -262,34 +262,6 @@ class ScreenTwo(Screen):
         angle = str(angle)
         self.angle_current.text = angle
 
-    def set_angle(self):
-        angle = self.ids.angle_text.text
-        if angle != "":
-            try:
-                angle = int(angle)
-                while self.check_angle(angle):
-                    val = round(angle_read.get_rotation(1), 2)
-                    freq = (angle - val) * 20
-                    self.show_angle(val)
-                    if freq > 0:
-                        md.start_angle_motor_rise(freq)
-                    else:
-                        freq *= -1
-                        md.start_angle_motor_fall(freq)
-                md.stop_angle_motor()
-            except:
-                pass
-        else:
-            pass
-
-    def check_angle(self, angle):
-        val = round(angle_read.get_rotation(1), 2)
-        self.show_angle(val)
-        if val <= angle + 1 and val >= angle - 1:
-            return False
-        else:
-            return True
-
 
 class ScreenThree(Screen):
     date_today = datetime.date.today()

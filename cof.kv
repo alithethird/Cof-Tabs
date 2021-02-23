@@ -172,12 +172,6 @@
                 root.manager.transition.duration = 0.5
                 root.manager.current = "screen_three"
 
-        Button:
-            text: "Set Angle"
-            pos_hint: {'center_x': 0.63, "center_y": 0.84}
-            size_hint: (1/8, 1/16)
-            on_press:
-                root.set_angle()
 
 
         TextInput:
@@ -193,13 +187,6 @@
             pos_hint: {'center_x': 0.22, "center_y": 0.92}
             font_size: 12
             size_hint: 1/8, 0.06
-
-        TextInput:
-            id: angle_text
-            hint_text: 'Angle(Dgr)'
-            pos_hint: {'center_x': 0.63, "center_y": 0.92}
-            font_size: 12
-            size_hint: 0.1, 0.06
 
 
 

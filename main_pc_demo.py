@@ -238,24 +238,9 @@ class ScreenTwo(Screen):
         print("x: " + str(forces[-1][0]))
         self.force_current.text = str(round(forces[-1][1], 2))
 
-    def btn_angle_text(self):
-        text = self.ids.angle_text.text
-        print(text)
-
     def show_angle(self, dt):
         angle = 10
         self.angle_current.text = str(angle)
-
-    def set_angle(self):
-        Clock.schedule_interval(self.show_angle, sample_time)
-        angle = self.ids.angle_text.text
-        if angle != "":
-            print("angle is set to: " + angle)
-            md.set_angle_x(float(angle))  # bu fonksiyonu text açısına ulaşacak şekilde düzenle
-            test_angle = angle
-        else:
-            print("no angle given")
-            test_angle = 0
 
 
 class ScreenThree(Screen):
