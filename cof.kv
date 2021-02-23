@@ -188,6 +188,19 @@
             font_size: 12
             size_hint: 1/8, 0.06
 
+        Button:
+            text: "Forward"
+            pos_hint: {'center_x': 0.64, "center_y": 0.92}
+            size_hint: (1/8, 1/16)
+            on_press:
+                root.motor_forward()
+
+        Button:
+            text: "Backward"
+            pos_hint: {'center_x': 0.64, "center_y": 0.84}
+            size_hint: (1/8, 1/16)
+            on_press:
+                root.motor_backward()
 
 
 

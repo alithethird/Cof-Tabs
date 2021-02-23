@@ -53,6 +53,8 @@ class motor_driver_pc:
         self.stop_motor()
 
 
+    def motor_start(self, frequency, direction):
+        pass
 
     def angle_test(self, signum, _):
 

@@ -242,6 +242,12 @@ class ScreenTwo(Screen):
         angle = 10
         self.angle_current.text = str(angle)
 
+    def motor_forward(self):
+        md.motor_start(200, 1)
+
+    def motor_backward(self):
+        md.motor_start(200, 0)
+
 
 class ScreenThree(Screen):
     date_today = datetime.date.today()
