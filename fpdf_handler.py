@@ -25,7 +25,7 @@ class fpdf_handler(FPDF):
         self.date_today = datetime.datetime.today()
         self.date = self.date_today.strftime("%d:%m:%Y")
         self.time = self.date_today.strftime("%H:%M:%S")
-        self.date_and_time = self.date_today.strftime("%Y:%m:%d--%H:%M:%S")
+        self.date_and_time = self.date_today.strftime("%Y_%m_%d__%H_%M_%S")
 
     def header(self):
         # Set up a logo
