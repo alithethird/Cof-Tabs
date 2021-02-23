@@ -243,10 +243,10 @@ class ScreenTwo(Screen):
         #self.reset()  # reset when test ends
 
     def reset(self):
-
-        while start_switch:
-            md.motor_start(reset_motor_speed, 0)
-        md.stop_motor()
+        pass
+        #while start_switch:
+         #   md.motor_start(reset_motor_speed, 0)
+        #md.stop_motor()
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
