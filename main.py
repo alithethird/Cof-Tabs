@@ -166,6 +166,18 @@ class ScreenTwo(Screen):
 
     def __init__(self, **args):
         Screen.__init__(self, **args)
+
+        self.force_max_label = Label(text="Peak Force: ")
+        self.force_max_label.pos = (230, 215)
+        self.force_max_label.color = (0, 0, 0, 1)
+        self.add_widget(self.force_max_label)
+
+        self.force_max_text = "0"
+        self.force_max = Label(text=self.force_max_text)
+        self.force_max.pos = (330, 215)
+        self.force_max.color = (0, 0, 0, 1)
+        self.add_widget(self.force_max)
+
         self.force_current_label = Label(text="Current Force: ")
         self.force_current_label.pos = (230, 195)
         self.force_current_label.color = (0, 0, 0, 1)
