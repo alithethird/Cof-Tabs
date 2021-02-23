@@ -123,36 +123,43 @@ class ScreenOne(Screen):
 
     def btn_text(self):
         sample1.name = self.ids.first_name.text
-        if self.ids.first_width.text == "":
+
+        try:
+            sample1.width = float(self.ids.first_width.text)
+        except:
             sample1.width = 0.00
-        else:
-            sample1.width = self.ids.first_width.text
-        if self.ids.first_height.text == "":
+
+        try:
+            sample1.height = float(self.ids.first_height.text)
+        except:
             sample1.height = 0.00
-        else:
-            sample1.height = self.ids.first_height.text
-        if self.ids.first_age.text == "":
+
+        try:
+            sample1.age = float(self.ids.first_age.text)
+        except:
             sample1.age = 0.00
-        else:
-            sample1.age = self.ids.first_age.text
+
         sample1.company_name = self.ids.company_name.text
         sample1.operator_name = self.ids.operator_name.text
         sample1.testing_weight = normal_force * 1000
 
         if self.ids.switch.active:
             sample2.name = self.ids.second_name.text
-            if self.ids.second_width.text == "":
+
+            try:
+                sample2.width = float(self.ids.second_width.text)
+            except:
                 sample2.width = 0.00
-            else:
-                sample2.width = self.ids.second_width.text
-            if self.ids.second_height.text == "":
+
+            try:
+                sample2.height = float(self.ids.second_height.text)
+            except:
                 sample2.height = 0.00
-            else:
-                sample2.height = self.ids.second_height.text
-            if self.ids.second_age.text == "":
+
+            try:
+                sample2.age = float(self.ids.second_age.text)
+            except:
                 sample2.age = 0.00
-            else:
-                sample2.age = self.ids.second_age.text
 
 class ScreenTwo(Screen):
     plot = MeshLinePlot(color=[1, 0, 0, 1])
