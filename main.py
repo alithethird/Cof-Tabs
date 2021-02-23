@@ -65,7 +65,7 @@ sample_time_angle = 0.5
 
 def get_force():
     val = hx.get_weight(5)
-    calib = 0.0012  # kalibrasyon sayısı
+    calib = 0.0012* 9.81  # kalibrasyon sayısı
     val *= calib
     if val < 0:
         val = 1
