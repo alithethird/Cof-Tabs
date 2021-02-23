@@ -3,7 +3,10 @@ import shutil
 from os import popen
 
 from fpdf import FPDF
+from json_dumper import JsonDumper
 
+
+json_out = JsonDumper()
 
 class sample:
     name = "Sample Name"
@@ -63,7 +66,7 @@ class fpdf_handler(FPDF):
     def print_obj(self, obj):
         print(obj.name)
 
-    def create_pdf(self, static, dynamic, sample1, sample2, test_mode):
+    def create_pdf(self, static, dynamic, sample1, sample2, test_mode, forces):
 
         self.set_time()
         self.add_page()
@@ -79,6 +82,7 @@ class fpdf_handler(FPDF):
         mount_dir = "/media/pi/*"
         self.output(filename)
         self.close()
+        json_out.dump_time(static, dynamic, sample1, sample2, test_mode, forces, self.date_and_time)
 
         source = "./" + filename
         usb_dir = popen("ls " + mount_dir).read()
