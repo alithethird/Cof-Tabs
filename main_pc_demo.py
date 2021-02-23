@@ -327,6 +327,7 @@ class ScreenThree(Screen):
         self.pdf = fpdf_handler()
         try:
             self.pdf.create_pdf(self.static, self.dynamic, sample1, sample2, test_mode)
+
         except:
             self.update_results()
             self.pdf.create_pdf(self.static, self.dynamic, sample1, sample2, test_mode)
