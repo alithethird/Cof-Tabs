@@ -7,16 +7,15 @@ import RPi.GPIO as gpio
 
 import angle_read
 
-EN = 21
-DIR = 20
-STEP = 16
+EN = 26
+DIR = 19
+STEP = 13
 CW = 1
 CCW = 0
 
-A_STEP = 13  # açı motoru için step
-A_DIR = 19  # açı motoru için direction
-A_EN = 26  # açı motoru için enable
-
+A_STEP = 16 # açı motoru için step
+A_DIR = 20 # açı motoru için direction
+A_EN = 21 # açı motoru için enable
 
 class motor_driver:
     tick = -1
