@@ -53,17 +53,14 @@ sample1 = sample()
 sample2 = sample()
 
 global normal_force  # üstte kayan metal malzemenin kütlesi (kg)
-normal_force = 0.2
+normal_force = 200
 global test_angle
 test_angle = 0
-
-global forces
-forces = [[0, 0]]
 
 sample_time = 0.1
 sample_time_angle = 0.5
 
-def get_force():
+def get_force(forces):
     val = hx.get_weight(5)
     calib = 0.0012* 9.81  # kalibrasyon sayısı
     val *= calib
@@ -71,12 +68,12 @@ def get_force():
         val = 1
 
     if len(forces) > 1:
-        forces.append([round((forces[-1][0] + sample_time), 4), val])
+        forces.append([(forces[-1][0] + sample_time), val])
     else:
         forces.append([0, val])
 
 
-def get_force_angle():
+def get_force_angle(forces):
     val = hx.get_weight(5)
     calib = 1  # kalibrasyon sayısı
     val /= calib
@@ -84,8 +81,8 @@ def get_force_angle():
         val = 1
     angle = angle_read.get_rotation(1)
     if len(forces) > 1:
-        if round(angle, 4) > forces[-1][0]:
-            forces.append([round(angle, 4), val])
+        if angle > forces[-1][0]:
+            forces.append([angle, val])
         else:
             pass
     else:
@@ -108,7 +105,7 @@ def find_dynamic_force(array):
     if len(array) > 20:
         median = 0
         for i in range(20):
-            median += forces[-(i + 1)][1]
+            median += array[-(i + 1)][1]
         median /= 20
         return median
     else:
@@ -217,7 +214,7 @@ class ScreenTwo(Screen):
         #self.reset()  # reset when program starts
 
     def start(self):
-        forces.clear()
+        self.plot.points = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
         Clock.schedule_interval(self.get_value, sample_time)
@@ -252,25 +249,25 @@ class ScreenTwo(Screen):
         self.ids.graph.export_to_png("graph.png")
 
     def get_value(self, dt):
-        get_force()
+        get_force(self.plot.points)
         self.dist_current.text = str(float(self.dist_current.text) + 60*(sample_time * self.test_speed))  # update current distance
 
-        if forces[-1][0] == 0:
+        if self.plot.points[-1][0] == 0:
             self.ids.graph.xmax = 1
-        elif forces[-1][0] > self.ids.graph.xmax:
-            self.ids.graph.xmax = forces[-1][0]
+        elif self.plot.points[-1][0] > self.ids.graph.xmax:
+            self.ids.graph.xmax = self.plot.points[-1][0]
 
-        if forces[-1][1] == 0:
+        if self.plot.points[-1][1] == 0:
             self.ids.graph.ymax = 1
-        elif forces[-1][1] > self.ids.graph.ymax:
-            self.force_max.text = str(round(forces[-1][1],3))
-            self.ids.graph.ymax = forces[-1][1]
+        elif self.plot.points[-1][1] > self.ids.graph.ymax:
+            self.force_max.text = str(round(self.plot.points[-1][1],3))
+            self.ids.graph.ymax = self.plot.points[-1][1]
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
 
         self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
-        self.plot.points = forces
-        self.force_current.text = str(round(forces[-1][1], 2))
+
+        self.force_current.text = str(round(self.plot.points[-1][1], 2))
 
     def show_angle(self, angle):
 
@@ -310,8 +307,8 @@ class ScreenThree(Screen):
         return dynamic_cof, static_cof
 
     def find_dynamic_cof(self):
-        dynamic_force = find_dynamic_force(forces)
         if test_mode == 0:  # motorize mod
+            dynamic_force = find_dynamic_force(ScreenTwo.plot.points)
             try:
                 dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
                 dynamic_cof = round(dynamic_cof, 3)
@@ -321,7 +318,7 @@ class ScreenThree(Screen):
                 dynamic_cof = "Testing Error something"
         elif test_mode == 1:  # açı mod
             try:
-                dynamic_cof = forces[-1][1] / (normal_force * 9.81 * cos(forces[-1][0])) #en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
+                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos( ScreenFour.plot.points[-1][0])) #en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
                 dynamic_cof = round(dynamic_cof, 3)
             except TypeError:
                 dynamic_cof = "Testing Error (type Error)"
@@ -333,11 +330,11 @@ class ScreenThree(Screen):
 
     def find_static_cof(self):
         if test_mode == 0:  # motorize mod
-            static_angle, static_force = find_biggest(forces)
+            static_angle, static_force = find_biggest(ScreenTwo.plot.points)
             static_cof = float(static_force) / (normal_force * 9.81 * cos(test_angle))
             static_cof = round(static_cof, 3)
         elif test_mode == 1:  # açı mod
-            static_angle, static_force = find_biggest(forces)
+            static_angle, static_force = find_biggest(ScreenFour.plot.points)
             static_cof = float(static_force) / (normal_force * 9.81 * cos(static_angle))
             static_cof = round(static_cof, 3)
         else:
@@ -351,15 +348,19 @@ class ScreenThree(Screen):
 
         self.l_dynamic.text = self.dynamic_cof_text
         self.l_static.text = self.static_cof_text
-
-        json_out.dump_all(self.static, self.dynamic, sample1, sample2, test_mode, forces)
-
+        if test_mode == 0:
+            json_out.dump_all(self.static, self.dynamic, sample1, sample2, test_mode, ScreenTwo.plot.points)
+        elif test_mode == 1:
+            json_out.dump_all(self.static, self.dynamic, sample1, sample2, test_mode, ScreenFour.plot.points)
 
     def createPDF(self):
         self.pdf = fpdf_handler()
 
         self.update_results()
-        self.pdf.create_pdf(self.static, self.dynamic, sample1, sample2, test_mode, forces)
+        if test_mode == 0:
+            self.pdf.create_pdf(self.static, self.dynamic, sample1, sample2, test_mode, ScreenTwo.plot.points)
+        elif test_mode == 1:
+            self.pdf.create_pdf(self.static, self.dynamic, sample1, sample2, test_mode, ScreenFour.plot.points)
 
 
 class ScreenFour(Screen):
@@ -402,7 +403,7 @@ class ScreenFour(Screen):
         self.add_widget(self.angle_current)
 
     def start(self):
-        forces.clear()
+        self.plot.points = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
         Clock.schedule_interval(self.get_value,
@@ -427,22 +428,22 @@ class ScreenFour(Screen):
         if self.check_angle(max_angle):
             get_force_angle()
 
-            if forces[-1][0] == 0:
+            if self.plot.points[-1][0] == 0:
                 self.ids.graph.xmax = 1
-            elif forces[-1][0] > self.ids.graph.xmax:
-                self.ids.graph.xmax = forces[-1][0]
+            elif self.plot.points[-1][0] > self.ids.graph.xmax:
+                self.ids.graph.xmax = self.plot.points[-1][0]
 
-            if forces[-1][1] == 0:
+            if self.plot.points[-1][1] == 0:
                 self.ids.graph.ymax = 1
-            elif forces[-1][1] > self.ids.graph.ymax:
-                self.force_max.text = str(round(forces[-1][1],3))
-                self.ids.graph.ymax = forces[-1][1]
+            elif self.plot.points[-1][1] > self.ids.graph.ymax:
+                self.force_max.text = str(round(self.plot.points[-1][1],3))
+                self.ids.graph.ymax = self.plot.points[-1][1]
 
             self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
 
             self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
-            self.plot.points = forces
-            self.angle_current.text = str(round(forces[-1][1], 2))
+
+            self.angle_current.text = str(round(self.plot.points[-1][1], 2))
         else:
             md.stop_angle_motor()
             Clock.unschedule(self.get_value)
