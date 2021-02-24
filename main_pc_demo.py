@@ -3,7 +3,7 @@ from math import cos, sin
 from random import random
 from kivy.config import Config
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
-Config.set('kivy', 'keyboard_mode', 'systemandmulti')
+Config.set('kivy', 'keyboard_mode', 'systemanddock')
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
@@ -14,12 +14,12 @@ from kivy_garden.graph import MeshLinePlot
 
 from fpdf_handler import fpdf_handler
 from motor_driver_pc import motor_driver_pc
-from json_dumper import JsonDumper
+from json_dumper import JsonHandler
 
 Builder.load_file('cof.kv')
 
 md = motor_driver_pc()
-json_out = JsonDumper()
+json_handler = JsonHandler()
 
 class sample:
     name = ""
@@ -33,29 +33,25 @@ class sample:
 global test_mode
 test_mode = -1  # 0-motorized test
 # 1-angle test
-
-global forces
-forces = [[0, 0]]
-
-sample_time = 0.1
+global sample_time
+sample_time = 0.001
 
 sample1 = sample()
 sample2 = sample()
 
 global normal_force  # üstte kayan metal malzemenin kütlesi (kg)
-normal_force = 0.2
+normal_force = 200
 global test_angle
 test_angle = 0
-
 
 def get_force(forces):
     if len(forces) > 1:
         if len(forces) < 100:
-            forces.append([round((forces[-1][0] + sample_time), 4), (forces[-1][1] + 100)])
+            forces.append([(forces[-1][0] + sample_time), (forces[-1][1] + 100)])
         elif len(forces) > 100 and len(forces) < 200:
-            forces.append([round((forces[-1][0] + sample_time), 4), (forces[-1][1] - 50)])
+            forces.append([(forces[-1][0] + sample_time), (forces[-1][1] - 50)])
         else:
-            forces.append([round((forces[-1][0] + sample_time), 4), round((forces[-1][1] + (random() * 60) - 30), 4)])
+            forces.append([(forces[-1][0] + sample_time), round((forces[-1][1] + (random() * 60) - 30), 4)])
 
     else:
         forces.append([0, random()])
@@ -71,12 +67,18 @@ def find_biggest(array):
     return biggest
 
 
+global test_distance
+global test_speed
+
+test_distance = 60
+test_speed = 150
+
 def find_static_force(array):
     # take last 20 elements of the list
     # find the median
     median = 0
     for i in range(20):
-        median += forces[-(i + 1)][1]
+        median += array[-(i + 1)][1]
     median /= 20
     return median
 
@@ -110,7 +112,7 @@ class ScreenOne(Screen):
 
         sample1.company_name = self.ids.company_name.text
         sample1.operator_name = self.ids.operator_name.text
-        sample1.testing_weight = normal_force * 1000
+        sample1.testing_weight = normal_force
 
         if self.ids.switch.active:
             sample2.name = self.ids.second_name.text
@@ -135,6 +137,11 @@ class ScreenTwo(Screen):
 
     def __init__(self, **args):
         Screen.__init__(self, **args)
+        global normal_force
+        global sample_time
+        global test_speed
+        global test_distance
+        test_distance, test_speed, normal_force, sample_time = json_handler.import_save()
 
         self.force_max_label = Label(text="Peak Force: ")
         self.force_max_label.pos = (230, 215)
@@ -181,23 +188,25 @@ class ScreenTwo(Screen):
         self.add_widget(self.dist_current)
 
     def start(self):
-        forces.clear()
+        self.plot.points = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
         Clock.schedule_interval(self.get_value, sample_time)
+        self.dist_current.text = "0"
 
-        self.test_distance = 60
-        self.test_speed = 150
-        if self.ids.distance_text.text == "":
-            pass
-        else:
-            self.test_distance = float(self.ids.distance_text.text)
-
-        if self.ids.speed_text.text == "":
-            pass
-        else:
-            self.test_speed = float(self.ids.speed_text.text)
-        drive_time, frequency, direction = md.calculate_ticks(distance=60, speed=self.test_speed, direction=1)
+        # if self.ids.distance_text.text == "":
+        #     pass
+        # else:
+        #     self.test_distance = float(self.ids.distance_text.text)
+        #
+        # if self.ids.speed_text.text == "":
+        #     pass
+        # else:
+        #     global test_speed
+        #     test_speed = float(self.ids.speed_text.text)s
+        print(test_distance)
+        print(test_speed)
+        drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
         md.motor_run(drive_time, frequency, direction)
         print("motor driver kodundan cikildi")
 
@@ -212,33 +221,26 @@ class ScreenTwo(Screen):
         self.ids.graph.export_to_png("graph.png")
 
     def get_value(self, dt):
-        print("gettin value")
 
-        get_force(forces)
-        self.dist_current.text = str(float(self.dist_current.text) + 60*(sample_time * self.test_speed))
+        get_force(self.plot.points)
+        self.dist_current.text = str(round((float(self.dist_current.text) + 60*(sample_time * test_speed)), 3))
 
-        if forces[-1][0] == 0:
+        if self.plot.points[-1][0] == 0:
             self.ids.graph.xmax = 1
-        elif forces[-1][0] > self.ids.graph.xmax:
-            self.ids.graph.xmax = forces[-1][0]
+        elif self.plot.points[-1][0] > self.ids.graph.xmax:
+            self.ids.graph.xmax = self.plot.points[-1][0]
 
-        if forces[-1][1] == 0:
+        if len(self.plot.points) < 3:
             self.ids.graph.ymax = 1
-        elif forces[-1][1] > self.ids.graph.ymax:
-            self.force_max.text = str(round(forces[-1][1],3))
-            self.ids.graph.ymax = forces[-1][1]
+        elif self.plot.points[-1][1] > self.ids.graph.ymax:
+            self.force_max.text = str(round(self.plot.points[-1][1], 3))
+            self.ids.graph.ymax = self.plot.points[-1][1]
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
 
         self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
-        """
-        if forces[-1]*2 > self.ids.graph.ymax:
-            self.ids.graph.ymax = forces[-1] * 2
-"""
-        self.plot.points = forces
-        print("y: " + str(forces[-1][1]))
-        print("x: " + str(forces[-1][0]))
-        self.force_current.text = str(round(forces[-1][1], 2))
+
+        self.force_current.text = str(round(self.plot.points[-1][1], 2))
 
     def show_angle(self, dt):
         angle = 10
@@ -249,6 +251,7 @@ class ScreenTwo(Screen):
 
     def motor_backward(self):
         md.motor_start(200, 0)
+
 
 
 class ScreenThree(Screen):
@@ -279,12 +282,13 @@ class ScreenThree(Screen):
     def find_dynamic_cof(self):
         ## iki testte de find biggest olur heralde di mi ?
         if test_mode == 0:
-            dynamic_force = find_biggest(forces)
+            dynamic_force = find_biggest(ScreenTwo.plot.points)
+            print(ScreenTwo.plot.points)
             dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
             dynamic_cof = round(dynamic_cof, 3)
 
         elif test_mode == 1:
-            dynamic_force = find_biggest(forces)
+            dynamic_force = find_biggest(ScreenFour.plot.points)
             dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
             dynamic_cof = round(dynamic_cof, 3)
 
@@ -314,12 +318,21 @@ class ScreenThree(Screen):
         print(self.dynamic_cof_text)
         self.l_dynamic.text = self.dynamic_cof_text
         self.l_static.text = self.static_cof_text
-        json_out.dump_all(self.static, self.dynamic, sample1, sample2, test_mode, forces)
+        if test_mode == 0:
+            json_handler.dump_all(self.static, self.dynamic, sample1, sample2, test_mode, ScreenTwo.plot.points)
+        elif test_mode == 1:
+            json_handler.dump_all(self.static, self.dynamic, sample1, sample2, test_mode, ScreenFour.plot.points)
+
 
     def createPDF(self):
+        print(normal_force)
         self.pdf = fpdf_handler()
         self.update_results()
-        self.pdf.create_pdf(self.static, self.dynamic, sample1, sample2, test_mode, forces)
+        if test_mode == 0:
+            self.pdf.create_pdf(self.static, self.dynamic, sample1, sample2, test_mode, ScreenTwo.plot.points)
+        elif test_mode == 1:
+            self.pdf.create_pdf(self.static, self.dynamic, sample1, sample2, test_mode, ScreenFour.plot.points)
+
 
         print("PDF created!")
 
@@ -365,13 +378,11 @@ class ScreenFour(Screen):
 
 
     def start(self):
-        forces.clear()
+        self.plot.points = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
         Clock.schedule_interval(self.get_value, sample_time)
 
-        drive_time, frequency, direction = md.calculate_ticks()
-        md.motor_run(drive_time, frequency, direction)
         print("motor driver kodundan cikildi")
 
     def stop(self):
@@ -388,18 +399,18 @@ class ScreenFour(Screen):
     def get_value(self, dt):
         print("gettin value")
 
-        get_force(forces)
+        get_force(self.plot.points)
 
-        if forces[-1][0] == 0:
+        if len(self.plot.points) < 3:
             self.ids.graph.xmax = 2
-        elif forces[-1][0] > self.ids.graph.xmax:
-            self.ids.graph.xmax = forces[-1][0]
+        elif self.plot.points[-1][0] > self.ids.graph.xmax:
+            self.ids.graph.xmax = self.plot.points[-1][0]
 
-        if forces[-1][1] == 0:
+        if self.plot.points[-1][1] == 0:
             self.ids.graph.ymax = 1
-        elif forces[-1][1] > self.ids.graph.ymax:
-            self.force_max.text = str(round(forces[-1][1],3))
-            self.ids.graph.ymax = forces[-1][1]
+        elif self.plot.points[-1][1] > self.ids.graph.ymax:
+            self.force_max.text = str(round(self.plot.points[-1][1],3))
+            self.ids.graph.ymax = self.plot.points[-1][1]
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
 
@@ -408,10 +419,7 @@ class ScreenFour(Screen):
         if forces[-1]*2 > self.ids.graph.ymax:
             self.ids.graph.ymax = forces[-1] * 2
 """
-        self.plot.points = forces
-        print("y: " + str(forces[-1][1]))
-        print("x: " + str(forces[-1][0]))
-        self.angle_current.text = str(round(forces[-1][1], 2))
+        self.angle_current.text = str(round(self.plot.points[-1][1], 2))
 
     def angle_motor_rise(self):
         md.start_angle_motor_rise(50)
@@ -420,18 +428,84 @@ class ScreenFour(Screen):
     def angle_motor_fall(self):
         md.start_angle_motor_fall(50)
         print("angle motor fall")
-    #
-    # def set_angle(self):
-    #     Clock.schedule_interval(self.show_angle, sample_time)
-    #     angle = self.ids.angle_text.text
-    #     if angle != "":
-    #         print("angle is set to: " + angle)
-    #         md.set_angle_x(float(angle))  # bu fonksiyonu text açısına ulaşacak şekilde düzenle
-    #         test_angle = angle
-    #     else:
-    #         print("no angle given")
-    #         test_angle = 0
 
+
+class ScreenFive(Screen):
+# distance#, speed#, sample time, normal force
+# calibration screen
+    def __init__(self, **args):
+        Screen.__init__(self, **args)
+        self.error_text = "Error! (Use only numbers) (use . not ,)"
+        self.error = Label(text=self.error_text)
+        self.error.pos = (0, 230)
+        self.error.color = (0, 0, 0, 0)
+        self.add_widget(self.error)
+        self.ids.distance.text = str(test_distance)
+        self.ids.speed.text = str(test_speed)
+        self.ids.normal_force.text = str(normal_force)
+        self.ids.sample_time.text = str(sample_time)
+    def save(self):
+        count = 0
+        if self.ids.distance_text.text != "":
+            try:
+                global test_distance
+                test_distance = float(self.ids.distance_text.text)
+                self.ids.distance.text = str(test_distance)
+
+                self.error.color = (0,0,0,0)
+            except:
+                self.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.error.color = (0,0,0,1)
+            else:
+                count = 1
+
+        if self.ids.speed_text.text != "":
+            try:
+                global test_speed
+                test_speed = float(self.ids.speed_text.text)
+                self.ids.speed.text = str(test_speed)
+                self.error.color = (0,0,0,0)
+            except:
+                self.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.error.color = (0,0,0,1)
+            else:
+                count = 1
+
+        if self.ids.normal_force_text.text != "": #normal force nerede lo
+            try:
+                global normal_force
+                normal_force = float(self.ids.normal_force_text.text)
+                self.ids.normal_force.text = str(normal_force)
+                self.error.color = (0,0,0,0)
+            except:
+                self.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.error.color = (0,0,0,1)
+            else:
+                count = 1
+
+        if self.ids.sample_time_text.text != "":  # normal force nerede lo
+            try:
+                global sample_time
+                sample_time = float(self.ids.sample_time_text.text)
+                self.ids.sample_time.text = str(sample_time)
+                self.error.color = (0, 0, 0, 0)
+            except:
+                self.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.error.color = (0, 0, 0, 1)
+            else:
+                count = 1
+
+        if self.ids.speed_text.text == "" and self.ids.distance_text.text == "" and self.ids.sample_time_text.text == "" and self.ids.normal_force_text.text == "":
+            self.error.color = (0,0,0,0)
+        if count == 1:
+            self.error.text = "Saved"
+            self.error.color = (0,0,0,1)
+    def save_for_good(self):
+        self.save()
+        json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force, sample_time=sample_time)
+        json_handler.import_save()
+    def clean_errors(self):
+        self.error.color = (0,0,0,0)
 
 screen_manager = ScreenManager()
 """
@@ -442,7 +516,7 @@ screen_manager.add_widget(ScreenOne(name="screen_one"))
 screen_manager.add_widget(ScreenTwo(name="screen_two"))
 screen_manager.add_widget(ScreenThree(name="screen_three"))
 screen_manager.add_widget(ScreenFour(name="screen_four"))
-
+screen_manager.add_widget(ScreenFive(name="screen_five"))
 
 class AwesomeApp(App):
     def build(self):
