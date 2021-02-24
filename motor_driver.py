@@ -21,12 +21,15 @@ class motor_driver:
     tick = -1
     tick_goal = 0
     pin_state = 0
+    gpio.setup(EN, gpio.OUT)
     gpio.setup(DIR, gpio.OUT)
     gpio.setup(STEP, gpio.OUT)
     gpio.output(DIR, CW)
 
+    gpio.setup(A_EN, gpio.OUT)
     gpio.setup(A_STEP, gpio.OUT)
     gpio.setup(A_DIR, gpio.OUT)
+
 
     motor_pwm = gpio.PWM(STEP, 100)
     angle_pwm = gpio.PWM(A_STEP, 1000)
