@@ -412,7 +412,6 @@ class ScreenFour(Screen):
         Clock.schedule_interval(self.get_value,
                                 sample_time_angle)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample kaymaya başlayınca durabilir
 
-        self.dist_current.text = "0"
         md.start_angle_motor_rise(50)
 
     def stop(self):
