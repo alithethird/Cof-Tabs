@@ -469,18 +469,56 @@ class ScreenFive(Screen):
 
     def __init__(self, **args):
         Screen.__init__(self, **args)
+
+        self.force_text = "Error! (Use only numbers) (use . not ,)"
+        self.force_current = Label(text=self.force_text)
+        self.force_current.pos = (0, 210)
+        self.force_current.color = (0, 0, 0, 0)
+        self.add_widget(self.force_current)
+
+
     def save(self):
-        if self.ids.distance_text.text == "":
-            pass
+        count = 0
+        if self.ids.distance_text.text != "":
+            try:
+                ScreenTwo.test_distance = float(self.ids.distance_text.text)
+                self.force_current.color = (0, 0, 0, 0)
+            except:
+                self.force_current.text = "Error! (Use only numbers) (use . not ,)"
+                self.force_current.color = (0, 0, 0, 1)
+            else:
+                count = 1
         else:
-            ScreenTwo.test_distance = float(self.ids.distance_text.text)
-
-
-        if self.ids.speed_text.text == "":
-            pass
+            print("empty distance")
+        if self.ids.speed_text.text != "":
+            try:
+                ScreenTwo.test_speed = float(self.ids.speed_text.text)
+                self.force_current.color = (0, 0, 0, 0)
+            except:
+                self.force_current.text = "Error! (Use only numbers) (use . not ,)"
+                self.force_current.color = (0, 0, 0, 1)
+            else:
+                if count == 1:
+                    count = 3
+                else:
+                    count = 2
         else:
-            ScreenTwo.test_speed = float(self.ids.speed_text.text)
+            print("empty speed")
+        if self.ids.speed_text.text == "" and self.ids.distance_text.text == "":
+            self.force_current.color = (0, 0, 0, 0)
+        if count == 1:
+            self.force_current.text = "Saved Distance"
+            self.force_current.color = (0, 0, 0, 1)
+        if count == 2:
+            self.force_current.text = "Saved Speed"
+            self.force_current.color = (0, 0, 0, 1)
+        if count == 3:
+            self.force_current.text = "Saved Both"
+            self.force_current.color = (0, 0, 0, 1)
 
+
+    def clean_errors(self):
+        self.force_current.color = (0, 0, 0, 0)
 
 screen_manager = ScreenManager()
 

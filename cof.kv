@@ -340,6 +340,7 @@
             pos_hint: {'center_x': 0.7, "center_y": 0.1}
             size_hint: (1/8, 1/16)
             on_press:
+                root.clean_errors()
                 root.manager.transition.direction = "right"
                 root.manager.transition.duration = 0.5
                 root.manager.current = "screen_one"
