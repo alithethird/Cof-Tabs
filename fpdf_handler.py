@@ -90,17 +90,19 @@ class fpdf_handler(FPDF):
         if usb_dir.count("media/pi/ALI") > 0:
             usb_dir = usb_dir.remove("/media/pi/ALI")
             print("ALI'yi buldum ve silmeye calistim")
-        usb_dir = usb_dir[0]
-        destination = usb_dir + filename
-
-        popen("cp " + source + " " + str(destination) +"/")
         try:
-            shutil.copy2(source, str(destination))
-        except shutil.Error as e:
-            print("Error: %s" % e)
-        except IOError as e:
-            print("Error: %s" % e.strerror)
+            usb_dir = usb_dir[0]
+            destination = usb_dir + filename
 
+            popen("cp " + source + " " + str(destination) +"/")
+            try:
+                shutil.copy2(source, str(destination))
+            except shutil.Error as e:
+                print("Error: %s" % e)
+            except IOError as e:
+                print("Error: %s" % e.strerror)
+        except:
+            pass
     def single_table(self, sample, staticCof, dynamicCof, test_mode):
         if test_mode == 1:
             test_mode = "Angle Test"

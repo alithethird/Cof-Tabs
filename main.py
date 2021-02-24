@@ -4,7 +4,7 @@ from math import cos, sin
 import RPi.GPIO as gpio
 from kivy.config import Config
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
-Config.set('kivy', 'keyboard_mode', 'systemandmulti')
+Config.set('kivy', 'keyboard_mode', 'systemanddock')
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
@@ -465,60 +465,71 @@ class ScreenFour(Screen):
         md.start_angle_motor_fall(50)
 
 
-class ScreenFive(Screen):
 
+class ScreenFive(Screen):
+# distance#, speed#, sample time, normal force
+# calibration screen
     def __init__(self, **args):
         Screen.__init__(self, **args)
-
-        self.force_text = "Error! (Use only numbers) (use . not ,)"
-        self.force_current = Label(text=self.force_text)
-        self.force_current.pos = (0, 210)
-        self.force_current.color = (0, 0, 0, 0)
-        self.add_widget(self.force_current)
-
+        self.error_text = "Error! (Use only numbers) (use . not ,)"
+        self.error = Label(text=self.error_text)
+        self.error.pos = (0, 210)
+        self.error.color = (0, 0, 0, 0)
+        self.add_widget(self.error)
 
     def save(self):
         count = 0
         if self.ids.distance_text.text != "":
             try:
                 ScreenTwo.test_distance = float(self.ids.distance_text.text)
-                self.force_current.color = (0, 0, 0, 0)
+                self.error.color = (0,0,0,0)
             except:
-                self.force_current.text = "Error! (Use only numbers) (use . not ,)"
-                self.force_current.color = (0, 0, 0, 1)
+                self.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.error.color = (0,0,0,1)
             else:
                 count = 1
-        else:
-            print("empty distance")
+
         if self.ids.speed_text.text != "":
             try:
                 ScreenTwo.test_speed = float(self.ids.speed_text.text)
-                self.force_current.color = (0, 0, 0, 0)
+                self.error.color = (0,0,0,0)
             except:
-                self.force_current.text = "Error! (Use only numbers) (use . not ,)"
-                self.force_current.color = (0, 0, 0, 1)
+                self.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.error.color = (0,0,0,1)
             else:
-                if count == 1:
-                    count = 3
-                else:
-                    count = 2
-        else:
-            print("empty speed")
-        if self.ids.speed_text.text == "" and self.ids.distance_text.text == "":
-            self.force_current.color = (0, 0, 0, 0)
-        if count == 1:
-            self.force_current.text = "Saved Distance"
-            self.force_current.color = (0, 0, 0, 1)
-        if count == 2:
-            self.force_current.text = "Saved Speed"
-            self.force_current.color = (0, 0, 0, 1)
-        if count == 3:
-            self.force_current.text = "Saved Both"
-            self.force_current.color = (0, 0, 0, 1)
+                count = 1
 
+        if self.ids.normal_force_text.text != "":
+            try:
+                global normal_force
+                normal_force = float(self.ids.normal_force_text.text)
+                self.error.color = (0,0,0,0)
+            except:
+                self.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.error.color = (0,0,0,1)
+            else:
+                count = 1
+
+        if self.ids.sample_time_text.text != "":  # normal force nerede lo
+            try:
+                global sample_time
+                sample_time = float(self.ids.sample_time_text.text)
+                self.error.color = (0, 0, 0, 0)
+            except:
+                self.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.error.color = (0, 0, 0, 1)
+            else:
+                count = 1
+
+        if self.ids.speed_text.text == "" and self.ids.distance_text.text == "" and self.ids.sample_time_text.text == "" and self.ids.normal_force_text.text == "":
+            self.error.color = (0,0,0,0)
+        if count == 1:
+            self.error.text = "Saved"
+            self.error.color = (0,0,0,1)
 
     def clean_errors(self):
-        self.force_current.color = (0, 0, 0, 0)
+        self.error.color = (0,0,0,0)
+
 
 screen_manager = ScreenManager()
 

@@ -51,60 +51,80 @@
                 root.manager.transition.duration = 0.5
                 root.manager.current = "screen_five"
         TextInput:
+            write_tab: False
+            multiline: False
             id: first_name
             hint_text: 'Name'
             pos_hint: {'center_x': 0.2, "center_y": 0.65}
             size_hint: 0.2, 0.06
 
         TextInput:
+            write_tab: False
+            multiline: False
             id: first_width
             hint_text: 'Width(mm)'
             pos_hint: {'center_x': 0.2, "center_y": 0.58}
             size_hint: 0.2, 0.06
 
         TextInput:
+            write_tab: False
+            multiline: False
             id: first_height
             hint_text: 'Height(mm)'
             pos_hint: {'center_x': 0.2, "center_y": 0.51}
             size_hint: 0.2, 0.06
 
         TextInput:
+            write_tab: False
+            multiline: False
             id: first_age
             hint_text: 'Age(months)'
             pos_hint: {'center_x': 0.2, "center_y": 0.44}
             size_hint: 0.2, 0.06
 
         TextInput:
+            write_tab: False
+            multiline: False
             id: second_name
             hint_text: 'Name'
             pos_hint: {'center_x': 0.8, "center_y": 0.65}
             size_hint: (0.2, 0.06)  if switch.active else (0,0)
 
         TextInput:
+            write_tab: False
+            multiline: False
             id: second_width
             hint_text: 'Width(mm)'
             pos_hint: {'center_x': 0.8, "center_y": 0.58}
             size_hint: (0.2, 0.06)  if switch.active else (0,0)
 
         TextInput:
+            write_tab: False
+            multiline: False
             id: second_height
             hint_text: 'Height(mm)'
             pos_hint: {'center_x': 0.8, "center_y": 0.51}
             size_hint: (0.2, 0.06)  if switch.active else (0,0)
 
         TextInput:
+            write_tab: False
+            multiline: False
             id: second_age
             hint_text: 'Age(months)'
             pos_hint: {'center_x': 0.8, "center_y": 0.44}
             size_hint: (0.2, 0.06)  if switch.active else (0,0)
 
         TextInput:
+            write_tab: False
+            multiline: False
             id: company_name
             hint_text: 'Company Name'
             pos_hint: {'center_x': 0.5, "center_y": 0.65}
             size_hint: (0.2, 0.06)
 
         TextInput:
+            write_tab: False
+            multiline: False
             id: operator_name
             hint_text: 'Operator Name'
             pos_hint: {'center_x': 0.5, "center_y": 0.58}
@@ -353,15 +373,37 @@
                 root.save()
 
         TextInput:
+            write_tab: False
+            multiline: False
             id: speed_text
             hint_text: 'Speed(mm/min)'
-            pos_hint: {'center_x': 0.08, "center_y": 0.92}
+            pos_hint: {'center_x': 0.1, "center_y": 0.92}
             font_size:12
-            size_hint: 1/8, 0.06
+            size_hint: 1/7, 0.06
 
         TextInput:
+            write_tab: False
+            multiline: False
             id: distance_text
             hint_text: 'Distance(mm)'
-            pos_hint: {'center_x': 0.22, "center_y": 0.92}
+            pos_hint: {'center_x': 0.25, "center_y": 0.92}
             font_size: 12
-            size_hint: 1/8, 0.06
+            size_hint: 1/7, 0.06
+
+        TextInput:
+            write_tab: False
+            multiline: False
+            id: normal_force_text
+            hint_text: 'Normal Force(N)'
+            pos_hint: {'center_x': 0.1, "center_y": 0.84}
+            font_size: 12
+            size_hint: 1/7, 0.06
+
+        TextInput:
+            write_tab: False
+            multiline: False
+            id: sample_time_text
+            hint_text: 'Sample time (ms)'
+            pos_hint: {'center_x': 0.25, "center_y": 0.84}
+            font_size: 12
+            size_hint: 1/7, 0.06
