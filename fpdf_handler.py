@@ -3,10 +3,10 @@ import shutil
 from os import popen
 
 from fpdf import FPDF
-from json_dumper import JsonDumper
+from json_dumper import JsonHandler
 
 
-json_out = JsonDumper()
+json_out = JsonHandler()
 
 class sample:
     name = "Sample Name"

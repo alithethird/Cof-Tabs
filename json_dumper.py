@@ -1,6 +1,6 @@
 import json
 
-class JsonDumper:
+class JsonHandler:
 
     def dump_all(self, static, dynamic, sample1, sample2, test_mode, forces):
         if sample2.name == "":
@@ -71,3 +71,20 @@ class JsonDumper:
         file_name = "COF Test " + date_and_time + ".json"
         with open(file_name, 'w', encoding='utf-8') as f:
             json.dump(dic, f, ensure_ascii=False, indent=2)
+
+    def dump_calib_save(self, distance, speed, normal_force, sample_time):
+        dic = {"Distance:":distance,
+               "Speed:":speed,
+               "Normal_Force:":normal_force,
+               "Sample_Time:":sample_time
+               }
+
+        file_name = "calibration_save.json"
+        with open(file_name, 'w', encoding='utf-8') as f:
+            json.dump(dic, f, ensure_ascii=False, indent=2)
+
+    def import_save(self):
+        file_name = "calibration_save.json"
+        with open(file_name) as json_file:
+            data = json.load(json_file)
+            return data["Distance:"], data["Speed:"], data["Normal_Force:"], data["Sample_Time:"]

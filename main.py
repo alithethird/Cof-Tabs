@@ -19,7 +19,7 @@ from fpdf_handler import fpdf_handler
 gpio.setmode(gpio.BCM)
 from hx711 import HX711
 from motor_driver import motor_driver
-from json_dumper import JsonDumper
+from json_dumper import JsonHandler
 
 # set up the load cell
 
@@ -34,7 +34,7 @@ reset_motor_speed = 200
 Builder.load_file('cof.kv')
 
 md = motor_driver()
-json_out = JsonDumper()
+json_handler = JsonHandler()
 
 
 class sample:
@@ -166,6 +166,11 @@ class ScreenTwo(Screen):
 
     def __init__(self, **args):
         Screen.__init__(self, **args)
+        global normal_force
+        global sample_time
+        global test_speed
+        global test_distance
+        test_distance, test_speed, normal_force, sample_time = json_handler.import_save()
 
         self.force_max_label = Label(text="Peak Force: ")
         self.force_max_label.pos = (230, 215)
@@ -230,8 +235,8 @@ class ScreenTwo(Screen):
         # else:
         #     self.test_speed = float(self.ids.speed_text.text)
 
-        self.drive_time, self.frequency, self.direction = md.calculate_ticks(self.test_distance, self.test_speed, 0)
-        md.motor_run(self.drive_time, self.frequency, self.direction)
+        drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
+        md.motor_run(drive_time, frequency, direction)
 
     def stop(self):
         Clock.unschedule(self.get_value)
@@ -249,7 +254,7 @@ class ScreenTwo(Screen):
 
     def get_value(self, dt):
         get_force(self.plot.points)
-        self.dist_current.text = str(float(self.dist_current.text) + 60*(sample_time * self.test_speed))  # update current distance
+        self.dist_current.text = str(float(self.dist_current.text) + 60*(sample_time * test_speed))  # update current distance
 
         if self.plot.points[-1][0] == 0:
             self.ids.graph.xmax = 1
@@ -278,9 +283,6 @@ class ScreenTwo(Screen):
     def motor_backward(self):
         md.motor_start(200, 0)
 
-# default değerler
-ScreenTwo.test_speed = 150
-ScreenTwo.test_distance = 60
 
 
 class ScreenThree(Screen):
@@ -352,9 +354,9 @@ class ScreenThree(Screen):
         self.l_dynamic.text = self.dynamic_cof_text
         self.l_static.text = self.static_cof_text
         if test_mode == 0:
-            json_out.dump_all(self.static, self.dynamic, sample1, sample2, test_mode, ScreenTwo.plot.points)
+            json_handler.dump_all(self.static, self.dynamic, sample1, sample2, test_mode, ScreenTwo.plot.points)
         elif test_mode == 1:
-            json_out.dump_all(self.static, self.dynamic, sample1, sample2, test_mode, ScreenFour.plot.points)
+            json_handler.dump_all(self.static, self.dynamic, sample1, sample2, test_mode, ScreenFour.plot.points)
 
     def createPDF(self):
         self.pdf = fpdf_handler()
@@ -473,15 +475,21 @@ class ScreenFive(Screen):
         Screen.__init__(self, **args)
         self.error_text = "Error! (Use only numbers) (use . not ,)"
         self.error = Label(text=self.error_text)
-        self.error.pos = (0, 210)
+        self.error.pos = (0, 230)
         self.error.color = (0, 0, 0, 0)
         self.add_widget(self.error)
-
+        self.ids.distance.text = str(test_distance)
+        self.ids.speed.text = str(test_speed)
+        self.ids.normal_force.text = str(normal_force)
+        self.ids.sample_time.text = str(sample_time)
     def save(self):
         count = 0
         if self.ids.distance_text.text != "":
             try:
-                ScreenTwo.test_distance = float(self.ids.distance_text.text)
+                global test_distance
+                test_distance = float(self.ids.distance_text.text)
+                self.ids.distance.text = str(test_distance)
+
                 self.error.color = (0,0,0,0)
             except:
                 self.error.text = "Error! (Use only numbers) (use . not ,)"
@@ -491,7 +499,9 @@ class ScreenFive(Screen):
 
         if self.ids.speed_text.text != "":
             try:
-                ScreenTwo.test_speed = float(self.ids.speed_text.text)
+                global test_speed
+                test_speed = float(self.ids.speed_text.text)
+                self.ids.speed.text = str(test_speed)
                 self.error.color = (0,0,0,0)
             except:
                 self.error.text = "Error! (Use only numbers) (use . not ,)"
@@ -499,10 +509,11 @@ class ScreenFive(Screen):
             else:
                 count = 1
 
-        if self.ids.normal_force_text.text != "":
+        if self.ids.normal_force_text.text != "": #normal force nerede lo
             try:
                 global normal_force
                 normal_force = float(self.ids.normal_force_text.text)
+                self.ids.normal_force.text = str(normal_force)
                 self.error.color = (0,0,0,0)
             except:
                 self.error.text = "Error! (Use only numbers) (use . not ,)"
@@ -514,6 +525,7 @@ class ScreenFive(Screen):
             try:
                 global sample_time
                 sample_time = float(self.ids.sample_time_text.text)
+                self.ids.sample_time.text = str(sample_time)
                 self.error.color = (0, 0, 0, 0)
             except:
                 self.error.text = "Error! (Use only numbers) (use . not ,)"
@@ -526,7 +538,10 @@ class ScreenFive(Screen):
         if count == 1:
             self.error.text = "Saved"
             self.error.color = (0,0,0,1)
-
+    def save_for_good(self):
+        self.save()
+        json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force, sample_time=sample_time)
+        json_handler.import_save()
     def clean_errors(self):
         self.error.color = (0,0,0,0)
 
