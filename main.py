@@ -218,9 +218,8 @@ class ScreenTwo(Screen):
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
         Clock.schedule_interval(self.get_value, sample_time)
+        self.dist_current.text = "0"
 
-        self.test_distance = 60
-        self.test_speed = 150
         # if self.ids.distance_text.text == "":
         #     pass
         # else:
@@ -257,10 +256,10 @@ class ScreenTwo(Screen):
         elif self.plot.points[-1][0] > self.ids.graph.xmax:
             self.ids.graph.xmax = self.plot.points[-1][0]
 
-        if self.plot.points[-1][1] == 0:
+        if len(self.plot.points) < 3:
             self.ids.graph.ymax = 1
         elif self.plot.points[-1][1] > self.ids.graph.ymax:
-            self.force_max.text = str(round(self.plot.points[-1][1],3))
+            self.force_max.text = str(round(self.plot.points[-1][1], 3))
             self.ids.graph.ymax = self.plot.points[-1][1]
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
@@ -278,6 +277,10 @@ class ScreenTwo(Screen):
         md.motor_start(200, 1)
     def motor_backward(self):
         md.motor_start(200, 0)
+
+# default değerler
+ScreenTwo.test_speed = 150
+ScreenTwo.test_distance = 60
 
 
 class ScreenThree(Screen):
@@ -461,12 +464,31 @@ class ScreenFour(Screen):
     def angle_motor_fall(self):
         md.start_angle_motor_fall(50)
 
+
+class ScreenFive(Screen):
+
+    def __init__(self, **args):
+        Screen.__init__(self, **args)
+    def save(self):
+        if self.ids.distance_text.text == "":
+            pass
+        else:
+            ScreenTwo.test_distance = float(self.ids.distance_text.text)
+
+
+        if self.ids.speed_text.text == "":
+            pass
+        else:
+            ScreenTwo.test_speed = float(self.ids.speed_text.text)
+
+
 screen_manager = ScreenManager()
 
 screen_manager.add_widget(ScreenOne(name="screen_one"))
 screen_manager.add_widget(ScreenTwo(name="screen_two"))
 screen_manager.add_widget(ScreenThree(name="screen_three"))
 screen_manager.add_widget(ScreenFour(name="screen_four"))
+screen_manager.add_widget(ScreenFive(name="screen_five"))
 
 
 class AwesomeApp(App):

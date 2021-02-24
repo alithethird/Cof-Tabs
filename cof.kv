@@ -42,7 +42,14 @@
                 root.manager.transition.direction = "left"
                 root.manager.transition.duration = 0.5
                 root.manager.current = "screen_four"
-
+        Button:
+            text: "Calibration"
+            pos_hint: {'center_x': 0.6, "center_y": 0.3}
+            size_hint: (1/6, 1/12)
+            on_press:
+                root.manager.transition.direction = "left"
+                root.manager.transition.duration = 0.5
+                root.manager.current = "screen_five"
         TextInput:
             id: first_name
             hint_text: 'Name'
@@ -324,9 +331,25 @@
             on_press:
                 root.angle_motor_fall()
 
-<ScreenFive>
+<ScreenFive>:
     FloatLayout:
         size: root.width, root.height
+
+        Button:
+            text: "Go back"
+            pos_hint: {'center_x': 0.7, "center_y": 0.1}
+            size_hint: (1/8, 1/16)
+            on_press:
+                root.manager.transition.direction = "right"
+                root.manager.transition.duration = 0.5
+                root.manager.current = "screen_one"
+
+        Button:
+            text: "Save"
+            pos_hint: {'center_x': 0.86, "center_y": 0.1}
+            size_hint: (1/8, 1/16)
+            on_press:
+                root.save()
 
         TextInput:
             id: speed_text
