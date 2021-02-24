@@ -221,17 +221,17 @@ class ScreenTwo(Screen):
 
         self.test_distance = 60
         self.test_speed = 150
-        if self.ids.distance_text.text == "":
-            pass
-        else:
-            self.test_distance = float(self.ids.distance_text.text)
+        # if self.ids.distance_text.text == "":
+        #     pass
+        # else:
+        #     self.test_distance = float(self.ids.distance_text.text)
+        #
+        # if self.ids.speed_text.text == "":
+        #     pass
+        # else:
+        #     self.test_speed = float(self.ids.speed_text.text)
 
-        if self.ids.speed_text.text == "":
-            pass
-        else:
-            self.test_speed = float(self.ids.speed_text.text)
-
-        self.drive_time, self.frequency, self.direction = md.calculate_ticks(self.test_distance, self.test_speed, 1)
+        self.drive_time, self.frequency, self.direction = md.calculate_ticks(self.test_distance, self.test_speed, 0)
         md.motor_run(self.drive_time, self.frequency, self.direction)
 
     def stop(self):

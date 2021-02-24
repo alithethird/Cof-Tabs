@@ -139,18 +139,18 @@
 
         Button:
             text: "Start the test"
-            pos_hint: {'center_x': 0.08, "center_y": 0.84}
+            pos_hint: {'center_x': 0.08, "center_y": 0.88}
             size_hint: (1/8, 1/16)
             on_press: root.start()
 
         Button:
             text: "Stop the test"
-            pos_hint: {'center_x': 0.22, "center_y": 0.84}
+            pos_hint: {'center_x': 0.22, "center_y": 0.88}
             size_hint: (1/8, 1/16)
             on_press: root.stop()
         Button:
             text: "Reset Position"
-            pos_hint: {'center_x': 0.36, "center_y": 0.84}
+            pos_hint: {'center_x': 0.36, "center_y": 0.88}
             size_hint: (1/8, 1/16)
             on_press: root.reset()
         Button:
@@ -171,22 +171,6 @@
                 root.manager.transition.direction = "left"
                 root.manager.transition.duration = 0.5
                 root.manager.current = "screen_three"
-
-
-
-        TextInput:
-            id: speed_text
-            hint_text: 'Speed(mm/min)'
-            pos_hint: {'center_x': 0.08, "center_y": 0.92}
-            font_size:12
-            size_hint: 1/8, 0.06
-
-        TextInput:
-            id: distance_text
-            hint_text: 'Distance(mm)'
-            pos_hint: {'center_x': 0.22, "center_y": 0.92}
-            font_size: 12
-            size_hint: 1/8, 0.06
 
         Button:
             text: "Forward"
@@ -339,3 +323,21 @@
             size_hint: (1/8, 1/16)
             on_press:
                 root.angle_motor_fall()
+
+<ScreenFive>
+    FloatLayout:
+        size: root.width, root.height
+
+        TextInput:
+            id: speed_text
+            hint_text: 'Speed(mm/min)'
+            pos_hint: {'center_x': 0.08, "center_y": 0.92}
+            font_size:12
+            size_hint: 1/8, 0.06
+
+        TextInput:
+            id: distance_text
+            hint_text: 'Distance(mm)'
+            pos_hint: {'center_x': 0.22, "center_y": 0.92}
+            font_size: 12
+            size_hint: 1/8, 0.06
