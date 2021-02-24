@@ -141,7 +141,7 @@ class ScreenOne(Screen):
 
         sample1.company_name = self.ids.company_name.text
         sample1.operator_name = self.ids.operator_name.text
-        sample1.testing_weight = normal_force * 1000
+        sample1.testing_weight = normal_force
 
         if self.ids.switch.active:
             sample2.name = self.ids.second_name.text
