@@ -59,6 +59,7 @@ class motor_driver:
     def motor_run(self, drive_time, frequency, direction):
 
         gpio.output(DIR, direction)
+        gpio.output(EN, 0)
 
         self.motor_pwm.ChangeFrequency(frequency)
         self.motor_pwm.start(50)
@@ -69,6 +70,7 @@ class motor_driver:
 
     def motor_start(self, frequency, direction):
         gpio.output(DIR, direction)
+        gpio.output(EN, 0)
 
         self.motor_pwm.ChangeFrequency(frequency)
         self.motor_pwm.start(50)
@@ -78,6 +80,7 @@ class motor_driver:
 
     def stop_motor(self):
         self.motor_pwm.stop()
+        gpio.output(EN, 1)
         print("motor pwm durduruldu")
 
     def set_angle_x(self, x):
@@ -92,18 +95,20 @@ class motor_driver:
 
     def start_angle_motor_rise(self, frequency=1000):
         gpio.output(A_DIR, CW)
-
+        gpio.output(A_EN, 0)
         self.angle_pwm.ChangeFrequency(frequency)
         self.angle_pwm.start(50)
 
     def start_angle_motor_fall(self, frequency=1000):
         gpio.output(A_DIR, CCW)
+        gpio.output(A_EN, 0)
 
         self.angle_pwm.ChangeFrequency(frequency)
         self.angle_pwm.start(50)
 
     def stop_angle_motor(self):
         self.angle_pwm.stop()
+        gpio.output(A_EN, 1)
 
     def set_angle_30(self):
         angle = angle_read.get_rotation(
@@ -135,6 +140,7 @@ class motor_driver:
 
         self.angle_pwm.stop()
         print("aci motoru durduruldu")
+        gpio.output(A_EN, 1)
 
     def angle_slow_down(self, signum, _):
 
