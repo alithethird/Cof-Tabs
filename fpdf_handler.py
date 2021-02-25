@@ -66,23 +66,23 @@ class fpdf_handler(FPDF):
     def print_obj(self, obj):
         print(obj.name)
 
-    def create_pdf(self, static, dynamic, sample1, sample2, test_mode, forces):
+    def create_pdf(self, max_static, mean_static, max_dynamic, mean_dynamic, sample1, sample2, test_mode, forces):
 
         self.set_time()
         self.add_page()
         self.set_font('Times', '', 12)
         if sample2.name == "":
-            self.single_table(sample1, static, dynamic, test_mode)
+            self.single_table(sample1, max_static, mean_static, max_dynamic, mean_dynamic, test_mode)
             self.graph_to_pdf(1)
         else:
-            self.diff_table(sample1, sample2, static, dynamic, test_mode)
+            self.diff_table(sample1, max_static, mean_static, max_dynamic, mean_dynamic, test_mode)
             self.graph_to_pdf(2)
 
         filename = "COF Test " + self.date_and_time + ".pdf"
         mount_dir = "/media/pi/*"
         self.output(filename)
         self.close()
-        json_out.dump_time(static, dynamic, sample1, sample2, test_mode, forces, self.date_and_time)
+        json_out.dump_time(max_static, mean_static, max_dynamic, mean_dynamic, sample1, sample2, test_mode, forces, self.date_and_time)
 
         source = "./" + filename
         usb_dir = popen("ls " + mount_dir).read()
@@ -103,7 +103,7 @@ class fpdf_handler(FPDF):
                 print("Error: %s" % e.strerror)
         except:
             pass
-    def single_table(self, sample, staticCof, dynamicCof, test_mode):
+    def single_table(self, sample, max_static, mean_static, max_dynamic, mean_dynamic, test_mode):
         if test_mode == 1:
             test_mode = "Angle Test"
         elif test_mode == 0:
@@ -118,8 +118,10 @@ class fpdf_handler(FPDF):
                 ['Sample Height(mm): ', str(sample.height)],
                 ['Sample Age(months): ', str(sample.age)],
                 ['Testing Against: ', 'The same sample'],
-                ['Static Coefficient of Friction: ', str(staticCof)],
-                ['Dynamic Coefficient of Friction: ', str(dynamicCof)]
+                ['Max Static Coefficient of Friction: ', max_static],
+                ['Mean Static Coefficient of Friction: ', mean_static],
+                ['Max Dynamic Coefficient of Friction: ', max_dynamic],
+                ['Mean Dynamic Coefficient of Friction: ', mean_dynamic]
                 ]
         spacing = 2
         self.set_font("Arial", size=12)
@@ -131,7 +133,7 @@ class fpdf_handler(FPDF):
                           txt=item, border=0)
             self.ln(row_height * spacing)
 
-    def diff_table(self, sample1, sample2, staticCof, dynamicCof, test_mode):
+    def diff_table(self, sample1, sample2, max_static, mean_static, max_dynamic, mean_dynamic, test_mode):
         if test_mode == 1:
             test_mode = "Angle Test"
         elif test_mode == 0:
@@ -150,8 +152,10 @@ class fpdf_handler(FPDF):
                 ['Second Sample Width(mm): ', str(sample2.width)],
                 ['Second Sample Height(mm): ', str(sample2.height)],
                 ['Second Sample Age(months): ', str(sample2.age)],
-                ['Static Coefficient of Friction: ', str(staticCof)],
-                ['Dynamic Coefficient of Friction: ', str(dynamicCof)]
+                ['Max Static Coefficient of Friction: ', max_static],
+                ['Mean Static Coefficient of Friction: ', mean_static],
+                ['Max Dynamic Coefficient of Friction: ', max_dynamic],
+                ['Mean Dynamic Coefficient of Friction: ', mean_dynamic]
                 ]
         spacing = 2
         self.set_font("Arial", size=12)

@@ -242,21 +242,34 @@
                 root.manager.current = "screen_two"
 
         Label:
-            id: label_static_cof
-            text: "Static Coefficient of friction: "
+            id: label_max_static_cof
+            text: "Max Static Coefficient of friction: "
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.19, "center_y": 0.8}
+            halign: "left"
+
+        Label:
+            id: label_mean_static_cof
+            text: "Mean Static Coefficient of friction: "
             color: (0,0,0,1)
             pos_hint: {"center_x": 0.19, "center_y": 0.7}
             halign: "left"
-            
+
 
         Label:
-            id: label_dynamic_cof
-            text: "Dynamic Coefficient of friction:"
+            id: label_max_dynamic_cof
+            text: "Max Dynamic Coefficient of friction:"
             color: (0,0,0,1)
             pos_hint: {"center_x": 0.2, "center_y": 0.5}
             halign: "left"
             
 
+        Label:
+            id: label_mean_dynamic_cof
+            text: "Mean Dynamic Coefficient of friction:"
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.2, "center_y": 0.4}
+            halign: "left"
 
         Label:
             text: "Date: "

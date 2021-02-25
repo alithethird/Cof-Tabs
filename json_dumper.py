@@ -2,7 +2,7 @@ import json
 
 class JsonHandler:
 
-    def dump_all(self, static, dynamic, sample1, sample2, test_mode, forces):
+    def dump_all(self, max_static, mean_static, max_dynamic, mean_dynamic, sample1, sample2, test_mode, forces):
         if sample2.name == "":
             dic = {"Company Name:": sample1.company_name,
                    "Operator Name:": sample1.operator_name,
@@ -12,8 +12,10 @@ class JsonHandler:
                    "Sample Width(mm)": float(sample1.width),
                    "Sample Height(mm):": float(sample1.height),
                    "Sample Age(months):": float(sample1.age),
-                   "Static Coefficient of Friction:": float(static),
-                   "Dynamic Coefficient of Friction:": float(dynamic),
+                   "Max Static Coefficient of Friction:": max_static,
+                   "Mean Static Coefficient of Friction:": mean_static,
+                   "Max Dynamic Coefficient of Friction:": max_dynamic,
+                   "Mean Dynamic Coefficient of Friction:": mean_dynamic,
                    "Forces:": forces
                    }
         else:
@@ -29,14 +31,16 @@ class JsonHandler:
                    "Second Sample Width(mm)": float(sample2.width),
                    "Second Sample Height(mm):": float(sample2.height),
                    "Second Sample Age(months):": float(sample2.age),
-                   "Static Coefficient of Friction:": float(static),
-                   "Dynamic Coefficient of Friction:": float(dynamic),
+                   "Max Static Coefficient of Friction:": max_static,
+                   "Mean Static Coefficient of Friction:": mean_static,
+                   "Max Dynamic Coefficient of Friction:": max_dynamic,
+                   "Mean Dynamic Coefficient of Friction:": mean_dynamic,
                    "Forces:": forces
                    }
         with open('data.json', 'w', encoding='utf-8') as f:
             json.dump(dic, f, ensure_ascii=False, indent=2)
 
-    def dump_time(self, static, dynamic, sample1, sample2, test_mode, forces, date_and_time):
+    def dump_time(self, max_static, mean_static, max_dynamic, mean_dynamic, sample1, sample2, test_mode, forces, date_and_time):
         if sample2.name == "":
             dic = {"Company Name:": sample1.company_name,
                    "Operator Name:": sample1.operator_name,
@@ -46,8 +50,10 @@ class JsonHandler:
                    "Sample Width(mm)": float(sample1.width),
                    "Sample Height(mm):": float(sample1.height),
                    "Sample Age(months):": float(sample1.age),
-                   "Static Coefficient of Friction:": float(static),
-                   "Dynamic Coefficient of Friction:": float(dynamic),
+                   "Max Static Coefficient of Friction:": max_static,
+                   "Mean Static Coefficient of Friction:": mean_static,
+                   "Max Dynamic Coefficient of Friction:": max_dynamic,
+                   "Mean Dynamic Coefficient of Friction:": mean_dynamic,
                    "Forces:": forces
                    }
         else:
@@ -63,8 +69,10 @@ class JsonHandler:
                    "Second Sample Width(mm)": float(sample2.width),
                    "Second Sample Height(mm):": float(sample2.height),
                    "Second Sample Age(months):": float(sample2.age),
-                   "Static Coefficient of Friction:": float(static),
-                   "Dynamic Coefficient of Friction:": float(dynamic),
+                   "Max Static Coefficient of Friction:": max_static,
+                   "Mean Static Coefficient of Friction:": mean_static,
+                   "Max Dynamic Coefficient of Friction:": max_dynamic,
+                   "Mean Dynamic Coefficient of Friction:": mean_dynamic,
                    "Forces:": forces
                    }
 

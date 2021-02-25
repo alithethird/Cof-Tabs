@@ -71,10 +71,10 @@ def get_force(arg):
 
 
 def find_biggest(array):
-    biggest = 1
+    biggest = [0.1, 0.1]
     for i in array[:][:]:
-        if i[1] > biggest:
-            biggest = i[1]
+        if i[1] > biggest[1]:
+            biggest = i
         else:
             pass
     return biggest
@@ -95,6 +95,60 @@ def find_static_force(array):
         median += array[-(i + 1)][1]
     median /= 20
     return median
+
+def find_loose_string(array): # finds loose string length and returns the amount of data acquired when the string is loose
+    biggest = find_biggest(forces)
+    index = int((biggest[0] / sample_time))
+    print(index)
+    count = 0
+    for i in range(1, index):
+        if forces[i-1][1] == forces[i][1]:
+            count += 1
+    return count
+
+    pass
+def find_static_force_advanced():
+    array = []
+    array_mean = 0
+    loose = find_loose_string(forces) # ip gergin değilken hesaplanan kuvvetlerin sayısı
+    for i in range(loose, int(loose + (1 / sample_time))):
+        array.append(forces[i])  # statik zamanda ölçülen kuvvet listesi
+
+    _, max_static_force = find_biggest(array)
+    for i in array:
+        if i[1] == array[-1][1]:
+            index = i[0]
+    if index == 0:
+        for i in array:
+            if (array[-1][1] * 1.01) > i[1] > (array[-1][1] * 0.99):
+                index = i[0]
+    if index == 0:
+        for i in array:
+            if (array[-1][1] * 1.1) > i[1] > (array[-1][1] * 0.9):
+                index = i[0]
+    # start from index and calculate mean of array
+    index = int(index / sample_time)
+
+    for i in range(index - 1, len(array)):
+        array_mean += array[i][1]
+    mean_static_force = array_mean / (i - 1)
+
+    return max_static_force, mean_static_force
+
+
+def find_dynamic_force_advanced():
+
+    loose = find_loose_string(forces) # ip gergin değilken hesaplanan kuvvetlerin sayısı
+    array = []
+    array_mean = 0
+    for i in range(loose, len(forces)):
+        array_mean += forces[i][1]
+        array.append(forces[i])
+
+    _, max_dynamic_force = find_biggest(array)
+    mean_dynamic_force = array_mean / len(array)
+
+    return max_dynamic_force, mean_dynamic_force
 
 
 class ScreenOne(Screen):
@@ -158,7 +212,6 @@ class ScreenTwo(Screen):
         global test_distance
         global calib
         test_distance, test_speed, normal_force, sample_time, calib = json_handler.import_save()
-        self.t = threading.Thread(target=get_force, args=("task",))
 
         self.force_max_label = Label(text="Peak Force: ")
         self.force_max_label.pos = (230, 215)
@@ -210,6 +263,8 @@ class ScreenTwo(Screen):
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
         Clock.schedule_interval(self.get_value, sample_time)
+        self.t = threading.Thread(target=get_force, args=("task",))
+
         self.t.start()
         self.dist_current.text = "0"
 
@@ -280,78 +335,127 @@ class ScreenThree(Screen):
 
     def __init__(self, **args):
         Screen.__init__(self, **args)
-        self.static_cof_text = "0"
-        self.l_static = Label(text=self.static_cof_text)
-        self.l_static.pos = (-90, 95)
-        self.l_static.pos_hint_x = 0.5
-        self.l_static.color = (0, 0, 0, 1)
-        self.add_widget(self.l_static)
 
-        self.dynamic_cof_text = "0"
-        self.l_dynamic = Label(text=self.dynamic_cof_text)
-        self.l_dynamic.pos = -90, 0
-        self.l_dynamic.color = (0, 0, 0, 1)
-        self.add_widget(self.l_dynamic)
+        self.max_static_cof_text = "0"
+        self.l_max_static = Label(text=self.max_static_cof_text)
+        self.l_max_static.pos = (-90, 143)
+        self.l_max_static.color = (0, 0, 0, 1)
+        self.add_widget(self.l_max_static)
+
+        self.mean_static_cof_text = "0"
+        self.l_mean_static = Label(text=self.mean_static_cof_text)
+        self.l_mean_static.pos = (-90, 95)
+        self.l_mean_static.color = (0, 0, 0, 1)
+        self.add_widget(self.l_mean_static)
+
+        self.max_dynamic_cof_text = "0"
+        self.l_max_dynamic = Label(text=self.max_dynamic_cof_text)
+        self.l_max_dynamic.pos = (-90, 0)
+        self.l_max_dynamic.color = (0, 0, 0, 1)
+        self.add_widget(self.l_max_dynamic)
+
+        self.mean_dynamic_cof_text = "0"
+        self.l_mean_dynamic = Label(text=self.mean_dynamic_cof_text)
+        self.l_mean_dynamic.pos = (-90, -48)
+        self.l_mean_dynamic.color = (0, 0, 0, 1)
+        self.add_widget(self.l_mean_dynamic)
 
     def create_results(self):
-        dynamic_cof = str(self.find_dynamic_cof())
-        static_cof = str(self.find_static_cof())
-        return dynamic_cof, static_cof
+        max_dynamic_cof, mean_dynamic_cof = self.find_dynamic_cof()
+        max_static_cof, mean_static_cof = self.find_static_cof()
+        return max_dynamic_cof, mean_dynamic_cof, max_static_cof, mean_static_cof
 
     def find_dynamic_cof(self):
-        ## iki testte de find biggest olur heralde di mi ?
-        if test_mode == 0:
-            dynamic_force = find_biggest(ScreenTwo.plot.points)
-            print(ScreenTwo.plot.points)
-            dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
-            dynamic_cof = round(dynamic_cof, 3)
+        if test_mode == 0:  # motorize mod
+            max_dynamic_force, mean_dynamic_force = find_dynamic_force_advanced()
+            print(type(max_dynamic_force))
+            print(type(mean_dynamic_force))
+            try:
+                mean_dynamic_cof = mean_dynamic_force / (normal_force * 9.81 * cos(test_angle))
+                mean_dynamic_cof = round(mean_dynamic_cof, 3)
 
-        elif test_mode == 1:
-            dynamic_force = find_biggest(ScreenFour.plot.points)
-            dynamic_cof = dynamic_force / (normal_force * 9.81 * cos(test_angle))
-            dynamic_cof = round(dynamic_cof, 3)
-
+                max_dynamic_cof = max_dynamic_force / (normal_force * 9.81 * cos(test_angle))
+                max_dynamic_cof = round(max_dynamic_cof, 3)
+            except TypeError:
+                mean_dynamic_cof = "Testing Error (type Error)"
+                max_dynamic_cof = "Testing Error (type Error)"
+            except:
+                mean_dynamic_cof = "Testing Error something"
+                max_dynamic_cof = "Testing Error something"
+        elif test_mode == 1:  # açı mod #** ekleme yapılacak max ve mean için
+            try:
+                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos(
+                    ScreenFour.plot.points[-1][0]))  # en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
+                mean_dynamic_cof = round(dynamic_cof, 3)
+                max_dynamic_cof = round(dynamic_cof, 3)
+            except TypeError:
+                mean_dynamic_cof = "Testing Error (type Error)"
+            except:
+                mean_dynamic_cof = "Testing Error something"
         else:
-            dynamic_cof = "Test mode select error"
-
-        return dynamic_cof
+            dynamic_cof = "Test Mode Select Error!"
+        return max_dynamic_cof, mean_dynamic_cof
 
     def find_static_cof(self):
-        #        static_force = round(find_static_force(forces), 3)
-        if test_mode == 0:
-            static_force = 10
-            static_cof = static_force / (normal_force * 9.81 * cos(test_angle))
-            static_cof = round(static_cof)
-        elif test_mode == 1:
-            static_force = 10
-            static_cof = (normal_force * 9.81 * sin(test_angle)) / (normal_force * 9.81 * cos(test_angle))
-            static_cof = round(static_cof)
-        else:
-            static_cof = "Test mode select error"
-        return static_cof
+        try:
+            if test_mode == 0:  # motorize mod
+                max_static_force, mean_static_force = find_static_force_advanced()
+
+                max_static_cof = max_static_force / (normal_force * 9.81 * cos(test_angle))
+                max_static_cof = round(max_static_cof, 3)
+
+                mean_static_cof = mean_static_force / (normal_force * 9.81 * cos(test_angle))
+                mean_static_cof = round(mean_static_cof, 3)
+
+            elif test_mode == 1:  # açı mod
+                max_static_force, mean_static_force = find_static_force_advanced()
+                static_angle, static_force = find_biggest(forces)
+
+                max_static_cof = max_static_force / (normal_force * 9.81 * cos(static_angle))
+                max_static_cof = round(max_static_cof, 3)
+
+                mean_static_cof = mean_static_force / (normal_force * 9.81 * cos(static_angle))
+                mean_static_cof = round(mean_static_cof, 3)
+            else:
+                max_static_cof = "Test Mode Select Error!"
+                mean_static_cof = "Test Mode Select Error!"
+        except:
+            max_static_cof = "Error!"
+            mean_static_cof = "Error!"
+        return max_static_cof, mean_static_cof
 
     def update_results(self):
-        self.dynamic, self.static = self.create_results()
-        self.static_cof_text = str(self.static)
-        self.dynamic_cof_text = str(self.dynamic)
-        print(self.dynamic_cof_text)
-        self.l_dynamic.text = self.dynamic_cof_text
-        self.l_static.text = self.static_cof_text
+        self.max_dynamic, self.mean_dynamic, self.max_static, self.mean_static = self.create_results()
+        self.max_static_cof_text = str(self.max_static)
+        self.mean_static_cof_text = str(self.mean_static)
+
+        self.max_dynamic_cof_text = str(self.max_dynamic)
+        self.mean_dynamic_cof_text = str(self.mean_dynamic)
+
+        self.l_max_static.text = self.max_static_cof_text
+        self.l_mean_static.text = self.mean_static_cof_text
+
+        self.l_max_dynamic.text = self.max_dynamic_cof_text
+        self.l_mean_dynamic.text = self.mean_dynamic_cof_text
+
         if test_mode == 0:
-            json_handler.dump_all(self.static, self.dynamic, sample1, sample2, test_mode, ScreenTwo.plot.points)
+            json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+                                  sample2, test_mode, ScreenTwo.plot.points)
         elif test_mode == 1:
-            json_handler.dump_all(self.static, self.dynamic, sample1, sample2, test_mode, ScreenFour.plot.points)
+            json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+                                  sample2, test_mode, ScreenFour.plot.points)
 
     def createPDF(self):
-        print(normal_force)
         self.pdf = fpdf_handler()
-        self.update_results()
-        if test_mode == 0:
-            self.pdf.create_pdf(self.static, self.dynamic, sample1, sample2, test_mode, ScreenTwo.plot.points)
-        elif test_mode == 1:
-            self.pdf.create_pdf(self.static, self.dynamic, sample1, sample2, test_mode, ScreenFour.plot.points)
 
-        print("PDF created!")
+        self.update_results()
+
+        if test_mode == 0:
+            self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+                                sample2, test_mode, ScreenTwo.plot.points)
+        else:
+            self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+                                sample2, test_mode, ScreenFour.plot.points)
 
 
 class ScreenFour(Screen):
@@ -359,7 +463,6 @@ class ScreenFour(Screen):
 
     def __init__(self, **args):
         Screen.__init__(self, **args)
-        self.t = threading.Thread(target=get_force, args=("task",))
 
         self.force_max_label = Label(text="Peak Force: ")
         self.force_max_label.pos = (230, 215)
@@ -397,6 +500,8 @@ class ScreenFour(Screen):
     def start(self):
         global forces
         forces = [[0, 0]]
+        self.t = threading.Thread(target=get_force, args=("task",))
+
         self.t.start()
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
