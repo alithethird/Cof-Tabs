@@ -72,11 +72,12 @@ class JsonHandler:
         with open(file_name, 'w', encoding='utf-8') as f:
             json.dump(dic, f, ensure_ascii=False, indent=2)
 
-    def dump_calib_save(self, distance, speed, normal_force, sample_time):
+    def dump_calib_save(self, distance, speed, normal_force, sample_time, calib):
         dic = {"Distance:":distance,
                "Speed:":speed,
                "Normal_Force:":normal_force,
-               "Sample_Time:":sample_time
+               "Sample_Time:":sample_time,
+               "Calibration value:":calib
                }
 
         file_name = "calibration_save.json"
@@ -87,4 +88,4 @@ class JsonHandler:
         file_name = "calibration_save.json"
         with open(file_name) as json_file:
             data = json.load(json_file)
-            return data["Distance:"], data["Speed:"], data["Normal_Force:"], data["Sample_Time:"]
+            return data["Distance:"], data["Speed:"], data["Normal_Force:"], data["Sample_Time:"], data["Calibration value:"]

@@ -370,14 +370,14 @@
             pos_hint: {'center_x': 0.86, "center_y": 0.1}
             size_hint: (1/8, 1/16)
             on_press:
-                root.save()
+                root.save_for_good()
 
         Button:
-            text: "Save to Factory Settings"
+            text: "Reset to Factory Settings"
             pos_hint: {'center_x': 0.86, "center_y": 0.4}
             size_hint: (1/4, 1/16)
             on_press:
-                root.save_for_good()
+                root.reset_to_factory()
         TextInput:
             write_tab: False
             multiline: False
@@ -414,48 +414,75 @@
             font_size: 12
             size_hint: 1/7, 0.06
 
+        TextInput:
+            write_tab: False
+            multiline: False
+            id: calib_text
+            hint_text: 'Calibration Value'
+            pos_hint: {'center_x': 0.1, "center_y": 0.76}
+            font_size: 12
+            size_hint: 1/7, 0.06
         Label:
             id: distance_label
             text: "Test Distance:"
             color: (0,0,0,1)
-            pos_hint: {"center_x": 0.4, "center_y": 0.92}
-            halign: "left"
-        Label:
-            id: speed_label
-            text: "Test Speed:"
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.4, "center_y": 0.84}
-            halign: "left"
-        Label:
-            id: normal_force_label
-            text: "Normal Force:"
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.6, "center_y": 0.92}
-            halign: "left"
-        Label:
-            id: sample_time_label
-            text: "Sample Time:"
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.6, "center_y": 0.84}
+            pos_hint: {"center_x": 0.7, "center_y": 0.92}
             halign: "left"
 
         Label:
             id: distance
             color: (0,0,0,1)
+            pos_hint: {"center_x": 0.8, "center_y": 0.92}
+            halign: "left"
+
+        Label:
+            id: speed_label
+            text: "Test Speed:"
+            color: (0,0,0,1)
             pos_hint: {"center_x": 0.5, "center_y": 0.92}
             halign: "left"
+
         Label:
             id: speed
             color: (0,0,0,1)
+            pos_hint: {"center_x": 0.6, "center_y": 0.92}
+            halign: "left"
+
+        Label:
+            id: normal_force_label
+            text: "Normal Force:"
+            color: (0,0,0,1)
             pos_hint: {"center_x": 0.5, "center_y": 0.84}
             halign: "left"
+
         Label:
             id: normal_force
             color: (0,0,0,1)
-            pos_hint: {"center_x": 0.7, "center_y": 0.92}
+            pos_hint: {"center_x": 0.6, "center_y": 0.84}
             halign: "left"
+
+        Label:
+            id: sample_time_label
+            text: "Sample Time:"
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.7, "center_y": 0.84}
+            halign: "left"
+
         Label:
             id: sample_time
             color: (0,0,0,1)
-            pos_hint: {"center_x": 0.7, "center_y": 0.84}
+            pos_hint: {"center_x": 0.8, "center_y": 0.84}
+            halign: "left"
+
+        Label:
+            id: calib_label
+            text: "Calibration Value:"
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.5, "center_y": 0.76}
+            halign: "left"
+
+        Label:
+            id: calib
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.62, "center_y": 0.76}
             halign: "left"
