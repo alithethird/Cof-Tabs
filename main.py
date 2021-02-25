@@ -36,7 +36,7 @@ Builder.load_file('cof.kv')
 
 md = motor_driver(3, False) # bir adet dc bir adet açı(step) motor modu seçildi, soft start kapatıldı
 json_handler = JsonHandler()
-
+md.stop_motor()
 
 class sample:
     name = ""
@@ -179,7 +179,6 @@ class ScreenTwo(Screen):
         global calib
         test_distance, test_speed, normal_force, sample_time, calib = json_handler.import_save()
 
-        self.t = threading.Thread(target=get_force, args=("task",))
 
         self.force_max_label = Label(text="Peak Force: ")
         self.force_max_label.pos = (230, 215)
@@ -233,6 +232,8 @@ class ScreenTwo(Screen):
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
         self.t.start()
+        self.t = threading.Thread(target=get_force, args=("task",))
+
         Clock.schedule_interval(self.get_value, sample_time)
         self.dist_current.text = "0"
 
@@ -387,7 +388,6 @@ class ScreenFour(Screen):
 
     def __init__(self, **args):
         Screen.__init__(self, **args)
-        self.t = threading.Thread(target=get_force_angle, args=("task",))
 
         self.force_max_label = Label(text="Peak Force: ")
         self.force_max_label.pos = (230, 215)
@@ -428,6 +428,8 @@ class ScreenFour(Screen):
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
         self.t.start()
+        self.t = threading.Thread(target=get_force_angle, args=("task",))
+
         Clock.schedule_interval(self.get_value,
                                 sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample kaymaya başlayınca durabilir
 

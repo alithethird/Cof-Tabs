@@ -8,8 +8,8 @@ import RPi.GPIO as gpio
 
 import angle_read
 
-IN1 = 10
-IN2 = 11
+IN1 = 26
+IN2 = 19
 
 EN = 26
 DIR = 19
