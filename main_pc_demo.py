@@ -21,7 +21,7 @@ from json_dumper import JsonHandler
 
 Builder.load_file('cof.kv')
 
-md = motor_driver_pc()
+md = motor_driver_pc(1, False)
 json_handler = JsonHandler()
 
 

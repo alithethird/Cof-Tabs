@@ -12,12 +12,16 @@ A_DIR = 20 # açı motoru için direction
 A_EN = 21 # açı motoru için enable
 
 class motor_driver_pc:
+    def __init__(self, select, soft):
+        self.soft = soft
+        print(select)
     tick = -1
     tick_goal = 0
     pin_state = 0
 
 
     def run_standard_test(self):
+        print(self.soft)
         time, ticks, direction = self.calculate_ticks(60, 100, 1)
         self.motor_run(time, ticks, direction)
 
@@ -30,6 +34,7 @@ class motor_driver_pc:
         # dakikada 100 mm için 18000 tick
         # saniyede 300 tick
         # 0.003 saniyede 1 tick
+        print(self.soft)
         print("motor icin sure ve tick sayisi hesaplandi")
         mm_per_tick = 180
         # 60mm için 60*180 tick

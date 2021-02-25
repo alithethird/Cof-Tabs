@@ -7,83 +7,144 @@ import RPi.GPIO as gpio
 
 import angle_read
 
+IN1 = 10
+IN2 = 11
+
 EN = 26
 DIR = 19
 STEP = 13
 CW = 1
 CCW = 0
 
+
 A_STEP = 16 # açı motoru için step
 A_DIR = 20 # açı motoru için direction
 A_EN = 21 # açı motoru için enable
 
 class motor_driver:
-    tick = -1
-    tick_goal = 0
-    pin_state = 0
-    gpio.setup(EN, gpio.OUT)
-    gpio.setup(DIR, gpio.OUT)
-    gpio.setup(STEP, gpio.OUT)
-    gpio.output(DIR, CW)
+    # select
+    # 1- sadece 1 adet step motor
+    # 2- bi normal(step) 1 açı motoru(step)
+    # 3- bir adet dc motor 1 adet açı -(step)
+    # soft
+    # True = soft start
+    # False = no soft start
 
-    gpio.setup(A_EN, gpio.OUT)
-    gpio.setup(A_STEP, gpio.OUT)
-    gpio.setup(A_DIR, gpio.OUT)
+    def __init__(self, select, soft):
+        self.soft = soft
+        self.select = select
 
+        if select == 1:
+            tick = -1
+            tick_goal = 0
+            pin_state = 0
+            gpio.setup(EN, gpio.OUT)
+            gpio.setup(DIR, gpio.OUT)
+            gpio.setup(STEP, gpio.OUT)
+            gpio.output(DIR, CW)
 
-    motor_pwm = gpio.PWM(STEP, 100)
-    angle_pwm = gpio.PWM(A_STEP, 1000)
+            motor_pwm = gpio.PWM(STEP, 100)
+
+        if select == 2:
+            tick = -1
+            tick_goal = 0
+            pin_state = 0
+            gpio.setup(EN, gpio.OUT)
+            gpio.setup(DIR, gpio.OUT)
+            gpio.setup(STEP, gpio.OUT)
+            gpio.output(DIR, CW)
+
+            gpio.setup(A_EN, gpio.OUT)
+            gpio.setup(A_STEP, gpio.OUT)
+            gpio.setup(A_DIR, gpio.OUT)
+
+            motor_pwm = gpio.PWM(STEP, 100)
+            angle_pwm = gpio.PWM(A_STEP, 1000)
+        if select == 3:
+            gpio.setup(IN1, gpio.OUT)
+            gpio.setup(IN2, gpio.OUT)
 
     def run_standard_test(self):
         time, ticks, direction = self.calculate_ticks(60, 150, 1)
         self.motor_run(time, ticks, direction)
 
     def calculate_ticks(self, distance=60, speed=150, direction=1):
-        # speed decided in the standard ISO 8295 is 100mm/min
-        # travel distance decided by me is 60 mm
-        # vida aralığı 2mm
-        # 1 tick 1 derece olsa :D
-        # 180 tick 1 mm
-        # dakikada 100 mm için 18000 tick
-        # saniyede 300 tick
-        # 0.003 saniyede 1 tick
-        print("motor icin sure ve tick sayisi hesaplandi")
-        mm_per_tick = 180  # kalibrasyon için
-        # 60mm için 60*180 tick
-        ticks = speed * mm_per_tick
+        if self.select ==1 or self.select == 2:
+            # speed decided in the standard ISO 8295 is 100mm/min
+            # travel distance decided by me is 60 mm
+            # vida aralığı 2mm
+            # 1 tick 1 derece olsa :D
+            # 180 tick 1 mm
+            # dakikada 100 mm için 18000 tick
+            # saniyede 300 tick
+            # 0.003 saniyede 1 tick
+            print("motor icin sure ve tick sayisi hesaplandi")
+            mm_per_tick = 180  # kalibrasyon için
+            # 60mm için 60*180 tick
+            ticks = speed * mm_per_tick
 
-        drive_time = (distance / speed) * 60
+            drive_time = (distance / speed) * 60
 
-        frequency = ticks / 60
+            frequency = ticks / 60
 
-        frequency = round(frequency, 3)
-        return drive_time, frequency, direction
+            frequency = round(frequency, 3)
+            return drive_time, frequency, direction
+
+        if self.select == 3: # need to integrate soft start
+            mm_per_second = 1
+            drive_time = (distance / speed) * 60
+            frequency = speed * mm_per_second
+            frequency = round(frequency, 3)
+            return drive_time, frequency, direction
+
 
     def motor_run(self, drive_time, frequency, direction):
+        if self.select == 1 or self.select == 2:
+            gpio.output(DIR, direction)
+            gpio.output(EN, 0)
 
-        gpio.output(DIR, direction)
-        gpio.output(EN, 0)
+            self.motor_pwm.ChangeFrequency(frequency)
+            self.motor_pwm.start(50)
+            print("motor pwm ayarlandi")
+            signal.signal(signal.SIGALRM, self.handler)
+            signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
+            print("motor stop timer ayarlandi")
+        if self.select == 3 and not self.soft:
+            if direction == 1:
+                gpio.output(IN1, 1)
+                gpio.output(IN2, 0)
+            elif direction == 0:
+                gpio.output(IN1, 0)
+                gpio.output(IN2, 1)
+        if self.select == 3 and self.soft:
+            pass
 
-        self.motor_pwm.ChangeFrequency(frequency)
-        self.motor_pwm.start(50)
-        print("motor pwm ayarlandi")
-        signal.signal(signal.SIGALRM, self.handler)
-        signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
-        print("motor stop timer ayarlandi")
 
     def motor_start(self, frequency, direction):
-        gpio.output(DIR, direction)
-        gpio.output(EN, 0)
+        if self.select == 1 or self.select == 2:
+            gpio.output(DIR, direction)
+            gpio.output(EN, 0)
 
-        self.motor_pwm.ChangeFrequency(frequency)
-        self.motor_pwm.start(50)
+            self.motor_pwm.ChangeFrequency(frequency)
+            self.motor_pwm.start(50)
+        elif self.select == 3:
+            if direction == 1:
+                gpio.output(IN1, 1)
+                gpio.output(IN2, 0)
+            elif direction == 0:
+                gpio.output(IN1, 0)
+                gpio.output(IN2, 1)
 
     def handler(self, signum, _):
         self.stop_motor()
 
     def stop_motor(self):
-        self.motor_pwm.stop()
-        gpio.output(EN, 1)
+        if self.select == 1 or self.select == 2:
+            self.motor_pwm.stop()
+            gpio.output(EN, 1)
+        elif self.select == 3:
+            gpio.output(IN1, 0)
+            gpio.output(IN2, 0)
         print("motor pwm durduruldu")
 
     def set_angle_x(self, x):
