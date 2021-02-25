@@ -2,7 +2,8 @@ import signal
 import RPi.GPIO as gpio
 import angle_read
 import signal
-
+from  threading import Thread
+from time import sleep
 import RPi.GPIO as gpio
 
 import angle_read
@@ -33,7 +34,7 @@ class motor_driver:
     def __init__(self, select, soft):
         self.soft = soft
         self.select = select
-
+        self.soft_time = 1
         if select == 1:
             tick = -1
             tick_goal = 0
@@ -43,7 +44,7 @@ class motor_driver:
             gpio.setup(STEP, gpio.OUT)
             gpio.output(DIR, CW)
 
-            motor_pwm = gpio.PWM(STEP, 100)
+            self.motor_pwm = gpio.PWM(STEP, 100)
 
         if select == 2:
             tick = -1
@@ -58,18 +59,21 @@ class motor_driver:
             gpio.setup(A_STEP, gpio.OUT)
             gpio.setup(A_DIR, gpio.OUT)
 
-            motor_pwm = gpio.PWM(STEP, 100)
-            angle_pwm = gpio.PWM(A_STEP, 1000)
+            self.motor_pwm = gpio.PWM(STEP, 100)
+            self.angle_pwm = gpio.PWM(A_STEP, 1000)
         if select == 3:
             gpio.setup(IN1, gpio.OUT)
             gpio.setup(IN2, gpio.OUT)
+        if self.soft:
+            self.soft_thread = Thread(target=self.soft_start, args=(1, ))
+            pass
 
     def run_standard_test(self):
-        time, ticks, direction = self.calculate_ticks(60, 150, 1)
-        self.motor_run(time, ticks, direction)
+        distance, speed, direction = self.calculate_ticks(60, 150, 1)
+        self.motor_run(distance, speed, direction)
 
     def calculate_ticks(self, distance=60, speed=150, direction=1):
-        if self.select ==1 or self.select == 2:
+        if self.select == 1 or self.select == 2:
             # speed decided in the standard ISO 8295 is 100mm/min
             # travel distance decided by me is 60 mm
             # vida aralığı 2mm
@@ -90,12 +94,21 @@ class motor_driver:
             frequency = round(frequency, 3)
             return drive_time, frequency, direction
 
-        if self.select == 3: # need to integrate soft start
+        if self.select == 3 and not self.soft: # need to integrate soft start
             mm_per_second = 1
             drive_time = (distance / speed) * 60
             frequency = speed * mm_per_second
             frequency = round(frequency, 3)
             return drive_time, frequency, direction
+        elif self.select == 3 and self.soft: #soft startta ilk x saniye yarı hızda çalışacak gibi hesaplanmalı
+            mm_per_second = 1
+            ramp_distance = (self.soft_time * speed) / 2
+            drive_time = ((distance - ramp_distance) / speed) * 60
+            drive_time += self.soft_time #
+            frequency = 0
+            return drive_time, frequency, direction
+
+
 
 
     def motor_run(self, drive_time, frequency, direction):
@@ -105,6 +118,7 @@ class motor_driver:
 
             self.motor_pwm.ChangeFrequency(frequency)
             self.motor_pwm.start(50)
+#            self.motor_pwm.ChangeDutyCycle()
             print("motor pwm ayarlandi")
             signal.signal(signal.SIGALRM, self.handler)
             signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
@@ -117,8 +131,25 @@ class motor_driver:
                 gpio.output(IN1, 0)
                 gpio.output(IN2, 1)
         if self.select == 3 and self.soft:
-            pass
+            self.soft_thread.start()
 
+    def soft_start(self, pwm_value):
+        if self.select == 3:
+            while pwm_value < 100:
+                if self.direction == 1:
+                    if pwm_value == 1:
+                        self.output1_pwm.start(pwm_value)
+                    else:
+                        self.output1_pwm.ChangeDutyCycle(pwm_value)
+                else:
+                    if pwm_value == 1:
+                        self.output2_pwm.start(pwm_value)
+                    else:
+                        self.output2_pwm.ChangeDutyCycle(pwm_value)
+                pwm_value += 1
+                sleep(self.soft_time / 100)
+        else:
+            pass
 
     def motor_start(self, frequency, direction):
         if self.select == 1 or self.select == 2:
@@ -142,9 +173,17 @@ class motor_driver:
         if self.select == 1 or self.select == 2:
             self.motor_pwm.stop()
             gpio.output(EN, 1)
-        elif self.select == 3:
+        elif self.select == 3 and not self.soft:
             gpio.output(IN1, 0)
             gpio.output(IN2, 0)
+        elif self.select == 3 and self.soft:
+            try:
+                self.output1_pwm.ChangeDutyCycle(0)
+                self.output2_pwm.ChangeDutyCycle(0)
+                self.output2_pwm.stop()
+                self.output1_pwm.stop()
+            except:
+                pass
         print("motor pwm durduruldu")
 
     def set_angle_x(self, x):
