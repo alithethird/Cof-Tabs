@@ -14,6 +14,8 @@ from kivy.lang import Builder
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy_garden.graph import MeshLinePlot
+from kivy.uix.popup import Popup
+from kivy.uix.floatlayout import FloatLayout
 
 from fpdf_handler import fpdf_handler
 from motor_driver_pc import motor_driver_pc
@@ -340,6 +342,10 @@ class ScreenTwo(Screen):
         md.motor_start(200, 0)
 
 
+
+class P(FloatLayout):
+    pass
+
 class ScreenThree(Screen):
     date_today = datetime.date.today()
     date_text = str(date_today)
@@ -469,6 +475,15 @@ class ScreenThree(Screen):
             self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
                                 sample2, test_mode, ScreenFour.plot.points)
         self.ids.pdf_label.color = (0, 0, 0, 1)
+        self.show_popup()
+
+    def show_popup(self):
+        show = P()
+        self.popupWindow = Popup(title="Popup Window", content=show, size_hint=(None, None), size=(400, 400))
+
+        self.popupWindow.open()
+    def hide_popup(self):
+        self.popupWindow.close()
 
 class ScreenFour(Screen):
     plot = MeshLinePlot(color=[1, 0, 0, 1])
