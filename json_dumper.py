@@ -54,6 +54,7 @@ class JsonHandler:
                    "Mean Static Coefficient of Friction:": mean_static,
                    "Max Dynamic Coefficient of Friction:": max_dynamic,
                    "Mean Dynamic Coefficient of Friction:": mean_dynamic,
+                   "Test date:":date_and_time,
                    "Forces:": forces
                    }
         else:
@@ -73,12 +74,55 @@ class JsonHandler:
                    "Mean Static Coefficient of Friction:": mean_static,
                    "Max Dynamic Coefficient of Friction:": max_dynamic,
                    "Mean Dynamic Coefficient of Friction:": mean_dynamic,
+                   "Test date:":date_and_time,
                    "Forces:": forces
                    }
 
         file_name = "COF Test " + date_and_time + ".json"
         with open(file_name, 'w', encoding='utf-8') as f:
             json.dump(dic, f, ensure_ascii=False, indent=2)
+
+    def read_data(self, file):
+        with open(file) as json_file:
+            data = json.load(json_file)
+            if len(data) == 17:
+                return data["Company Name:"],\
+                       data["Operator Name:"],\
+                       data["Testing Weight(gr):"],\
+                       data["Test Mode:"],\
+                       data["First Sample Name:"],\
+                       data["First Sample Width(mm)"],\
+                       data["First Sample Height(mm):"],\
+                       data["First Sample Age(months):"],\
+                       data["Second Sample Name:"],\
+                       data["Second Sample Width(mm)"],\
+                       data["Second Sample Height(mm):"],\
+                       data["Second Sample Age(months):"],\
+                       data["Max Static Coefficient of Friction:"],\
+                       data["Mean Static Coefficient of Friction:"],\
+                       data["Max Dynamic Coefficient of Friction:"],\
+                       data["Mean Dynamic Coefficient of Friction:"],\
+                       data["Test date:"],\
+                       data["Forces:"]
+            else:
+                return data["Company Name:"],\
+                       data["Operator Name:"],\
+                       data["Testing Weight(gr):"],\
+                       data["Test Mode:"],\
+                       data["Sample Name:"],\
+                       data["Sample Width(mm)"],\
+                       data["Sample Height(mm):"],\
+                       data["Sample Age(months):"],\
+                       0,\
+                       0,\
+                       0,\
+                       0,\
+                       data["Max Static Coefficient of Friction:"],\
+                       data["Mean Static Coefficient of Friction:"],\
+                       data["Max Dynamic Coefficient of Friction:"],\
+                       data["Mean Dynamic Coefficient of Friction:"],\
+                       data["Test date:"],\
+                       data["Forces:"]
 
     def dump_calib_save(self, distance, speed, normal_force, sample_time, calib, angle_test_speed):
         dic = {"Distance:":distance,
