@@ -35,6 +35,7 @@ class motor_driver:
         self.soft = soft
         self.select = select
         self.soft_time = 1
+        self.max_speed = 200
         if select == 1:
             tick = -1
             tick_goal = 0
@@ -64,6 +65,8 @@ class motor_driver:
         if select == 3:
             gpio.setup(IN1, gpio.OUT)
             gpio.setup(IN2, gpio.OUT)
+            self.output1_pwm = gpio.PWM(IN1, 1000)
+            self.output2_pwm = gpio.PWM(IN2, 1000)
         if self.soft:
             self.soft_thread = Thread(target=self.soft_start, args=(1, ))
             pass
@@ -97,16 +100,17 @@ class motor_driver:
         if self.select == 3 and not self.soft: # need to integrate soft start
             mm_per_second = 1
             drive_time = (distance / speed) * 60
-            frequency = speed * mm_per_second
-            frequency = round(frequency, 3)
-            return drive_time, frequency, direction
+            duty_cycle = (speed / self.max_speed)*100
+            duty_cycle = round(duty_cycle, 3)
+            return drive_time, duty_cycle, direction
         elif self.select == 3 and self.soft: #soft startta ilk x saniye yarı hızda çalışacak gibi hesaplanmalı
             mm_per_second = 1
             ramp_distance = (self.soft_time * speed) / 2
             drive_time = ((distance - ramp_distance) / speed) * 60
             drive_time += self.soft_time #
-            frequency = 0
-            return drive_time, frequency, direction
+            duty_cycle = (speed / self.max_speed)*100
+            duty_cycle = round(duty_cycle, 3)
+            return drive_time, duty_cycle, direction
 
 
 
@@ -125,11 +129,9 @@ class motor_driver:
             print("motor stop timer ayarlandi")
         if self.select == 3 and not self.soft:
             if direction == 1:
-                gpio.output(IN1, 1)
-                gpio.output(IN2, 0)
+                self.output1_pwm.start(frequency)
             elif direction == 0:
-                gpio.output(IN1, 0)
-                gpio.output(IN2, 1)
+                self.output2_pwm.start(frequency)
         if self.select == 3 and self.soft:
             self.soft_thread.start()
 
