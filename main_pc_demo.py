@@ -705,7 +705,7 @@ class ScreenFive(Screen):
         normal_force = 200
         sample_time = 0.1
         calib = 0.011772
-        angle_test_speed = 100
+        angle_test_speed = 500
 
         self.ids.distance.text = str(test_distance)
         self.ids.speed.text = str(test_speed)
