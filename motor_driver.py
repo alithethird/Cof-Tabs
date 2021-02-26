@@ -176,12 +176,10 @@ class motor_driver:
             self.motor_pwm.stop()
             gpio.output(EN, 1)
         elif self.select == 3 and not self.soft:
-            gpio.output(IN1, 0)
-            gpio.output(IN2, 0)
+            self.output2_pwm.stop()
+            self.output1_pwm.stop()
         elif self.select == 3 and self.soft:
             try:
-                self.output1_pwm.ChangeDutyCycle(0)
-                self.output2_pwm.ChangeDutyCycle(0)
                 self.output2_pwm.stop()
                 self.output1_pwm.stop()
             except:
