@@ -109,19 +109,19 @@ class fpdf_handler(FPDF):
         elif test_mode == 0:
             test_mode = "Motorized Test"
         data = [['Standard: ', "ISO 8295"],
-                ['Company Name: ', sample.company_name],
-                ['Operator Name: ', sample.operator_name],
+                ['Company Name: ', str(sample.company_name)],
+                ['Operator Name: ', str(sample.operator_name)],
                 ['Testing Weight(gr): ', str(sample.testing_weight)],
-                ['Test Mode: ', test_mode],
-                ['Sample Name: ', sample.name],
+                ['Test Mode: ', str(test_mode)],
+                ['Sample Name: ', str(sample.name)],
                 ['Sample Width(mm): ', str(sample.width)],
                 ['Sample Height(mm): ', str(sample.height)],
                 ['Sample Age(months): ', str(sample.age)],
                 ['Testing Against: ', 'The same sample'],
-                ['Max Static Coefficient of Friction: ', max_static],
-                ['Mean Static Coefficient of Friction: ', mean_static],
-                ['Max Dynamic Coefficient of Friction: ', max_dynamic],
-                ['Mean Dynamic Coefficient of Friction: ', mean_dynamic]
+                ['Max Static Coefficient of Friction: ', str(max_static)],
+                ['Mean Static Coefficient of Friction: ', str(mean_static)],
+                ['Max Dynamic Coefficient of Friction: ', str(max_dynamic)],
+                ['Mean Dynamic Coefficient of Friction: ', str(mean_dynamic)]
                 ]
         spacing = 2
         self.set_font("Arial", size=12)
@@ -139,23 +139,23 @@ class fpdf_handler(FPDF):
         elif test_mode == 0:
             test_mode = "Motorized Test"
         data = [['Standard: ', "ISO 8295"],
-                ['Company Name: ', sample1.company_name],
-                ['Operator Name: ', sample1.operator_name],
+                ['Company Name: ', str(sample1.company_name)],
+                ['Operator Name: ', str(sample1.operator_name)],
                 ['Testing Weight(gr): ', str(sample1.testing_weight)],
-                ['Test Mode: ', test_mode],
-                ['Sample Name: ', sample1.name],
+                ['Test Mode: ', str(test_mode)],
+                ['Sample Name: ', str(sample1.name)],
                 ['Sample Width(mm): ', str(sample1.width)],
                 ['Sample Height(mm): ', str(sample1.height)],
                 ['Sample Age: ', str(sample1.age)],
                 ['Testing Against: ', 'Different Sample'],
-                ['Second Sample Name: ', sample2.name],
+                ['Second Sample Name: ', str(sample2.name)],
                 ['Second Sample Width(mm): ', str(sample2.width)],
                 ['Second Sample Height(mm): ', str(sample2.height)],
                 ['Second Sample Age(months): ', str(sample2.age)],
-                ['Max Static Coefficient of Friction: ', max_static],
-                ['Mean Static Coefficient of Friction: ', mean_static],
-                ['Max Dynamic Coefficient of Friction: ', max_dynamic],
-                ['Mean Dynamic Coefficient of Friction: ', mean_dynamic]
+                ['Max Static Coefficient of Friction: ', str(max_static)],
+                ['Mean Static Coefficient of Friction: ', str(mean_static)],
+                ['Max Dynamic Coefficient of Friction: ', str(max_dynamic)],
+                ['Mean Dynamic Coefficient of Friction: ', str(mean_dynamic)]
                 ]
         spacing = 2
         self.set_font("Arial", size=12)
