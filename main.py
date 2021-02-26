@@ -233,7 +233,8 @@ class ScreenTwo(Screen):
         global test_speed
         global test_distance
         global calib
-        test_distance, test_speed, normal_force, sample_time, calib = json_handler.import_save()
+        global angle_test_speed
+        test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed = json_handler.import_save()
 
 
         self.force_max_label = Label(text="Peak Force: ")
@@ -542,7 +543,7 @@ class ScreenFour(Screen):
         Clock.schedule_interval(self.get_value,
                                 sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample kaymaya başlayınca durabilir
 
-        md.start_angle_motor_rise(50)
+        md.start_angle_motor_rise(angle_test_speed)
 
     def stop(self):
         Clock.unschedule(self.get_value)
@@ -554,7 +555,7 @@ class ScreenFour(Screen):
             pass
     def reset(self):
         while self.check_angle(0):
-            md.start_angle_motor_fall(50)
+            md.start_angle_motor_fall(angle_test_speed)
         md.stop_angle_motor()
 
     def save_graph(self):
@@ -594,11 +595,10 @@ class ScreenFour(Screen):
             return True
 
     def angle_motor_rise(self):
-        md.start_angle_motor_rise(50)
+        md.start_angle_motor_rise(angle_test_speed)
 
     def angle_motor_fall(self):
-        md.start_angle_motor_fall(50)
-
+        md.start_angle_motor_fall(angle_test_speed)
 
 
 class ScreenFive(Screen):
@@ -616,6 +616,7 @@ class ScreenFive(Screen):
         self.ids.normal_force.text = str(normal_force)
         self.ids.sample_time.text = str(sample_time)
         self.ids.calib.text = str(calib)
+        self.ids.angle_test_speed.text = str(angle_test_speed)
 
     def save(self):
         count = 0
@@ -680,7 +681,20 @@ class ScreenFive(Screen):
             else:
                 count = 1
 
-        if self.ids.speed_text.text == "" and self.ids.distance_text.text == "" and self.ids.sample_time_text.text == "" and self.ids.normal_force_text.text == "" and self.ids.calib_text.text == "":
+        if self.ids.angle_test_speed_text.text != "":
+            try:
+                global angle_test_speed
+                angle_test_speed = float(self.ids.angle_test_speed_text.text)
+                self.ids.angle_test_speed.text = str(angle_test_speed)
+
+                self.error.color = (0, 0, 0, 0)
+            except:
+                self.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.error.color = (0, 0, 0, 1)
+            else:
+                count = 1
+
+        if self.ids.speed_text.text == "" and self.ids.distance_text.text == "" and self.ids.sample_time_text.text == "" and self.ids.normal_force_text.text == "" and self.ids.calib_text.text == "" and self.ids.angle_test_speed_text.text == "":
             self.error.color = (0, 0, 0, 0)
         if count == 1:
             self.error.text = "Saved"
@@ -693,9 +707,10 @@ class ScreenFive(Screen):
         global normal_force
         global sample_time
         global calib
-        json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force, sample_time=sample_time, calib=calib)
+        global angle_test_speed
+        json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force, sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed)
 
-        test_distance, test_speed, normal_force, sample_time, calib = json_handler.import_save()
+        test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed = json_handler.import_save()
 
     def reset_to_factory(self):
         global test_distance
@@ -703,21 +718,24 @@ class ScreenFive(Screen):
         global normal_force
         global sample_time
         global calib
+        global angle_test_speed
+
         test_distance = 60
         test_speed = 150
         normal_force = 200
         sample_time = 0.1
         calib = 0.011772
+        angle_test_speed = 100
 
         self.ids.distance.text = str(test_distance)
         self.ids.speed.text = str(test_speed)
         self.ids.normal_force.text = str(normal_force)
         self.ids.sample_time.text = str(sample_time)
         self.ids.calib.text = str(calib)
+        self.ids.angle_test_speed.text = str(angle_test_speed)
+        json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force, sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed)
 
-        json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force, sample_time=sample_time, calib=calib)
-
-        test_distance, test_speed, normal_force, sample_time, calib = json_handler.import_save()
+        test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed = json_handler.import_save()
 
 
     def clean_errors(self):

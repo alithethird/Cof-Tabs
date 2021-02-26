@@ -443,6 +443,16 @@
             pos_hint: {'center_x': 0.1, "center_y": 0.76}
             font_size: 12
             size_hint: 1/7, 0.06
+
+        TextInput:
+            write_tab: False
+            multiline: False
+            id: angle_test_speed_text
+            hint_text: 'Angle Speed'
+            pos_hint: {'center_x': 0.25, "center_y": 0.76}
+            font_size: 12
+            size_hint: 1/7, 0.06
+
         Label:
             id: distance_label
             text: "Test Distance:"
@@ -506,6 +516,19 @@
             id: calib
             color: (0,0,0,1)
             pos_hint: {"center_x": 0.62, "center_y": 0.76}
+            halign: "left"
+
+        Label:
+            id: angle_test_speed
+            text: "Angle Speed:"
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.5, "center_y": 0.68}
+            halign: "left"
+
+        Label:
+            id: angle_test_speed
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.62, "center_y": 0.68}
             halign: "left"
 
 
