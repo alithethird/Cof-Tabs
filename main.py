@@ -36,7 +36,7 @@ stop_switch = 13  # stop kısmındaki switch
 reset_motor_speed = 200
 Builder.load_file('cof.kv')
 
-md = motor_driver(3, False) # bir adet dc bir adet açı(step) motor modu seçildi, soft start kapatıldı
+md = motor_driver(2, False) # bir adet dc bir adet açı(step) motor modu seçildi, soft start kapatıldı
 json_handler = JsonHandler()
 md.stop_motor()
 
