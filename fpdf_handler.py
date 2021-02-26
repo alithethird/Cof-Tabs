@@ -75,7 +75,7 @@ class fpdf_handler(FPDF):
             self.single_table(sample1, max_static, mean_static, max_dynamic, mean_dynamic, test_mode)
             self.graph_to_pdf(1)
         else:
-            self.diff_table(sample1, max_static, mean_static, max_dynamic, mean_dynamic, test_mode)
+            self.diff_table(sample1, sample2, max_static, mean_static, max_dynamic, mean_dynamic, test_mode)
             self.graph_to_pdf(2)
 
         filename = "COF Test " + self.date_and_time + ".pdf"

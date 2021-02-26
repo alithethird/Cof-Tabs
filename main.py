@@ -489,7 +489,7 @@ class ScreenThree(Screen):
 
     def show_popup(self):
         show = P()
-        self.popupWindow = Popup(title="Popup Window", content=show, size_hint=(None, None), size=(400, 400))
+        self.popupWindow = Popup(title="PDF Saved", content=show, size_hint=(None, None), size=(400, 200))
 
         self.popupWindow.open()
 
