@@ -478,7 +478,7 @@ class ScreenThree(Screen):
             self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1, sample2, test_mode, ScreenTwo.plot.points)
         else:
             self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1, sample2, test_mode, ScreenFour.plot.points)
-
+        self.ids.pdf_label.color = (0,0,0,1)
 
 class ScreenFour(Screen):
     plot = MeshLinePlot(color=[1, 0, 0, 1])

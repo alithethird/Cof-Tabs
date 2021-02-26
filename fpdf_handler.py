@@ -82,6 +82,7 @@ class fpdf_handler(FPDF):
         mount_dir = "/media/pi/*"
         self.output(filename)
         self.close()
+        print("pdf created")
         json_out.dump_time(max_static, mean_static, max_dynamic, mean_dynamic, sample1, sample2, test_mode, forces, self.date_and_time)
 
         source = "./" + filename
