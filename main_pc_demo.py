@@ -262,22 +262,18 @@ class ScreenTwo(Screen):
         forces = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        Clock.schedule_interval(self.get_value, sample_time)
-        self.t = threading.Thread(target=get_force, args=("task",))
 
+        self.plot_scaler = threading.Thread(target=self.get_value, args=("task",))
+        self.plot_scaler.start()
+
+        self.plotter = threading.Thread(target=self.update_plot, args=("task",))
+        self.plotter.start()
+
+        self.t = threading.Thread(target=get_force, args=("task",))
         self.t.start()
+
         self.dist_current.text = "0"
 
-        # if self.ids.distance_text.text == "":
-        #     pass
-        # else:
-        #     self.test_distance = float(self.ids.distance_text.text)
-        #
-        # if self.ids.speed_text.text == "":
-        #     pass
-        # else:
-        #     global test_speed
-        #     test_speed = float(self.ids.speed_text.text)s
         print(test_distance)
         print(test_speed)
         drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
@@ -285,7 +281,12 @@ class ScreenTwo(Screen):
         print("motor driver kodundan cikildi")
 
     def stop(self):
-        Clock.unschedule(self.get_value)
+        self.plot_scaler.do_run = False
+        self.plot_scaler.join()
+
+        self.plotter.do_run = False
+        self.plotter.join()
+
         self.t.do_run = False
         self.t.join()
         md.stop_motor()
@@ -296,27 +297,38 @@ class ScreenTwo(Screen):
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
 
-    def get_value(self, dt):
+    def get_value(self, arg):
+        t = threading.currentThread()
+        while getattr(t, "do_run", True):
 
-        self.dist_current.text = str(round((float(self.dist_current.text) + 60 * (sample_time * test_speed)), 3))
+            start_time = datetime.datetime.now()
+            self.dist_current.text = str(round((float(self.dist_current.text) + 60 * (sample_time * test_speed)), 3))
 
-        if forces[-1][0] == 0:
-            self.ids.graph.xmax = 1
-        elif forces[-1][0] > self.ids.graph.xmax:
-            self.ids.graph.xmax = forces[-1][0]
+            if forces[-1][0] == 0:
+                self.ids.graph.xmax = 1
+            elif forces[-1][0] > self.ids.graph.xmax:
+                self.ids.graph.xmax = forces[-1][0]
 
-        if len(forces) < 3:
-            self.ids.graph.ymax = 1
-        elif forces[-1][1] > self.ids.graph.ymax:
-            self.force_max.text = str(round(forces[-1][1], 3))
-            self.ids.graph.ymax = forces[-1][1]
+            if len(forces) < 3:
+                self.ids.graph.ymax = 1
+            elif forces[-1][1] > self.ids.graph.ymax:
+                self.force_max.text = str(round(forces[-1][1], 3))
+                self.ids.graph.ymax = forces[-1][1]
 
-        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
+            self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
 
-        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
-        self.plot.points = forces
-        self.force_current.text = str(round(forces[-1][1], 2))
+            self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
+            self.force_current.text = str(round(forces[-1][1], 2))
+            sleep_time = datetime.datetime.now() - start_time
+            sleep_time = sleep_time.total_seconds()
+            sleep_time = sample_time - sleep_time
+            print(sleep_time)
+            #time.sleep(sample_time)
 
+    def update_plot(self, arg):
+        t = threading.currentThread()
+        while getattr(t, "do_run", True):
+            self.plot.points = forces
     def show_angle(self, dt):
         angle = 10
         self.angle_current.text = str(angle)

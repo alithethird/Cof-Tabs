@@ -305,11 +305,11 @@ class ScreenTwo(Screen):
         md.motor_run(drive_time, frequency, direction)
 
     def stop(self):
+        md.stop_motor()
+        Clock.unschedule(self.get_value)
         try:
-            Clock.unschedule(self.get_value)
             self.t.do_run = False
             self.t.join()
-            md.stop_motor()
             #self.reset()  # reset when test ends
         except:
             pass
@@ -533,11 +533,13 @@ class ScreenFour(Screen):
         md.start_angle_motor_rise(50)
 
     def stop(self):
-        self.t.do_run = False
-        self.t.join()
         Clock.unschedule(self.get_value)
         md.stop_angle_motor()
-
+        try:
+            self.t.do_run = False
+            self.t.join()
+        except:
+            pass
     def reset(self):
         while self.check_angle(0):
             md.start_angle_motor_fall(50)
