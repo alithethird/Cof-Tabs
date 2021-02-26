@@ -156,8 +156,10 @@ class motor_driver:
 
     def motor_start(self, frequency, direction):
         if self.select == 1 or self.select == 2:
-            gpio.output(DIR, direction)
             gpio.output(EN, 0)
+            sleep(0.000005)
+            gpio.output(DIR, direction)
+            sleep(0.000005)
 
             self.motor_pwm.ChangeFrequency(frequency)
             self.motor_pwm.start(50)
