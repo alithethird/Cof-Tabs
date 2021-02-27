@@ -78,32 +78,48 @@ class fpdf_handler(FPDF):
             self.diff_table(sample1, sample2, max_static, mean_static, max_dynamic, mean_dynamic, test_mode)
             self.graph_to_pdf(2)
 
-        filename = "COF Test " + self.date_and_time + ".pdf"
-        mount_dir = "/media/pi/*"
+        filename = "COF_Test_" + self.date_and_time + ".pdf"
+        mount_dir = "/media/ali/"
         self.output(filename)
         self.close()
         print("pdf created")
         json_out.dump_time(max_static, mean_static, max_dynamic, mean_dynamic, sample1, sample2, test_mode, forces, self.date_and_time)
-
+        shutil.copy(filename, ".vscode")
+        print("1")
         source = "./" + filename
         usb_dir = popen("ls " + mount_dir).read()
         usb_dir = usb_dir.split()
+        print(usb_dir)
+        if usb_dir.count("ALI") > 0:
+            usb_dir = usb_dir.remove("ALI")
+            print("ALI'yi buldum ve silmeye calistim")
+        if len(usb_dir) > 0:
+            usb_dir = usb_dir[0]
+            shutil.copy(filename, mount_dir + str(usb_dir))
+        """
         if usb_dir.count("media/pi/ALI") > 0:
             usb_dir = usb_dir.remove("/media/pi/ALI")
             print("ALI'yi buldum ve silmeye calistim")
         try:
+            print("3")
+            print(usb_dir)
             usb_dir = usb_dir[0]
+            print(usb_dir)
             destination = usb_dir + filename
 
             popen("cp " + source + " " + str(destination) +"/")
+            print("4")
             try:
-                shutil.copy2(source, str(destination))
+                print(source)
+                shutil.copy(source, str(destination))
+                print("5")
             except shutil.Error as e:
                 print("Error: %s" % e)
             except IOError as e:
                 print("Error: %s" % e.strerror)
         except:
             pass
+            """
     def single_table(self, sample, max_static, mean_static, max_dynamic, mean_dynamic, test_mode):
         if test_mode == 1:
             test_mode = "Angle Test"
