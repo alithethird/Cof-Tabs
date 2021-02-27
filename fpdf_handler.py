@@ -59,9 +59,9 @@ class fpdf_handler(FPDF):
 
     def graph_to_pdf(self, choise):
         if choise == 1:
-            self.image('graph.png', x=30, y=140, w=150)
+            self.image('graph.png', x=30, y=160, w=150)
         else:
-            self.image('graph.png', x=30, y=170, w=150)
+            self.image('graph.png', x=30, y=190, w=150)
 
     def print_obj(self, obj):
         print(obj.name)
