@@ -74,7 +74,7 @@ def get_force(arg):
             val = 1
 
         if len(forces) > 1:
-            forces.append([(forces[-1][0] + sample_time), val])
+            forces.append([forces[-1][0] + (sample_time * 5), val])
         else:
             forces.append([0, val])
 
