@@ -42,6 +42,13 @@
                 root.manager.transition.direction = "left"
                 root.manager.transition.duration = 0.5
                 root.manager.current = "screen_four"
+
+        Button:
+            text: "Tare"
+            pos_hint: {'center_x': 0.4, "center_y": 0.3}
+            size_hint: (1/6, 1/12)
+            on_press:
+                root.tare()
         Button:
             text: "Calibration"
             pos_hint: {'center_x': 0.6, "center_y": 0.3}

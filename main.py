@@ -28,8 +28,8 @@ from json_dumper import JsonHandler
 
 hx = HX711(5, 6)
 hx.set_reading_format("MSB", "MSB")
-hx.reset()
-hx.tare()
+#hx.reset()
+#hx.tare()
 
 start_switch = 12  # start kısmındaki switch
 stop_switch = 13  # stop kısmındaki switch
@@ -222,6 +222,9 @@ class ScreenOne(Screen):
                 sample2.age = float(self.ids.second_age.text)
             except:
                 sample2.age = 0.00
+    def tare(self):
+        hx.reset()
+        hx.tare()
 
 class ScreenTwo(Screen):
     plot = MeshLinePlot(color=[1, 0, 0, 1])
