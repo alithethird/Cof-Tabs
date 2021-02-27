@@ -355,7 +355,7 @@ class ScreenTwo(Screen):
             self.force_max.text = str(round(forces[-1][1], 3))
             self.ids.graph.ymax = (forces[-1][1] * 1.1)
 
-        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 11
+        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
 
         self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
 
@@ -444,33 +444,42 @@ class ScreenThree(Screen):
         return max_dynamic_cof, mean_dynamic_cof
 
     def find_static_cof(self):
-        try:
-            if test_mode == 0:  # motorize mod
-                max_static_force, mean_static_force = find_static_force_advanced()
+        max_static_force, mean_static_force = find_static_force_advanced()
+        print(type(max_static_force))
+        print(type(mean_static_force))
 
+        if test_mode == 0:  # motorize mod
+            try:
                 max_static_cof = max_static_force / (normal_force * 9.81 * cos(test_angle))
                 max_static_cof = round(max_static_cof, 3)
 
                 mean_static_cof = mean_static_force / (normal_force * 9.81 * cos(test_angle))
                 mean_static_cof = round(mean_static_cof, 3)
+            except TypeError:
+                max_static_cof = "Testing Error (type Error)"
+                mean_static_cof = "Testing Error (type Error)"
+            except:
+                max_static_cof = "Error!"
+                mean_static_cof = "Error!"
 
-            elif test_mode == 1:  # açı mod
-                max_static_force, mean_static_force = find_static_force_advanced()
-                static_angle, static_force = find_biggest(forces)
-
+        elif test_mode == 1:  # açı mod
+            static_angle, static_force = find_biggest(forces)
+            try:
                 max_static_cof = max_static_force / (normal_force * 9.81 * cos(static_angle))
                 max_static_cof = round(max_static_cof, 3)
 
                 mean_static_cof = mean_static_force / (normal_force * 9.81 * cos(static_angle))
                 mean_static_cof = round(mean_static_cof, 3)
-            else:
-                max_static_cof = "Test Mode Select Error!"
-                mean_static_cof = "Test Mode Select Error!"
-        except TypeError:
-            mean_dynamic_cof = "Testing Error (type Error)"
-        except:
-            max_static_cof = "Error!"
-            mean_static_cof = "Error!"
+            except TypeError:
+                max_static_cof = "Testing Error (type Error)"
+                mean_static_cof = "Testing Error (type Error)"
+            except:
+                max_static_cof = "Error!"
+                mean_static_cof = "Error!"
+        else:
+            max_static_cof = "Test Mode Select Error!"
+            mean_static_cof = "Test Mode Select Error!"
+
         return max_static_cof, mean_static_cof
 
     def update_results(self):

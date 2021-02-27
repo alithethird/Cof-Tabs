@@ -112,7 +112,7 @@ def find_loose_string(array): # finds loose string length and returns the amount
 def find_static_force_advanced():
     array = []
     array_mean = 0
-    loose = find_loose_string(forces) # ip gergin değilken hesaplanan kuvvetlerin sayısı
+    loose = 0
     for i in range(loose, int(loose + (1 / sample_time))):
         array.append(forces[i])  # statik zamanda ölçülen kuvvet listesi
 
@@ -140,7 +140,7 @@ def find_static_force_advanced():
 
 def find_dynamic_force_advanced():
 
-    loose = find_loose_string(forces) # ip gergin değilken hesaplanan kuvvetlerin sayısı
+    loose = int(1/sample_time)
     array = []
     array_mean = 0
     for i in range(loose, len(forces)):
