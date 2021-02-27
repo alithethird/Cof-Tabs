@@ -186,7 +186,8 @@ class ScreenOne(Screen):
 
         if self.ids.switch.active:
             sample2.name = self.ids.second_name.text
-
+            if sample2.name == "":
+                sample2.name = "Null"
             try:
                 sample2.width = float(self.ids.second_width.text)
             except:
