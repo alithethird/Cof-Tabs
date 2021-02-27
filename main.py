@@ -330,7 +330,7 @@ class ScreenTwo(Screen):
         self.ids.graph.export_to_png("graph.png")
 
     def get_value(self, dt):
-        self.dist_current.text = str(round(float(self.dist_current.text) + 60*(sample_time * test_speed)), 3)  # update current distance
+        self.dist_current.text = str(float(self.dist_current.text) + 60 * (sample_time * test_speed))  # update current distance
 
         if forces[-1][0] == 0:
             self.ids.graph.xmax = 1
