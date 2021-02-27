@@ -79,14 +79,13 @@ class fpdf_handler(FPDF):
             self.graph_to_pdf(2)
 
         filename = "COF_Test_" + self.date_and_time + ".pdf"
-        mount_dir = "/media/ali/"
+        mount_dir = "/media/pi/"
         self.output(filename)
         self.close()
         print("pdf created")
         json_out.dump_time(max_static, mean_static, max_dynamic, mean_dynamic, sample1, sample2, test_mode, forces, self.date_and_time)
-        shutil.copy(filename, ".vscode")
+
         print("1")
-        source = "./" + filename
         usb_dir = popen("ls " + mount_dir).read()
         usb_dir = usb_dir.split()
         print(usb_dir)
