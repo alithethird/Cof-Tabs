@@ -476,7 +476,7 @@ class ScreenThree(Screen):
         else:
             self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
                                 sample2, test_mode, ScreenFour.plot.points)
-        self.ids.pdf_label.color = (0, 0, 0, 1)
+
         self.show_popup()
 
     def show_popup(self):
