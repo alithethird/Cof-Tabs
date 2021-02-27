@@ -342,7 +342,7 @@ class ScreenTwo(Screen):
         self.ids.graph.export_to_png("graph.png")
 
     def get_value(self, dt):
-        self.dist_current.text = str(float(self.dist_current.text) + 60 * (sample_time * test_speed))  # update current distance
+        self.dist_current.text = str(int(float(self.dist_current.text) + 60 * (sample_time * test_speed)))  # update current distance
 
         if forces[-1][0] == 0:
             self.ids.graph.xmax = 1
@@ -353,9 +353,9 @@ class ScreenTwo(Screen):
             self.ids.graph.ymax = 1
         elif forces[-1][1] > self.ids.graph.ymax:
             self.force_max.text = str(round(forces[-1][1], 3))
-            self.ids.graph.ymax = forces[-1][1]
+            self.ids.graph.ymax = (forces[-1][1] * 1.1)
 
-        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
+        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 11
 
         self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
 
@@ -369,10 +369,10 @@ class ScreenTwo(Screen):
         self.angle_current.text = angle
 
     def motor_forward(self):
-        md.motor_start(200, 1)
+        md.motor_start(8000, 1)
 
     def motor_backward(self):
-        md.motor_start(200, 0)
+        md.motor_start(8000, 0)
 
 
 class P(FloatLayout):
@@ -466,6 +466,8 @@ class ScreenThree(Screen):
             else:
                 max_static_cof = "Test Mode Select Error!"
                 mean_static_cof = "Test Mode Select Error!"
+        except TypeError:
+            mean_dynamic_cof = "Testing Error (type Error)"
         except:
             max_static_cof = "Error!"
             mean_static_cof = "Error!"
