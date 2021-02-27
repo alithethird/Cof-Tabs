@@ -61,6 +61,8 @@ global test_angle
 test_angle = 0
 global forces
 forces = [[0,0]]
+global ip_var
+ip_var = True # ip varsa True yoksa false
 
 global calib # kalibrasyon sayısı
 
@@ -132,7 +134,10 @@ def find_loose_string(array): # finds loose string length and returns the amount
 def find_static_force_advanced():
     array = []
     array_mean = 0
-    loose = 0 # ip gergin değilken hesaplanan kuvvetlerin sayısı
+    if ip_var:
+        loose = find_loose_string(forces)
+    else:
+        loose = 0 # ip gergin değilken hesaplanan kuvvetlerin sayısı
 
     for i in range(loose, int(loose + (1 / sample_time))):
         array.append(forces[i])  # statik zamanda ölçülen kuvvet listesi
@@ -154,14 +159,19 @@ def find_static_force_advanced():
 
     for i in range(index - 1, len(array)):
         array_mean += array[i][1]
-    mean_static_force = array_mean / (i - 1)
+
+    mean_static_force = array_mean / (len(array) - 1)
 
     return max_static_force, mean_static_force
 
 
 def find_dynamic_force_advanced():
 
-    loose = int(1/sample_time)
+    if ip_var:
+        loose = find_loose_string(forces)
+        loose += int(1/sample_time)
+    else:
+        loose = int(1/sample_time)
 
     array = []
     array_mean = 0
