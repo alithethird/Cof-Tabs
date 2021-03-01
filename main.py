@@ -60,9 +60,11 @@ normal_force = 200
 global test_angle
 test_angle = 0
 global forces
-forces = [[0,0]]
+forces = [[0, 0]]
+global angles
+angles = [[0, 0]]
 global ip_var
-ip_var = True # ip varsa True yoksa false
+ip_var = False # ip varsa True yoksa false
 
 global calib # kalibrasyon sayısı
 
@@ -91,12 +93,11 @@ def get_force_angle(arg): # need to reset angle
             val = 1
         angle = angle_read.get_rotation(1)
         if len(forces) > 1:
-            if angle > forces[-1][0]:
-                forces.append([angle, val])
-            else:
-                pass
+            forces.append([forces[-1][0], val])
+            angles.append([angles[-1][0], angle])
         else:
             forces.append([0, val])
+            angles.append([0, angle])
 
 
 def find_biggest(array):
@@ -107,6 +108,16 @@ def find_biggest(array):
         else:
             pass
     return biggest
+
+def find_static_angle(forces, angles):
+    biggest = 0
+    for i in len(forces):
+        if i > biggest:
+            biggest = forces[i][1]
+            static_angle = angles[i][1]
+        else:
+            pass
+    return static_angle
 
 
 def find_dynamic_force():
@@ -442,7 +453,7 @@ class ScreenThree(Screen):
                 max_dynamic_cof = "Testing Error something"
         elif test_mode == 1:  # açı mod #** ekleme yapılacak max ve mean için
             try:
-                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos( ScreenFour.plot.points[-1][0])) #en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
+                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos( angles[-1][0])) #en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
                 mean_dynamic_cof = round(dynamic_cof, 3)
                 max_dynamic_cof = round(dynamic_cof, 3)
             except TypeError:
@@ -473,7 +484,7 @@ class ScreenThree(Screen):
                 mean_static_cof = "Error!"
 
         elif test_mode == 1:  # açı mod
-            static_angle, static_force = find_biggest(forces)
+            static_angle = find_static_angle(forces, angles)
             try:
                 max_static_cof = max_static_force / (normal_force * 9.81 * cos(static_angle))
                 max_static_cof = round(max_static_cof, 3)
@@ -540,7 +551,7 @@ class ScreenFour(Screen):
         self.force_max_label.color = (0, 0, 0, 1)
         self.add_widget(self.force_max_label)
 
-        self.force_max_text = "0"
+        self.force_max_text = "0.00"
         self.force_max = Label(text=self.force_max_text)
         self.force_max.pos = (330, 215)
         self.force_max.color = (0, 0, 0, 1)
@@ -551,7 +562,7 @@ class ScreenFour(Screen):
         self.force_current_label.color = (0, 0, 0, 1)
         self.add_widget(self.force_current_label)
 
-        self.force_text = "0"
+        self.force_text = "0.00"
         self.force_current = Label(text=self.force_text)
         self.force_current.pos = (330, 195)
         self.force_current.color = (0, 0, 0, 1)
@@ -609,8 +620,10 @@ class ScreenFour(Screen):
             if len(forces) < 3:
                 self.ids.graph.ymax = 1
             elif forces[-1][1] > self.ids.graph.ymax:
-                self.force_max.text = str(round(forces[-1][1],3))
                 self.ids.graph.ymax = forces[-1][1]
+
+            if forces[-1][1] > float(self.force_max.text):
+                self.force_max.text = str(round(forces[-1][1], 3))
 
             self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
 
