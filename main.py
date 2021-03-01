@@ -71,7 +71,7 @@ global calib # kalibrasyon sayısı
 def get_force(arg):
     t = threading.currentThread()
     while getattr(t, "do_run", True):
-        sleep(sample_time)
+        #sleep(sample_time)
         val = hx.get_weight(5)
         val *= calib
         if val < 0:
