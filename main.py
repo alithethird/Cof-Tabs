@@ -27,7 +27,7 @@ from json_dumper import JsonHandler
 # set up the load cell
 
 hx = HX711(5, 6)
-hx.set_reading_format("MSB", "MSB")
+
 #hx.reset()
 #hx.tare()
 
@@ -72,7 +72,7 @@ def get_force(arg):
     t = threading.currentThread()
     while getattr(t, "do_run", True):
         #sleep(sample_time)
-        val = hx.get_weight(5)
+        val = hx.get_weight()
         val *= calib
         if val < 0:
             val = 1
@@ -87,14 +87,14 @@ def get_force_angle(arg): # need to reset angle
     t = threading.currentThread()
     while getattr(t, "do_run", True):
         sleep(sample_time)
-        val = hx.get_weight(5)
+        val = hx.get_weight()
         val /= calib
         if val < 0:
             val = 1
         angle = angle_read.get_rotation(1)
         if len(forces) > 1:
-            forces.append([forces[-1][0], val])
-            angles.append([angles[-1][0], angle])
+            forces.append([forces[-1][0] + (sample_time * 5), val])
+            angles.append([angles[-1][0] + (sample_time * 5), angle])
         else:
             forces.append([0, val])
             angles.append([0, angle])
@@ -466,8 +466,6 @@ class ScreenThree(Screen):
 
     def find_static_cof(self):
         max_static_force, mean_static_force = find_static_force_advanced()
-        print(type(max_static_force))
-        print(type(mean_static_force))
 
         if test_mode == 0:  # motorize mod
             try:

@@ -85,7 +85,6 @@ class motor_driver:
             # dakikada 100 mm için 18000 tick
             # saniyede 300 tick
             # 0.003 saniyede 1 tick
-            print("motor icin sure ve tick sayisi hesaplandi")
             mm_per_tick = 180  # kalibrasyon için
             # 60mm için 60*180 tick
             ticks = speed * mm_per_tick
@@ -124,10 +123,8 @@ class motor_driver:
             self.motor_pwm.ChangeFrequency(frequency)
             self.motor_pwm.start(50)
 #            self.motor_pwm.ChangeDutyCycle()
-            print("motor pwm ayarlandi")
             signal.signal(signal.SIGALRM, self.handler)
             signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
-            print("motor stop timer ayarlandi")
         if self.select == 3 and not self.soft:
             if direction == 1:
                 self.output1_pwm.start(frequency)
@@ -187,17 +184,14 @@ class motor_driver:
                 self.output1_pwm.stop()
             except:
                 pass
-        print("motor pwm durduruldu")
 
     def set_angle_x(self, x):
         gpio.output(A_DIR, CW)
 
         self.angle_pwm.start(50)
-        print("aci motoru pozitif yonde calismaya basladı")
         signal.signal(signal.SIGALRM, self.angle_slow_down)  # bu satır için mpu6050 lazım
         # signal.signal(signal.SIGALRM, self.angle_test) # test satırı
         signal.setitimer(signal.ITIMER_REAL, x, 0)
-        print("aci motoru icin timer ayarlandi")
 
     def start_angle_motor_rise(self, frequency=1000):
         gpio.output(A_DIR, CW)
@@ -245,7 +239,6 @@ class motor_driver:
     def angle_test(self, signum, _):
 
         self.angle_pwm.stop()
-        print("aci motoru durduruldu")
         gpio.output(A_EN, 1)
 
     def angle_slow_down(self, signum, _):
@@ -267,7 +260,6 @@ class motor_driver:
     def send_tick(self, ticks):
         # change it to pin_status != pin_status
         # gpio.input(pin)
-        print("timer sinyal verdi")
         if self.tick > 0:  # countdown the ticks
             self.tick = self.tick - 1
         elif self.tick == -1:  # if tick counter is reset set the counter
@@ -279,7 +271,5 @@ class motor_driver:
         pin_state = gpio.input(STEP)
         if pin_state == 1:
             gpio.output(STEP, gpio.LOW)  # output the reverse state to turn motor
-            print("motor 0")
         else:
             gpio.output(STEP, gpio.HIGH)
-            print("motor 1")
