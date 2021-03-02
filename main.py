@@ -71,6 +71,7 @@ global calib # kalibrasyon sayısı
 def get_force(arg):
     t = threading.currentThread()
     while getattr(t, "do_run", True):
+        start_time = datetime.datetime.now()
         #sleep(sample_time)
         val = hx.get_weight()
         val *= calib
@@ -82,11 +83,16 @@ def get_force(arg):
         else:
             forces.append([0, val])
 
+        sleep_time = datetime.datetime.now() - start_time
+        sleep_time = sleep_time.total_seconds()
+        sleep_time = sample_time - sleep_time
+        sleep(sleep_time)
+
 
 def get_force_angle(arg): # need to reset angle
     t = threading.currentThread()
     while getattr(t, "do_run", True):
-        sleep(sample_time)
+        start_time = datetime.datetime.now()
         val = hx.get_weight()
         val /= calib
         if val < 0:
@@ -98,6 +104,11 @@ def get_force_angle(arg): # need to reset angle
         else:
             forces.append([0, val])
             angles.append([0, angle])
+
+        sleep_time = datetime.datetime.now() - start_time
+        sleep_time = sleep_time.total_seconds()
+        sleep_time = sample_time - sleep_time
+        sleep(sleep_time)
 
 
 def find_biggest(array):
