@@ -620,7 +620,7 @@ class ScreenFour(Screen):
             if len(forces) < 3:
                 self.ids.graph.ymax = 1
             elif forces[-1][1] > self.ids.graph.ymax:
-                self.ids.graph.ymax = forces[-1][1]
+                self.ids.graph.ymax = forces[-1][1] * 1.1
 
             if forces[-1][1] > float(self.force_max.text):
                 self.force_max.text = str(round(forces[-1][1], 3))
@@ -638,7 +638,7 @@ class ScreenFour(Screen):
 
     def check_angle(self, angle):
         val = round(angle_read.get_rotation(1), 2)
-        if val <= angle + 1 and val >= angle - 1:
+        if val <= angle and val >= angle :
             return False
         else:
             return True
@@ -769,8 +769,8 @@ class ScreenFive(Screen):
         global calib
         global angle_test_speed
 
-        test_distance = 60
-        test_speed = 150
+        test_distance = 6000
+        test_speed = 650
         normal_force = 200
         sample_time = 0.1
         calib = 0.011772
