@@ -629,16 +629,18 @@ class ScreenFour(Screen):
             if len(forces) < 3:
                 self.ids.graph.ymax = 1
             elif forces[-1][1] > self.ids.graph.ymax:
-                self.ids.graph.ymax = forces[-1][1] * 1.1
-
-            if forces[-1][1] > float(self.force_max.text):
                 self.force_max.text = str(round(forces[-1][1], 3))
+                self.ids.graph.ymax = (forces[-1][1] * 1.1)
 
-            self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
+            self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
 
-            self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
+            self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
+
             self.plot.points = forces
-            self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
+
+            self.force_current.text = str(round(forces[-1][1], 2))
+
+           self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
         else:
             md.stop_angle_motor()
             Clock.unschedule(self.get_value)
