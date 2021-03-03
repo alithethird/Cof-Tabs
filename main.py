@@ -1,6 +1,6 @@
 import datetime
 from math import cos, sin
-import threading
+import multiprocessing 
 from time import sleep
 import RPi.GPIO as gpio
 from kivy.config import Config
@@ -74,7 +74,7 @@ ip_var = False # ip varsa True yoksa false
 global calib # kalibrasyon sayısı
 
 def get_force(arg):
-    t = threading.currentThread()
+    t = multiprocessing.current_process()
     while getattr(t, "do_run", True):
         start_time = datetime.datetime.now()
         #sleep(sample_time)
@@ -96,7 +96,7 @@ def get_force(arg):
 
 
 def get_force_angle(arg): # need to reset angle
-    t = threading.currentThread()
+    t = multiprocessing.current_process()
     while getattr(t, "do_run", True):
         start_time = datetime.datetime.now()
         val = hx.get_weight()
@@ -342,7 +342,7 @@ class ScreenTwo(Screen):
         forces = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        self.t = threading.Thread(target=get_force, args=("task",))
+        self.t = multiprocessing.Process(target=get_force, args=("task",))
         self.t.start()
 
         Clock.schedule_interval(self.get_value, sample_time)
@@ -600,10 +600,10 @@ class ScreenFour(Screen):
         forces = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        self.t = threading.Thread(target=get_force_angle, args=("task",))
+        self.t = multiprocessing.Process(target=get_force_angle, args=("task",))
         self.t.start()
         
-        self.max_angle_threadt = threading.Thread(target=self.max_angle_thread , args=("tasks",))
+        self.max_angle_threadt = multiprocessing.Process(target=self.max_angle_thread , args=("tasks",))
         self.max_angle_threadt.start()
 
 
@@ -614,7 +614,7 @@ class ScreenFour(Screen):
 
     def max_angle_thread(self, arg):
         # check_angle(1) (yani stop switch) 0 verdikçe bişi yapmıyor arkada sürekli bu switchi kontrol ediyor
-        t = threading.currentThread()
+        t = multiprocessing.current_process()
         while getattr(t, "do_run", True):
             if self.check_angle(1): # eğer switch 1 verirse stop test fonksiyonunu çalıştırıyor ve threadi kapatıyor
                 self.stop()
@@ -636,12 +636,12 @@ class ScreenFour(Screen):
 
         md.start_angle_motor_fall(angle_test_speed)
 
-        self.reset_angle_threadt = threading.Thread(target=self.reset_angle_thread, args=("tasks",))
+        self.reset_angle_threadt = multiprocessing.Process(target=self.reset_angle_thread, args=("tasks",))
         self.reset_angle_threadt.start()
 
     def reset_angle_thread(self, arg):
         # check_angle(0) (yani start switch) 0 verdikçe bişi yapmıyor arka planda sürekli bu switchi kontrol ediyor
-        t = threading.currentThread()
+        t = multiprocessing.Process()
         while getattr(t, "do_run", True):
             if self.check_angle(0): # eğer switch 1 verirse motoru durduruyor ve threadi kapatıyor
                 md.stop_angle_motor()
@@ -692,13 +692,13 @@ class ScreenFour(Screen):
     def angle_motor_rise(self):
         md.start_angle_motor_rise(angle_test_speed)
 
-        self.max_angle_threadt = threading.Thread(target=self.max_angle_thread , args=("tasks",))
+        self.max_angle_threadt = multiprocessing.Process(target=self.max_angle_thread , args=("tasks",))
         self.max_angle_threadt.start()
 
     def angle_motor_fall(self):
         md.start_angle_motor_fall(angle_test_speed)
 
-        self.reset_angle_threadt = threading.Thread(target=self.reset_angle_thread, args=("tasks",))
+        self.reset_angle_threadt = multiprocessing.Process(target=self.reset_angle_thread, args=("tasks",))
         self.reset_angle_threadt.start()
 
 
