@@ -36,6 +36,9 @@ stop_switch = 13  # stop kısmındaki switch
 reset_motor_speed = 200
 Builder.load_file('cof.kv')
 
+angle_switch_start = 17 # açı motoru bu switch ile resetlenmeli
+angle_switch_stop = 27 # açı motoru bu switche kadar çalışmalı
+
 md = motor_driver(2, False) # bir adet dc bir adet açı(step) motor modu seçildi, soft start kapatıldı
 json_handler = JsonHandler()
 md.stop_motor()
@@ -578,7 +581,7 @@ class ScreenFour(Screen):
         self.force_current.pos = (330, 195)
         self.force_current.color = (0, 0, 0, 1)
         self.add_widget(self.force_current)
-
+        
         self.angle_current_label = Label(text="Current Angle: ")
         self.angle_current_label.pos = (230, 155)
         self.angle_current_label.color = (0, 0, 0, 1)
@@ -597,11 +600,26 @@ class ScreenFour(Screen):
         self.ids.graph.add_plot(self.plot)
         self.t = threading.Thread(target=get_force_angle, args=("task",))
         self.t.start()
+        
+        self.max_angle_threadt = threading.Thread(target=self.max_angle_thread , args=("tasks",))
+        self.max_angle_threadt.start()
+
 
         Clock.schedule_interval(self.get_value,
                                 sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample kaymaya başlayınca durabilir
 
         md.start_angle_motor_rise(angle_test_speed)
+
+    def max_angle_thread(self, arg):
+        # check_angle(1) (yani stop switch) 0 verdikçe bişi yapmıyor arkada sürekli bu switchi kontrol ediyor
+        t = threading.currentThread()
+        while getattr(t, "do_run", True):
+            if self.check_angle(1): # eğer switch 1 verirse stop test fonksiyonunu çalıştırıyor ve threadi kapatıyor
+                self.stop()
+                self.stop_max_angle_thread()
+
+    def stop_max_angle_thread(self):
+        self.max_angle_threadt.do_run = False
 
     def stop(self):
         Clock.unschedule(self.get_value)
@@ -611,50 +629,64 @@ class ScreenFour(Screen):
             self.t.join()
         except:
             pass
+
     def reset(self):
-        while self.check_angle(0):
-            md.start_angle_motor_fall(angle_test_speed)
-        md.stop_angle_motor()
+
+        md.start_angle_motor_fall(angle_test_speed)
+
+        self.reset_angle_threadt = threading.Thread(target=self.reset_angle_thread, args=("tasks",))
+        self.reset_angle_threadt.start()
+
+    def reset_angle_thread(self, arg):
+        # check_angle(0) (yani start switch) 0 verdikçe bişi yapmıyor arka planda sürekli bu switchi kontrol ediyor
+        t = threading.currentThread()
+        while getattr(t, "do_run", True):
+            if self.check_angle(0): # eğer switch 1 verirse motoru durduruyor ve threadi kapatıyor
+                md.stop_angle_motor()
+                self.stop_reset_angle_thread()
+
+    def stop_reset_angle_thread(self):
+        self.reset_angle_threadt.do_run = False
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
 
     def get_value(self, dt):
         max_angle = 30
-        if self.check_angle(max_angle):
 
-            if forces[-1][0] == 0:
-                self.ids.graph.xmax = 1
-            elif forces[-1][0] > self.ids.graph.xmax:
-                self.ids.graph.xmax = forces[-1][0]
+        if forces[-1][0] == 0:
+            self.ids.graph.xmax = 1
+        elif forces[-1][0] > self.ids.graph.xmax:
+            self.ids.graph.xmax = forces[-1][0]
 
-            if len(forces) < 3:
-                self.ids.graph.ymax = 1
-            elif forces[-1][1] > self.ids.graph.ymax:
-                self.ids.graph.ymax = (forces[-1][1] * 1.1)
-            if forces[-1][1] > float(self.force_max.text):
-                self.force_max.text = str(round(forces[-1][1], 3))
-            self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
+        if len(forces) < 3:
+            self.ids.graph.ymax = 1
+        elif forces[-1][1] > self.ids.graph.ymax:
+            self.ids.graph.ymax = (forces[-1][1] * 1.1)
+        if forces[-1][1] > float(self.force_max.text):
+            self.force_max.text = str(round(forces[-1][1], 3))
+        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
 
-            self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
+        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
 
-            self.plot.points = forces
+        self.plot.points = forces
 
-            self.force_current.text = str(round(forces[-1][1], 2))
-            max_angle += 0.1
-           #self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
+        self.force_current.text = str(round(forces[-1][1], 2))
+        max_angle += 0.1
+       #self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
+       
+    def check_angle(self, switch):
+        if not switch:
+            if gpio.input(angle_switch_start):
+                return True
+            else:
+                return False
         else:
-            md.stop_angle_motor()
-            Clock.unschedule(self.get_value)
-            self.t.do_run = False
-            self.t.join()
-
-    def check_angle(self, angle):
-        val = 30
-        if val <= angle and val >= angle :
-            return False
-        else:
-            return True
+            if gpio.input(angle_switch_stop):
+                return True
+            else:
+                return False
+      
 
     def angle_motor_rise(self):
         md.start_angle_motor_rise(angle_test_speed)
