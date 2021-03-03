@@ -95,7 +95,7 @@ def get_force_angle(arg): # need to reset angle
     while getattr(t, "do_run", True):
         start_time = datetime.datetime.now()
         val = hx.get_weight()
-        val /= calib
+        val *= calib
         if val < 0:
             val = 1
 #        angle = angle_read.get_rotation(1)
@@ -631,9 +631,9 @@ class ScreenFour(Screen):
             if len(forces) < 3:
                 self.ids.graph.ymax = 1
             elif forces[-1][1] > self.ids.graph.ymax:
-                self.force_max.text = str(round(forces[-1][1], 3))
                 self.ids.graph.ymax = (forces[-1][1] * 1.1)
-
+            if forces[-1][1] > float(self.force_max.text):
+                self.force_max.text = str(round(forces[-1][1], 3))
             self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
 
             self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
