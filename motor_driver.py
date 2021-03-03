@@ -1,12 +1,12 @@
 import signal
 import RPi.GPIO as gpio
-import angle_read
+# import angle_read
 import signal
-from  threading import Thread
+from threading import Thread
 from time import sleep
 import RPi.GPIO as gpio
 
-#import angle_read
+# import angle_read
 
 IN1 = 26
 IN2 = 19
@@ -17,10 +17,10 @@ STEP = 13
 CW = 1
 CCW = 0
 
+A_STEP = 16  # açı motoru için step
+A_DIR = 20  # açı motoru için direction
+A_EN = 21  # açı motoru için enable
 
-A_STEP = 16 # açı motoru için step
-A_DIR = 20 # açı motoru için direction
-A_EN = 21 # açı motoru için enable
 
 class motor_driver:
     # select
@@ -68,7 +68,7 @@ class motor_driver:
             self.output1_pwm = gpio.PWM(IN1, 1000)
             self.output2_pwm = gpio.PWM(IN2, 1000)
         if self.soft:
-            self.soft_thread = Thread(target=self.soft_start, args=(1, ))
+            self.soft_thread = Thread(target=self.soft_start, args=(1,))
             pass
 
     def run_standard_test(self):
@@ -96,23 +96,20 @@ class motor_driver:
             frequency = round(frequency, 3)
             return drive_time, frequency, direction
 
-        if self.select == 3 and not self.soft: # need to integrate soft start
+        if self.select == 3 and not self.soft:  # need to integrate soft start
             mm_per_second = 1
             drive_time = (distance / speed) * 60
-            duty_cycle = (speed / self.max_speed)*100
+            duty_cycle = (speed / self.max_speed) * 100
             duty_cycle = round(duty_cycle, 3)
             return drive_time, duty_cycle, direction
-        elif self.select == 3 and self.soft: #soft startta ilk x saniye yarı hızda çalışacak gibi hesaplanmalı
+        elif self.select == 3 and self.soft:  # soft startta ilk x saniye yarı hızda çalışacak gibi hesaplanmalı
             mm_per_second = 1
             ramp_distance = (self.soft_time * speed) / 2
             drive_time = ((distance - ramp_distance) / speed) * 60
-            drive_time += self.soft_time #
-            duty_cycle = (speed / self.max_speed)*100
+            drive_time += self.soft_time  #
+            duty_cycle = (speed / self.max_speed) * 100
             duty_cycle = round(duty_cycle, 3)
             return drive_time, duty_cycle, direction
-
-
-
 
     def motor_run(self, drive_time, frequency, direction):
         if self.select == 1 or self.select == 2:
@@ -122,7 +119,7 @@ class motor_driver:
             sleep(0.000005)
             self.motor_pwm.ChangeFrequency(frequency)
             self.motor_pwm.start(50)
-#            self.motor_pwm.ChangeDutyCycle()
+            #            self.motor_pwm.ChangeDutyCycle()
             signal.signal(signal.SIGALRM, self.handler)
             signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
         if self.select == 3 and not self.soft:
@@ -209,6 +206,30 @@ class motor_driver:
     def stop_angle_motor(self):
         self.angle_pwm.stop()
         gpio.output(A_EN, 1)
+
+    def angle_test(self, signum, _):
+
+        self.angle_pwm.stop()
+        gpio.output(A_EN, 1)
+
+    def send_tick(self, ticks):
+        # change it to pin_status != pin_status
+        # gpio.input(pin)
+        if self.tick > 0:  # countdown the ticks
+            self.tick = self.tick - 1
+        elif self.tick == -1:  # if tick counter is reset set the counter
+            self.tick = ticks
+        elif self.tick == 0:
+            signal.setitimer(signal.ITIMER_REAL, 0, 0)  # if ticks done stop timer
+            self.tick = -1  # reset counter
+
+        pin_state = gpio.input(STEP)
+        if pin_state == 1:
+            gpio.output(STEP, gpio.LOW)  # output the reverse state to turn motor
+        else:
+            gpio.output(STEP, gpio.HIGH)
+
+
 """
     def set_angle_30(self):
         angle = angle_read.get_rotation(
@@ -236,10 +257,6 @@ class motor_driver:
             gpio.output(A_DIR, CCW)
             self.angle_pwm.ChangeFrequency(angle_freq)
 """
-    def angle_test(self, signum, _):
-
-        self.angle_pwm.stop()
-        gpio.output(A_EN, 1)
 """
     def angle_slow_down(self, signum, _):
 
@@ -257,19 +274,3 @@ class motor_driver:
             gpio.output(A_DIR, CCW)
             self.angle_pwm.ChangeFrequency(angle_freq)
 """
-    def send_tick(self, ticks):
-        # change it to pin_status != pin_status
-        # gpio.input(pin)
-        if self.tick > 0:  # countdown the ticks
-            self.tick = self.tick - 1
-        elif self.tick == -1:  # if tick counter is reset set the counter
-            self.tick = ticks
-        elif self.tick == 0:
-            signal.setitimer(signal.ITIMER_REAL, 0, 0)  # if ticks done stop timer
-            self.tick = -1  # reset counter
-
-        pin_state = gpio.input(STEP)
-        if pin_state == 1:
-            gpio.output(STEP, gpio.LOW)  # output the reverse state to turn motor
-        else:
-            gpio.output(STEP, gpio.HIGH)
