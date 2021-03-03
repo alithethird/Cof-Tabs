@@ -720,7 +720,7 @@ class ScreenFive(Screen):
 
 
     def clean_errors(self):
-        self.error.color = (0, 0, 0, 0)
+        self.error.color = (0, 0, 0, 0) # temizlik yaptım
 
 
 screen_manager = ScreenManager()
