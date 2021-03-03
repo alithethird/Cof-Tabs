@@ -36,8 +36,8 @@ stop_switch = 13  # stop kısmındaki switch
 reset_motor_speed = 200
 Builder.load_file('cof.kv')
 
-angle_switch_start = 17 # açı motoru bu switch ile resetlenmeli
-angle_switch_stop = 27 # açı motoru bu switche kadar çalışmalı
+angle_switch_start = 27 # açı motoru bu switch ile resetlenmeli
+angle_switch_stop = 17 # açı motoru bu switche kadar çalışmalı
 
 gpio.setup(angle_switch_start, gpio.IN)
 gpio.setup(angle_switch_stop, gpio.IN)
@@ -679,12 +679,12 @@ class ScreenFour(Screen):
        
     def check_angle(self, switch):
         if not switch:
-            if gpio.input(angle_switch_start):
+            if not gpio.input(angle_switch_start):
                 return True
             else:
                 return False
         else:
-            if gpio.input(angle_switch_stop):
+            if not gpio.input(angle_switch_stop):
                 return True
             else:
                 return False
