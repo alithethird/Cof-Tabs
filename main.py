@@ -693,8 +693,16 @@ class ScreenFour(Screen):
     def angle_motor_rise(self):
         md.start_angle_motor_rise(angle_test_speed)
 
+        self.reset_angle_threadt = threading.Thread(target=self.reset_angle_thread, args=("tasks",))
+        self.reset_angle_threadt.start()
+
+
     def angle_motor_fall(self):
         md.start_angle_motor_fall(angle_test_speed)
+        
+        self.max_angle_threadt = threading.Thread(target=self.max_angle_thread , args=("tasks",))
+        self.max_angle_threadt.start()
+
 
 
 class ScreenFive(Screen):
