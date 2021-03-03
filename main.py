@@ -39,6 +39,8 @@ Builder.load_file('cof.kv')
 angle_switch_start = 17 # açı motoru bu switch ile resetlenmeli
 angle_switch_stop = 27 # açı motoru bu switche kadar çalışmalı
 
+gpio.setup(angle_switch_start, gpio.IN)
+gpio.setup(angle_switch_stop, gpio.IN)
 md = motor_driver(2, False) # bir adet dc bir adet açı(step) motor modu seçildi, soft start kapatıldı
 json_handler = JsonHandler()
 md.stop_motor()
