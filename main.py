@@ -16,7 +16,7 @@ from kivy_garden.graph import MeshLinePlot
 from kivy.uix.popup import Popup
 from kivy.uix.floatlayout import FloatLayout
 
-import angle_read
+#import angle_read
 from fpdf_handler import fpdf_handler
 
 gpio.setmode(gpio.BCM)
@@ -86,7 +86,8 @@ def get_force(arg):
         sleep_time = datetime.datetime.now() - start_time
         sleep_time = sleep_time.total_seconds()
         sleep_time = sample_time - sleep_time
-        sleep(sleep_time)
+        if sleep_time > 0:
+            sleep(sleep_time)
 
 
 def get_force_angle(arg): # need to reset angle
@@ -97,18 +98,19 @@ def get_force_angle(arg): # need to reset angle
         val /= calib
         if val < 0:
             val = 1
-        angle = angle_read.get_rotation(1)
+#        angle = angle_read.get_rotation(1)
         if len(forces) > 1:
             forces.append([forces[-1][0] + (sample_time * 5), val])
-            angles.append([angles[-1][0] + (sample_time * 5), angle])
+ #           angles.append([angles[-1][0] + (sample_time * 5), angle])
         else:
             forces.append([0, val])
-            angles.append([0, angle])
+  #          angles.append([0, angle])
 
         sleep_time = datetime.datetime.now() - start_time
         sleep_time = sleep_time.total_seconds()
         sleep_time = sample_time - sleep_time
-        sleep(sleep_time)
+        if sleep_time > 0:
+            sleep(sleep_time)
 
 
 def find_biggest(array):
@@ -120,15 +122,15 @@ def find_biggest(array):
             pass
     return biggest
 
-def find_static_angle(forces, angles):
+def find_static_angle(forces):
     biggest = 0
     for i in len(forces):
         if i > biggest:
             biggest = forces[i][1]
-            static_angle = angles[i][1]
+            #static_angle = angles[i][1]
         else:
             pass
-    return static_angle
+    return biggest
 
 
 def find_dynamic_force():
@@ -311,7 +313,7 @@ class ScreenTwo(Screen):
         self.angle_current_label.color = (0, 0, 0, 1)
         self.add_widget(self.angle_current_label)
 
-        self.angle_text = str(round(angle_read.get_rotation(1), 2))
+        self.angle_text = str(0.00)
         self.angle_current = Label(text=self.angle_text)
         self.angle_current.pos = (330, 155)
         self.angle_current.color = (0, 0, 0, 1)
@@ -464,7 +466,7 @@ class ScreenThree(Screen):
                 max_dynamic_cof = "Testing Error something"
         elif test_mode == 1:  # açı mod #** ekleme yapılacak max ve mean için
             try:
-                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos( angles[-1][0])) #en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
+                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos(30)) #en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
                 mean_dynamic_cof = round(dynamic_cof, 3)
                 max_dynamic_cof = round(dynamic_cof, 3)
             except TypeError:
@@ -493,7 +495,7 @@ class ScreenThree(Screen):
                 mean_static_cof = "Error!"
 
         elif test_mode == 1:  # açı mod
-            static_angle = find_static_angle(forces, angles)
+            static_angle = find_static_angle(forces) # needs to be changed
             try:
                 max_static_cof = max_static_force / (normal_force * 9.81 * cos(static_angle))
                 max_static_cof = round(max_static_cof, 3)
@@ -582,7 +584,7 @@ class ScreenFour(Screen):
         self.angle_current_label.color = (0, 0, 0, 1)
         self.add_widget(self.angle_current_label)
 
-        self.angle_text = str(round(angle_read.get_rotation(1), 2))
+        self.angle_text = str(0.00)
         self.angle_current = Label(text=self.angle_text)
         self.angle_current.pos = (330, 155)
         self.angle_current.color = (0, 0, 0, 1)
@@ -639,8 +641,8 @@ class ScreenFour(Screen):
             self.plot.points = forces
 
             self.force_current.text = str(round(forces[-1][1], 2))
-
-           self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
+            max_angle += 0.1
+           #self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
         else:
             md.stop_angle_motor()
             Clock.unschedule(self.get_value)
@@ -648,7 +650,7 @@ class ScreenFour(Screen):
             self.t.join()
 
     def check_angle(self, angle):
-        val = round(angle_read.get_rotation(1), 2)
+        val = 30
         if val <= angle and val >= angle :
             return False
         else:
