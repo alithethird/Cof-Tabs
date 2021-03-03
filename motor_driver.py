@@ -6,7 +6,7 @@ from  threading import Thread
 from time import sleep
 import RPi.GPIO as gpio
 
-import angle_read
+#import angle_read
 
 IN1 = 26
 IN2 = 19
@@ -209,7 +209,7 @@ class motor_driver:
     def stop_angle_motor(self):
         self.angle_pwm.stop()
         gpio.output(A_EN, 1)
-
+"""
     def set_angle_30(self):
         angle = angle_read.get_rotation(
             1)  # açıyı okuyoruz, fonksiyon içine sayı almadan sayı döndürmüyor bu yüzden içeri 1 verdik, içeri verilen sayı işleme dahil edilmiyor istenen sayı verilebilir
@@ -235,12 +235,12 @@ class motor_driver:
             angle_freq = angle * 10
             gpio.output(A_DIR, CCW)
             self.angle_pwm.ChangeFrequency(angle_freq)
-
+"""
     def angle_test(self, signum, _):
 
         self.angle_pwm.stop()
         gpio.output(A_EN, 1)
-
+"""
     def angle_slow_down(self, signum, _):
 
         angle = angle_read.get_rotation(
@@ -256,7 +256,7 @@ class motor_driver:
             angle_freq = (30 - angle) * 10
             gpio.output(A_DIR, CCW)
             self.angle_pwm.ChangeFrequency(angle_freq)
-
+"""
     def send_tick(self, ticks):
         # change it to pin_status != pin_status
         # gpio.input(pin)
