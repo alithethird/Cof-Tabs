@@ -1,7 +1,11 @@
 import datetime
 from math import cos, sin
 from random import random
+import multiprocessing
+from time import sleep
 import threading
+import numpy as np
+
 from kivy.config import Config
 import time
 
@@ -36,12 +40,11 @@ class sample:
     company_name = ""
     operator_name = ""
 
-
 global test_mode
 test_mode = -1  # 0-motorized test
 # 1-angle test
 global sample_time
-sample_time = 0.1
+sample_time = 1
 
 sample1 = sample()
 sample2 = sample()
@@ -50,27 +53,43 @@ global normal_force  # üstte kayan metal malzemenin kütlesi (kg)
 normal_force = 200
 global test_angle
 test_angle = 0
-global forces
-forces = [[0, 0]]
 
+forces = multiprocessing.Array('d', 1000)
+times = multiprocessing.Array('d', 1000)
+sample_counter = multiprocessing.Value('i', 1)
+global ip_var
+ip_var = False
 global calib # kalibrasyon sayısı
 
 
-def get_force(arg):
-    t = threading.currentThread()
+def get_force(arg, forces, times, sample_counter):
+    t = multiprocessing.current_process()
     while getattr(t, "do_run", True):
-        time.sleep(sample_time)
-        if len(forces) > 1:
-            if len(forces) < 100:
-                forces.append([(forces[-1][0] + sample_time), (forces[-1][1] + 100)])
-            elif len(forces) > 100 and len(forces) < 200:
-                forces.append([(forces[-1][0] + sample_time), (forces[-1][1] - 50)])
+        start_time = datetime.datetime.now()
+        if sample_counter.value > 1:
+            if sample_counter.value < 100:
+                times[sample_counter.value] = times[sample_counter.value -1] + sample_time
+                forces[sample_counter.value] = forces[sample_counter.value-1] + 100
+            elif 100 < sample_counter.value < 200:
+                times[sample_counter.value] = times[sample_counter.value-1] + sample_time
+                forces[sample_counter.value] = forces[sample_counter.value-1] - 50
             else:
-                forces.append([(forces[-1][0] + sample_time), round((forces[-1][1] + (random() * 60) - 30), 4)])
+                times[sample_counter.value] = times[sample_counter.value-1] + sample_time
+                forces[sample_counter.value] = round((forces[sample_counter.value-1] + (random() * 60) - 30), 4)
+            print("sample counter:", sample_counter.value)
+            sample_counter.value += 1
 
+            sleep_time = datetime.datetime.now() - start_time
+            sleep_time = sleep_time.total_seconds()
+            sleep_time = sample_time - sleep_time
+            sleep_time = round(sleep_time, 3)
+            print("sleep time:", sleep_time)
+            if sleep_time > 0:
+                sleep(sleep_time)
         else:
-            forces.append([0, random()])
-
+            times[sample_counter.value] = 0
+            forces[sample_counter.value] = random()
+            sample_counter.value += 1
 
 def find_biggest(array):
     biggest = [0.1, 0.1]
@@ -100,8 +119,7 @@ def find_static_force(array):
 
 def find_loose_string(array): # finds loose string length and returns the amount of data acquired when the string is loose
     biggest = find_biggest(forces)
-    index = int((biggest[0] / sample_time))
-    print(index)
+    index = int(((biggest[0] / sample_time)))
     count = 0
     for i in range(1, index):
         if forces[i-1][1] == forces[i][1]:
@@ -112,7 +130,11 @@ def find_loose_string(array): # finds loose string length and returns the amount
 def find_static_force_advanced():
     array = []
     array_mean = 0
-    loose = find_loose_string(forces) # ip gergin değilken hesaplanan kuvvetlerin sayısı
+    if ip_var:
+        loose = find_loose_string(forces)
+    else:
+        loose = 0 # ip gergin değilken hesaplanan kuvvetlerin sayısı
+
     for i in range(loose, int(loose + (1 / sample_time))):
         array.append(forces[i])  # statik zamanda ölçülen kuvvet listesi
 
@@ -133,14 +155,20 @@ def find_static_force_advanced():
 
     for i in range(index - 1, len(array)):
         array_mean += array[i][1]
-    mean_static_force = array_mean / (i - 1)
+
+    mean_static_force = array_mean / (len(array) - 1)
 
     return max_static_force, mean_static_force
 
 
 def find_dynamic_force_advanced():
 
-    loose = find_loose_string(forces) # ip gergin değilken hesaplanan kuvvetlerin sayısı
+    if ip_var:
+        loose = find_loose_string(forces)
+        loose += int(1/sample_time)
+    else:
+        loose = int(1/sample_time)
+
     array = []
     array_mean = 0
     for i in range(loose, len(forces)):
@@ -151,6 +179,11 @@ def find_dynamic_force_advanced():
     mean_dynamic_force = array_mean / len(array)
 
     return max_dynamic_force, mean_dynamic_force
+
+
+class TarePop(FloatLayout):
+    pass
+
 
 
 class ScreenOne(Screen):
@@ -262,37 +295,47 @@ class ScreenTwo(Screen):
         self.add_widget(self.dist_current)
 
     def start(self):
-        global forces
-        forces = [[0, 0]]
+        global sample_counter
+        sample_counter = multiprocessing.Value('i', 1)
+
+        self.ids.graph.xmax = 1
+        self.ids.graph.ymax = 1
+        self.plot.points = [[0,0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
 
-        self.plot_scaler = threading.Thread(target=self.get_value, args=("task",))
-        self.plot_scaler.start()
-
-        self.plotter = threading.Thread(target=self.update_plot, args=("task",))
-        self.plotter.start()
-
-        self.t = threading.Thread(target=get_force, args=("task",))
+        self.t = multiprocessing.Process(target=get_force, args=("task", forces, times, sample_counter))
         self.t.start()
 
-        self.dist_current.text = "0"
+        #self.plot_scaler = threading.Thread(target=self.get_value, args=("task",))
+        #self.plot_scaler.start()
 
-        print(test_distance)
-        print(test_speed)
+        # self.plotter = threading.Thread(target=self.update_plot, args=("task",))
+        # self.plotter.start()
+        Clock.schedule_interval(self.get_value, sample_time)
+        #self.t = threading.Thread(target=get_force, args=("task",))
+        #self.t.start()
+
+        self.dist_current.text = "0"
         drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
         md.motor_run(drive_time, frequency, direction)
         print("motor driver kodundan cikildi")
 
     def stop(self):
-        self.plot_scaler.do_run = False
-        self.plot_scaler.join()
-
-        self.plotter.do_run = False
-        self.plotter.join()
 
         self.t.do_run = False
+        self.t.kill()
+        self.t.terminate()
         self.t.join()
+        self.t.close()
+
+        # self.plot_scaler.do_run = False
+        # self.plot_scaler.join()
+        Clock.unschedule(self.get_value)
+        print("len forces stop:", len(forces))
+
+       # self.t.close()
+        print("len points stop:", len(self.plot.points))
         md.stop_motor()
 
     def reset(self):
@@ -301,38 +344,42 @@ class ScreenTwo(Screen):
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
 
-    def get_value(self, arg):
-        t = threading.currentThread()
-        while getattr(t, "do_run", True):
+    def get_value(self, dt):
+        self.dist_current.text = str(round((float(self.dist_current.text) + 60 * (sample_time * test_speed)), 3))
+        print("hebele")
+        d = np.dstack((times[0:sample_counter.value:1], forces[0:sample_counter.value:1]))
+        self.plot.points = (d[0])
+        print("hübele")
+        # print("d: ", d[0])
+        last_x = self.plot.points[-1][0]
+        print("a: ", last_x)
+        if last_x > self.ids.graph.xmax:
+            self.ids.graph.xmax = int(last_x)
 
-            start_time = datetime.datetime.now()
-            self.dist_current.text = str(round((float(self.dist_current.text) + 60 * (sample_time * test_speed)), 3))
-
-            if forces[-1][0] == 0:
-                self.ids.graph.xmax = 1
-            elif forces[-1][0] > self.ids.graph.xmax:
-                self.ids.graph.xmax = forces[-1][0]
-
-            if len(forces) < 3:
-                self.ids.graph.ymax = 1
-            elif forces[-1][1] > self.ids.graph.ymax:
-                self.force_max.text = str(round(forces[-1][1], 3))
-                self.ids.graph.ymax = forces[-1][1]
-
+        if len(self.plot.points) < 3:
+            self.ids.graph.ymax = 1
+        elif self.plot.points[-1][1] > self.ids.graph.ymax:
+            self.force_max.text = str(round(self.plot.points[-1][1], 2))
+            self.ids.graph.ymax = int(self.plot.points[-1][1])
             self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
 
-            self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
-            self.force_current.text = str(round(forces[-1][1], 2))
-            sleep_time = datetime.datetime.now() - start_time
-            sleep_time = sleep_time.total_seconds()
-            sleep_time = sample_time - sleep_time
-            print(sleep_time)
-            #time.sleep(sample_time)
+        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
+
+        self.force_current.text = str(round(self.plot.points[-1][1], 2))
+        print("xmax: ", self.ids.graph.xmax)
+        print("ymax: ", self.ids.graph.ymax)
+        print("len active:" ,len(self.plot.points))
 
     def update_plot(self, arg):
         t = threading.currentThread()
         while getattr(t, "do_run", True):
-            self.plot.points = forces
+            #self.plot.points = [times[0:sample_counter.value:1], forces[0:sample_counter.value:1]]
+            #d = np.dstack((times[0:sample_counter.value:1], forces[0:sample_counter.value:1]))
+            #self.plot.points = d[0]
+            self.plot.points = [(i, j/5) for i, j in enumerate(forces[0:sample_counter.value:1])]
+            print("len active:" ,len(self.plot.points))
+           # for i in range(sample_counter.value):
+            #    self.plot.points.append(times[i], forces[i])
     def show_angle(self, dt):
         angle = 10
         self.angle_current.text = str(angle)
@@ -541,6 +588,8 @@ class ScreenFour(Screen):
     def stop(self):
         Clock.unschedule(self.get_value)
         self.t.do_run = False
+
+        self.t.kill()
         self.t.join()
         md.stop_motor()
 
