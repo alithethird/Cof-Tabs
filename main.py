@@ -366,6 +366,7 @@ class ScreenTwo(Screen):
         Clock.unschedule(self.get_value)
         try:
             self.t.do_run = False
+            self.t.kill()
             self.t.join()
             #self.reset()  # reset when test ends
         except:
@@ -600,7 +601,7 @@ class ScreenFour(Screen):
         forces = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        self.t = multiprocessing.Process(target=get_force_angle, args=("task",))
+        self.t = multiprocessing.Process(target=get_force_angle, args=("task"))
         self.t.start()
         
         self.max_angle_threadt = multiprocessing.Process(target=self.max_angle_thread , args=("tasks",))
@@ -622,12 +623,15 @@ class ScreenFour(Screen):
 
     def stop_max_angle_thread(self):
         self.max_angle_threadt.do_run = False
+        self.max_angle_threadt.kill()
+        self.max_angle_threadt.join()
 
     def stop(self):
         Clock.unschedule(self.get_value)
         md.stop_angle_motor()
         try:
             self.t.do_run = False
+            self.t.kill()
             self.t.join()
         except:
             pass
@@ -649,6 +653,8 @@ class ScreenFour(Screen):
 
     def stop_reset_angle_thread(self):
         self.reset_angle_threadt.do_run = False
+        self.reset_angle_threadt.kill()
+        self.reset_angle_threadt.join()
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
@@ -670,7 +676,6 @@ class ScreenFour(Screen):
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
 
         self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
-
         self.plot.points = forces
 
         self.force_current.text = str(round(forces[-1][1], 2))
