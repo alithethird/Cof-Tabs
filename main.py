@@ -1,7 +1,9 @@
 import datetime
 from math import cos, sin
-import multiprocessing 
+import multiprocessing
+import threading
 from time import sleep
+import numpy as np
 import RPi.GPIO as gpio
 from kivy.config import Config
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
@@ -64,8 +66,11 @@ global normal_force  # üstte kayan metal malzemenin kütlesi (kg)
 normal_force = 200
 global test_angle
 test_angle = 0
-global forces
-forces = [[0, 0]]
+
+forces = multiprocessing.Array('d', 1000)
+times = multiprocessing.Array('d', 1000)
+sample_counter = multiprocessing.Value('i', 1)
+
 global angles
 angles = [[0, 0]]
 global ip_var
@@ -73,29 +78,7 @@ ip_var = False # ip varsa True yoksa false
 
 global calib # kalibrasyon sayısı
 
-def get_force(arg):
-    t = multiprocessing.current_process()
-    while getattr(t, "do_run", True):
-        start_time = datetime.datetime.now()
-        #sleep(sample_time)
-        val = hx.get_weight()
-        val *= calib
-        if val < 0:
-            val = 1
-
-        if len(forces) > 1:
-            forces.append([forces[-1][0] + (sample_time * 5), val])
-        else:
-            forces.append([0, val])
-
-        sleep_time = datetime.datetime.now() - start_time
-        sleep_time = sleep_time.total_seconds()
-        sleep_time = sample_time - sleep_time
-        if sleep_time > 0:
-            sleep(sleep_time)
-
-
-def get_force_angle(arg): # need to reset angle
+def get_force(arg, forces, times, sample_counter):
     t = multiprocessing.current_process()
     while getattr(t, "do_run", True):
         start_time = datetime.datetime.now()
@@ -103,20 +86,19 @@ def get_force_angle(arg): # need to reset angle
         val *= calib
         if val < 0:
             val = 1
-#        angle = angle_read.get_rotation(1)
+
         if len(forces) > 1:
-            forces.append([forces[-1][0] + (sample_time * 5), val])
- #           angles.append([angles[-1][0] + (sample_time * 5), angle])
+            times[sample_counter.value] = times[sample_counter.value - 1] + sample_time
+            forces[sample_counter.value] = val
         else:
-            forces.append([0, val])
-  #          angles.append([0, angle])
+            times[sample_counter.value] = 0
+            forces[sample_counter.value] = val
 
         sleep_time = datetime.datetime.now() - start_time
         sleep_time = sleep_time.total_seconds()
         sleep_time = sample_time - sleep_time
         if sleep_time > 0:
             sleep(sleep_time)
-
 
 def find_biggest(array):
     biggest = [0.1, 0.1]
@@ -338,25 +320,22 @@ class ScreenTwo(Screen):
         #self.reset()  # reset when program starts
 
     def start(self):
-        global forces
-        forces = [[0, 0]]
+        global sample_counter
+        sample_counter = multiprocessing.Value('i', 1)
+
+        self.ids.graph.xmax = 1
+        self.ids.graph.ymax = 1
+        self.plot.points = [[0,0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        self.t = multiprocessing.Process(target=get_force, args=("task",))
+
+        self.t = multiprocessing.Process(target=get_force, args=("task", forces, times, sample_counter))
         self.t.start()
 
+        # self.plotterThread = threading.Thread(target=self.plotter, args=("task",))
+        # self.plotterThread.start()
         Clock.schedule_interval(self.get_value, sample_time)
         self.dist_current.text = "0"
-
-        # if self.ids.distance_text.text == "":
-        #     pass
-        # else:
-        #     self.test_distance = float(self.ids.distance_text.text)
-        #
-        # if self.ids.speed_text.text == "":
-        #     pass
-        # else:
-        #     self.test_speed = float(self.ids.speed_text.text)
 
         drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
         md.motor_run(drive_time, frequency, direction)
@@ -367,7 +346,12 @@ class ScreenTwo(Screen):
         try:
             self.t.do_run = False
             self.t.kill()
+            self.t.terminate()
             self.t.join()
+            self.t.close()
+
+            # self.plotterThread.do_run = False
+            # self.plotterThread.join()
             #self.reset()  # reset when test ends
         except:
             pass
@@ -382,26 +366,26 @@ class ScreenTwo(Screen):
         self.ids.graph.export_to_png("graph.png")
 
     def get_value(self, dt):
-        self.dist_current.text = str(int(float(self.dist_current.text) + 60 * (sample_time * test_speed)))  # update current distance
+        self.dist_current.text = str(round((float(self.dist_current.text) + 60 * (sample_time * test_speed)), 3))
 
-        if forces[-1][0] == 0:
-            self.ids.graph.xmax = 1
-        elif forces[-1][0] > self.ids.graph.xmax:
-            self.ids.graph.xmax = forces[-1][0]
+        d = np.dstack((times[0:sample_counter.value:1], forces[0:sample_counter.value:1]))
+        self.plot.points = (d[0])
 
-        if len(forces) < 3:
+        last_x = self.plot.points[-1][0]
+
+        if last_x > self.ids.graph.xmax:
+            self.ids.graph.xmax = int(last_x)
+
+        if len(self.plot.points) < 3:
             self.ids.graph.ymax = 1
-        elif forces[-1][1] > self.ids.graph.ymax:
-            self.force_max.text = str(round(forces[-1][1], 3))
-            self.ids.graph.ymax = (forces[-1][1] * 1.1)
+        elif self.plot.points[-1][1] > self.ids.graph.ymax:
+            self.force_max.text = str(round(self.plot.points[-1][1], 2))
+            self.ids.graph.ymax = int(self.plot.points[-1][1])
+            self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
 
-        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
+        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
 
-        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
-
-        self.plot.points = forces
-
-        self.force_current.text = str(round(forces[-1][1], 2))
+        self.force_current.text = str(round(self.plot.points[-1][1], 2))
 
     def show_angle(self, angle):
 
@@ -597,16 +581,20 @@ class ScreenFour(Screen):
         self.add_widget(self.angle_current)
 
     def start(self):
-        global forces
-        forces = [[0, 0]]
+        global sample_counter
+        sample_counter = multiprocessing.Value('i', 1)
+
+        self.ids.graph.xmax = 1
+        self.ids.graph.ymax = 1
+        self.plot.points = [[0,0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        self.t = multiprocessing.Process(target=get_force_angle, args=("task"))
-        self.t.start()
-        
-        self.max_angle_threadt = multiprocessing.Process(target=self.max_angle_thread , args=("tasks",))
-        self.max_angle_threadt.start()
 
+        self.t = multiprocessing.Process(target=get_force, args=("task", forces, times, sample_counter))
+        self.t.start()
+
+        self.plotterThread = threading.Thread(target=self.plotter, args=("task",))
+        self.plotterThread.start()
 
         Clock.schedule_interval(self.get_value,
                                 sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample kaymaya başlayınca durabilir
@@ -632,7 +620,12 @@ class ScreenFour(Screen):
         try:
             self.t.do_run = False
             self.t.kill()
+            self.t.terminate()
             self.t.join()
+            self.t.close()
+
+            self.stop_max_angle_thread()
+            self.stop_reset_angle_thread()
         except:
             pass
 
@@ -662,25 +655,31 @@ class ScreenFour(Screen):
     def get_value(self, dt):
         max_angle = 30
 
-        if forces[-1][0] == 0:
-            self.ids.graph.xmax = 1
-        elif forces[-1][0] > self.ids.graph.xmax:
-            self.ids.graph.xmax = forces[-1][0]
+        d = np.dstack((times[0:sample_counter.value:1], forces[0:sample_counter.value:1]))
+        self.plot.points = (d[0])
 
-        if len(forces) < 3:
+        last_x = self.plot.points[-1][0]
+
+        if last_x > self.ids.graph.xmax:
+            self.ids.graph.xmax = int(last_x)
+
+        if len(self.plot.points) < 3:
             self.ids.graph.ymax = 1
-        elif forces[-1][1] > self.ids.graph.ymax:
-            self.ids.graph.ymax = (forces[-1][1] * 1.1)
-        if forces[-1][1] > float(self.force_max.text):
-            self.force_max.text = str(round(forces[-1][1], 3))
-        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
+        elif self.plot.points[-1][1] > self.ids.graph.ymax:
+            self.force_max.text = str(round(self.plot.points[-1][1], 2))
+            self.ids.graph.ymax = int(self.plot.points[-1][1])
+            self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
 
-        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
-        self.plot.points = forces
+        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
 
-        self.force_current.text = str(round(forces[-1][1], 2))
+        self.force_current.text = str(round(self.plot.points[-1][1], 2))
         max_angle += 0.1
        #self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
+
+    def plotter(self, arg):
+        t = threading.currentThread()
+        while getattr(t, "do_run", True):
+            self.plot.points = forces
        
     def check_angle(self, switch):
         if not switch:
