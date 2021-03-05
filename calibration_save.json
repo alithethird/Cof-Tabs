@@ -2,7 +2,7 @@
   "Distance:": 60,
   "Speed:": 150,
   "Normal_Force:": 200,
-  "Sample_Time:": 0.1,
+  "Sample_Time:": 0.01,
   "Calibration value:": 0.011772,
   "Angle Speed:": 500
 }
