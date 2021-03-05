@@ -319,7 +319,6 @@ class ScreenTwo(Screen):
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
 
-
         # self.plotterThread = threading.Thread(target=self.plotter, args=("task",))
         # self.plotterThread.start()
         Clock.schedule_interval(self.get_value, sample_time)
@@ -331,18 +330,6 @@ class ScreenTwo(Screen):
     def stop(self):
         md.stop_motor()
         Clock.unschedule(self.get_value)
-        try:
-            self.t.do_run = False
-            self.t.kill()
-            self.t.terminate()
-            self.t.join()
-            self.t.close()
-
-            # self.plotterThread.do_run = False
-            # self.plotterThread.join()
-            #self.reset()  # reset when test ends
-        except:
-            pass
 
     def reset(self):
         pass
@@ -532,8 +519,6 @@ class ScreenThree(Screen):
         if test_mode == 0:
             self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1, sample2, test_mode, ScreenTwo.plot.points)
         else:
-        self.ids.graph.xmax = 10000
-        self.ids.graph.ymax = 10000
             self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1, sample2, test_mode, ScreenFour.plot.points)
 
         self.show_popup()
@@ -598,6 +583,7 @@ class ScreenFour(Screen):
 
         self.max_angle_threadt = multiprocessing.Process(target=self.max_angle_thread , args=("tasks",))
         self.max_angle_threadt.start()
+
 
         Clock.schedule_interval(self.get_value,
                                 sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample kaymaya başlayınca durabilir

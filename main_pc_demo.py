@@ -308,7 +308,6 @@ class ScreenTwo(Screen):
 
         # self.plotter = threading.Thread(target=self.update_plot, args=("task",))
         # self.plotter.start()
-        print(self.plot.points)
         Clock.schedule_interval(self.get_value, sample_time)
         #self.t = threading.Thread(target=get_force, args=("task",))
         #self.t.start()
@@ -321,19 +320,8 @@ class ScreenTwo(Screen):
 
 
     def stop(self):
-        #
-        # self.t.do_run = False
-        # self.t.kill()
-        # self.t.terminate()
-        # self.t.join()
-        # self.t.close()
-
-        # self.plot_scaler.do_run = False
-        # self.plot_scaler.join()
         Clock.unschedule(self.get_value)
         print("len forces stop:", len(forces))
-
-       # self.t.close()
         print("len points stop:", len(self.plot.points))
         md.stop_motor()
 
@@ -348,7 +336,7 @@ class ScreenTwo(Screen):
         self.t = multiprocessing.Process(target=get_force, args=("task", forces, times, sample_counter, lock))
         self.t.start()
         self.t.join()
-
+        self.t.
     def get_value(self, dt):
         self.sampling_process()
         self.dist_current.text = str(round((float(self.dist_current.text) + 60 * (sample_time * test_speed)), 3))
@@ -357,7 +345,7 @@ class ScreenTwo(Screen):
         lock.acquire()
         d = np.dstack((times[0:sample_counter.value:1], forces[0:sample_counter.value:1]))
         lock.release()
-        self.plot.points = d[0]
+        self.plot.points =  range(0,sample_counter.value, 0.1), forces[0:sample_counter.value:1]
         #print(type(d))
         #print("d: ", d)
         #print("plot poinst: ", self.plot.points)
@@ -371,16 +359,6 @@ class ScreenTwo(Screen):
         print("ymax: ", self.ids.graph.ymax)
         print("len active:" ,len(self.plot.points))
 
-    def update_plot(self, arg):
-        t = threading.currentThread()
-        while getattr(t, "do_run", True):
-            #self.plot.points = [times[0:sample_counter.value:1], forces[0:sample_counter.value:1]]
-            #d = np.dstack((times[0:sample_counter.value:1], forces[0:sample_counter.value:1]))
-            #self.plot.points = d[0]
-            self.plot.points = [(i, j/5) for i, j in enumerate(forces[0:sample_counter.value:1])]
-            print("len active:" ,len(self.plot.points))
-           # for i in range(sample_counter.value):
-            #    self.plot.points.append(times[i], forces[i])
     def show_angle(self, dt):
         angle = 10
         self.angle_current.text = str(angle)
