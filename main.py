@@ -1,11 +1,10 @@
 import datetime
 from math import cos, sin
-import multiprocessing
 import threading
 from time import sleep
-import numpy as np
 import RPi.GPIO as gpio
 from kivy.config import Config
+
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 Config.set('kivy', 'keyboard_mode', 'systemanddock')
 from kivy.app import App
@@ -18,7 +17,7 @@ from kivy_garden.graph import MeshLinePlot
 from kivy.uix.popup import Popup
 from kivy.uix.floatlayout import FloatLayout
 
-#import angle_read
+# import angle_read
 from fpdf_handler import fpdf_handler
 
 gpio.setmode(gpio.BCM)
@@ -30,22 +29,24 @@ from json_dumper import JsonHandler
 
 hx = HX711(5, 6)
 
-#hx.reset()
-#hx.tare()
+# hx.reset()
+# hx.tare()
 
 start_switch = 12  # start kısmındaki switch
 stop_switch = 13  # stop kısmındaki switch
 reset_motor_speed = 200
 Builder.load_file('cof.kv')
 
-angle_switch_start = 27 # açı motoru bu switch ile resetlenmeli
-angle_switch_stop = 17 # açı motoru bu switche kadar çalışmalı
+angle_switch_start = 27  # açı motoru bu switch ile resetlenmeli
+angle_switch_stop = 17  # açı motoru bu switche kadar çalışmalı
 
 gpio.setup(angle_switch_start, gpio.IN)
 gpio.setup(angle_switch_stop, gpio.IN)
-md = motor_driver(2, False) # bir adet dc bir adet açı(step) motor modu seçildi, soft start kapatıldı
+
+md = motor_driver(2, False)  # bir adet dc bir adet açı(step) motor modu seçildi, soft start kapatıldı
 json_handler = JsonHandler()
 md.stop_motor()
+
 
 class sample:
     name = ""
@@ -55,6 +56,7 @@ class sample:
     testing_weight = 0
     company_name = ""
     operator_name = ""
+
 
 test_mode = 0  # 0-motorized test
 # 1-angle test
@@ -66,67 +68,63 @@ global normal_force  # üstte kayan metal malzemenin kütlesi (kg)
 normal_force = 200
 global test_angle
 test_angle = 0
-global angle_speed # zamanı açıya değiştirmek için
-angle_speed = 1
-
-
-forces = multiprocessing.Array('d', 1000000)
-times = multiprocessing.Array('d', 1000000)
-sample_counter = multiprocessing.Value('i', 1)
-
+global forces
+forces = [[0, 0]]
+global angular_speed  # zamanı açıya değiştirmek için
+angular_speed = 1
 global angles
 angles = [[0, 0]]
 global ip_var
-ip_var = False # ip varsa True yoksa false
+ip_var = False  # ip varsa True yoksa false
 
-global calib # kalibrasyon sayısı
-
-def get_force(arg, forces, times, sample_counter, lock):
-    lock.acquire()
-    start_time = datetime.datetime.now()
-    val = hx.get_weight()
-    val *= calib
-    if val < 0:
-        val = 1
-
-    if sample_counter.value > 1:
-        times[sample_counter.value] = times[sample_counter.value - 1] + sample_time
-        forces[sample_counter.value] = val
-    else:
-        times[sample_counter.value] = 0
-        forces[sample_counter.value] = val
-
-    sleep_time = datetime.datetime.now() - start_time
-    sleep_time = sleep_time.total_seconds()
-    sleep_time = sample_time - sleep_time
-    if sleep_time > 0:
-        sleep(sleep_time)
-    lock.release()
+global calib  # kalibrasyon sayısı
 
 
-def find_biggest(time_array, force_array):
-    biggest_force = 0.1
-    for i in range(sample_counter.value):
-        if force_array[i] > biggest_force:
-            biggest_force = i
-            biggest_time = time_array[i]
+def get_force(arg):
+    t = threading.currentThread()
+    while getattr(t, "do_run", True):
+        start_time = datetime.datetime.now()
+        # sleep(sample_time)
+        val = hx.get_weight()
+        val *= calib
+        if val < 0:
+            val = 1
+
+        if len(forces) > 1:
+            forces.append([forces[-1][0] + (sample_time * 5), val])
+        else:
+            forces.append([0, val])
+
+        sleep_time = datetime.datetime.now() - start_time
+        sleep_time = sleep_time.total_seconds()
+        sleep_time = sample_time - sleep_time
+        if sleep_time > 0:
+            sleep(sleep_time)
+
+
+def find_biggest(array):
+    biggest = [0.1, 0.1]
+    for i in array[:][:]:
+        if i[1] > biggest[1]:
+            biggest = i
         else:
             pass
-    return biggest_time, biggest_force
+    return biggest
 
 
-def find_static_angle(force_array, time_array):
-    time, force = find_biggest(time_array, force_array)
+def find_static_angle(array):
+    time, force = find_biggest(forces)
 
-    return time * angle_speed
+    return time * angular_speed
 
 
-def find_loose_string(): # finds loose string length and returns the amount of data acquired when the string is loose
-    biggest = find_biggest(times, forces)
+def find_loose_string(
+        array):  # finds loose string length and returns the amount of data acquired when the string is loose
+    biggest = find_biggest(forces)
     index = int(((biggest[0] / sample_time)))
     count = 0
     for i in range(1, index):
-        if forces[i-1] == forces[i]:
+        if forces[i - 1][1] == forces[i][1]:
             count += 1
     return count
 
@@ -137,13 +135,12 @@ def find_static_force_advanced():
     if ip_var:
         loose = find_loose_string(forces)
     else:
-        loose = 0 # ip gergin değilken hesaplanan kuvvetlerin sayısı
+        loose = 0  # ip gergin değilken hesaplanan kuvvetlerin sayısı
 
     for i in range(loose, int(loose + (1 / sample_time))):
-        array.append([times[i], forces[i]])  # statik zamanda ölçülen kuvvet listesi
+        array.append(forces[i])  # statik zamanda ölçülen kuvvet listesi
 
-    _, max_static_force = find_biggest(array[:][0],array[:][1])
-
+    _, max_static_force = find_biggest(array)
     for i in array:
         if i[1] == array[-1][1]:
             index = i[0]
@@ -167,20 +164,19 @@ def find_static_force_advanced():
 
 
 def find_dynamic_force_advanced():
-
     if ip_var:
-        loose = find_loose_string()
-        loose += int(1/sample_time)
+        loose = find_loose_string(forces)
+        loose += int(1 / sample_time)
     else:
-        loose = int(1/sample_time)
+        loose = int(1 / sample_time)
 
     array = []
     array_mean = 0
     for i in range(loose, len(forces)):
-        array_mean += forces[i]
-        array.append([times[i], forces[i]])
+        array_mean += forces[i][1]
+        array.append(forces[i])
 
-    _, max_dynamic_force = find_biggest(array[:][0], array[:][1])
+    _, max_dynamic_force = find_biggest(array)
     mean_dynamic_force = array_mean / len(array)
 
     return max_dynamic_force, mean_dynamic_force
@@ -238,6 +234,7 @@ class ScreenOne(Screen):
                 sample2.age = float(self.ids.second_age.text)
             except:
                 sample2.age = 0.00
+
     def tare(self):
         hx.tare()
 
@@ -248,6 +245,7 @@ class ScreenOne(Screen):
         self.popupWindow = Popup(title="Tare Completed", content=show, size_hint=(None, None), size=(400, 200))
 
         self.popupWindow.open()
+
 
 class ScreenTwo(Screen):
     plot = MeshLinePlot(color=[1, 0, 0, 1])
@@ -261,7 +259,6 @@ class ScreenTwo(Screen):
         global calib
         global angle_test_speed
         test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed = json_handler.import_save()
-
 
         self.force_max_label = Label(text="Peak Force: ")
         self.force_max_label.pos = (230, 215)
@@ -307,22 +304,28 @@ class ScreenTwo(Screen):
         self.dist_current.color = (0, 0, 0, 1)
         self.add_widget(self.dist_current)
 
-        #self.reset()  # reset when program starts
+        # self.reset()  # reset when program starts
 
     def start(self):
-        global sample_counter
-        sample_counter = multiprocessing.Value('i', 1)
-
-        self.ids.graph.xmax = 1
-        self.ids.graph.ymax = 1
-        self.plot.points = [[0,0]]
+        global forces
+        forces = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
+        self.t = threading.Thread(target=get_force, args=("task",))
+        self.t.start()
 
-        # self.plotterThread = threading.Thread(target=self.plotter, args=("task",))
-        # self.plotterThread.start()
         Clock.schedule_interval(self.get_value, sample_time)
         self.dist_current.text = "0"
+
+        # if self.ids.distance_text.text == "":
+        #     pass
+        # else:
+        #     self.test_distance = float(self.ids.distance_text.text)
+        #
+        # if self.ids.speed_text.text == "":
+        #     pass
+        # else:
+        #     self.test_speed = float(self.ids.speed_text.text)
 
         drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
         md.motor_run(drive_time, frequency, direction)
@@ -330,50 +333,44 @@ class ScreenTwo(Screen):
     def stop(self):
         md.stop_motor()
         Clock.unschedule(self.get_value)
+        try:
+            self.t.do_run = False
+            self.t.join()
+            # self.reset()  # reset when test ends
+        except:
+            pass
 
     def reset(self):
         pass
-        #while start_switch:
-         #   md.motor_start(reset_motor_speed, 0)
-        #md.stop_motor()
+        # while start_switch:
+        #   md.motor_start(reset_motor_speed, 0)
+        # md.stop_motor()
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
 
-    def sampling_process(self):
-        lock = multiprocessing.Lock()
-        self.t = multiprocessing.Process(target=get_force, args=("task", forces, times, sample_counter, lock))
-        self.t.start()
-        self.t.join()
-
     def get_value(self, dt):
+        self.dist_current.text = str(
+            int(float(self.dist_current.text) + 60 * (sample_time * test_speed)))  # update current distance
 
-        self.sampling_process()
-        self.dist_current.text = str(round((float(self.dist_current.text) + 60 * (sample_time * test_speed)), 3))
+        if forces[-1][0] == 0:
+            self.ids.graph.xmax = 1
+        elif forces[-1][0] > self.ids.graph.xmax:
+            self.ids.graph.xmax = forces[-1][0]
 
-        lock = multiprocessing.Lock()
-        lock.acquire()
-        d = np.dstack((times[0:sample_counter.value:1], forces[0:sample_counter.value:1]))
-        lock.release()
-        self.plot.points = d[0]
+        if len(forces) < 3:
+            self.ids.graph.ymax = 1
+        elif forces[-1][1] > self.ids.graph.ymax:
+            self.force_max.text = str(round(forces[-1][1], 3))
+            self.ids.graph.ymax = (forces[-1][1] * 1.1)
 
-        self.ids.graph.xmax = 10
-        self.ids.graph.ymax = 10000
-        # last_x = self.plot.points[-1][0]
-        #
-        # if last_x > self.ids.graph.xmax:
-        #     self.ids.graph.xmax = int(last_x)
-        #
-        # if len(self.plot.points) < 3:
-        #     self.ids.graph.ymax = 1
-        # elif self.plot.points[-1][1] > self.ids.graph.ymax:
-        #     self.force_max.text = str(round(self.plot.points[-1][1], 2))
-        #     self.ids.graph.ymax = int(self.plot.points[-1][1])
-        #     self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
-        #
-        # self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
-        #
-        # self.force_current.text = str(round(self.plot.points[-1][1], 2))
+        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
+
+        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
+
+        self.plot.points = forces
+
+        self.force_current.text = str(round(forces[-1][1], 2))
 
     def show_angle(self, angle):
 
@@ -389,6 +386,7 @@ class ScreenTwo(Screen):
 
 class P(FloatLayout):
     pass
+
 
 class ScreenThree(Screen):
     date_today = datetime.date.today()
@@ -444,7 +442,8 @@ class ScreenThree(Screen):
                 max_dynamic_cof = "Testing Error something"
         elif test_mode == 1:  # açı mod #** ekleme yapılacak max ve mean için
             try:
-                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos(30)) #en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
+                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos(
+                    30))  # en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
                 mean_dynamic_cof = round(dynamic_cof, 3)
                 max_dynamic_cof = round(dynamic_cof, 3)
             except TypeError:
@@ -473,7 +472,7 @@ class ScreenThree(Screen):
                 mean_static_cof = "Error!"
 
         elif test_mode == 1:  # açı mod
-            static_angle = find_static_angle(forces) # needs to be changed
+            static_angle = find_static_angle(forces)  # needs to be changed
             try:
                 max_static_cof = max_static_force / (normal_force * 9.81 * cos(static_angle))
                 max_static_cof = round(max_static_cof, 3)
@@ -507,9 +506,11 @@ class ScreenThree(Screen):
         self.l_mean_dynamic.text = self.mean_dynamic_cof_text
 
         if test_mode == 0:
-            json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1, sample2, test_mode, ScreenTwo.plot.points)
+            json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+                                  sample2, test_mode, ScreenTwo.plot.points)
         elif test_mode == 1:
-            json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1, sample2, test_mode, ScreenFour.plot.points)
+            json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+                                  sample2, test_mode, ScreenFour.plot.points)
 
     def createPDF(self):
         self.pdf = fpdf_handler()
@@ -517,9 +518,11 @@ class ScreenThree(Screen):
         self.update_results()
 
         if test_mode == 0:
-            self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1, sample2, test_mode, ScreenTwo.plot.points)
+            self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+                                sample2, test_mode, ScreenTwo.plot.points)
         else:
-            self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1, sample2, test_mode, ScreenFour.plot.points)
+            self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+                                sample2, test_mode, ScreenFour.plot.points)
 
         self.show_popup()
 
@@ -528,6 +531,7 @@ class ScreenThree(Screen):
         self.popupWindow = Popup(title="PDF Saved", content=show, size_hint=(None, None), size=(400, 200))
 
         self.popupWindow.open()
+
 
 class ScreenFour(Screen):
     plot = MeshLinePlot(color=[1, 0, 0, 1])
@@ -556,7 +560,7 @@ class ScreenFour(Screen):
         self.force_current.pos = (330, 195)
         self.force_current.color = (0, 0, 0, 1)
         self.add_widget(self.force_current)
-        
+
         self.angle_current_label = Label(text="Current Angle: ")
         self.angle_current_label.pos = (230, 155)
         self.angle_current_label.color = (0, 0, 0, 1)
@@ -569,53 +573,44 @@ class ScreenFour(Screen):
         self.add_widget(self.angle_current)
 
     def start(self):
-        global sample_counter
-        sample_counter = multiprocessing.Value('i', 1)
 
-        self.ids.graph.xmax = 1
-        self.ids.graph.ymax = 1
-        self.plot.points = [[0,0]]
+        global forces
+        forces = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-
-        # self.t = multiprocessing.Process(target=get_force, args=("task", forces, times, sample_counter))
-        # self.t.start()
-
-        self.max_angle_threadt = multiprocessing.Process(target=self.max_angle_thread , args=("tasks",))
-        self.max_angle_threadt.start()
-
+        self.t = threading.Thread(target=get_force_angle, args=("task",))
+        self.t.start()
 
         Clock.schedule_interval(self.get_value,
                                 sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample kaymaya başlayınca durabilir
 
         md.start_angle_motor_rise(angle_test_speed)
+        self.max_angle_event()
 
-    def max_angle_thread(self, arg):
-        # check_angle(1) (yani stop switch) 0 verdikçe bişi yapmıyor arkada sürekli bu switchi kontrol ediyor
-        t = multiprocessing.current_process()
-        while getattr(t, "do_run", True):
-            if self.check_angle(1): # eğer switch 1 verirse stop test fonksiyonunu çalıştırıyor ve threadi kapatıyor
-                self.stop()
-                self.stop_max_angle_thread()
+    def max_angle_event(self):
+        try:
+            gpio.add_event_detect(angle_switch_stop, gpio.FALLING, callback=self.stop_event, bouncetime=100)
+        except:
+            pass
 
-    def stop_max_angle_thread(self):
-        self.max_angle_threadt.do_run = False
-        self.max_angle_threadt.kill()
-        self.max_angle_threadt.join()
-        self.max_angle_threadt.close()
+    def min_angle_event(self):
+        try:
+            gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.stop_event, bouncetime=100)
+        except:
+            pass
+
+    def stop_event(self, channel):
+        self.stop()
 
     def stop(self):
         Clock.unschedule(self.get_value)
         md.stop_angle_motor()
-        try:
-            # self.t.do_run = False
-            # self.t.kill()
-            # self.t.terminate()
-            # self.t.join()
-            # self.t.close()
+        gpio.remove_event_detect(angle_switch_start)
+        gpio.remove_event_detect(angle_switch_stop)
 
-            self.stop_max_angle_thread()
-            self.stop_reset_angle_thread()
+        try:
+            self.t.do_run = False
+            self.t.join()
         except:
             pass
 
@@ -623,98 +618,43 @@ class ScreenFour(Screen):
 
         md.start_angle_motor_fall(angle_test_speed)
 
-        self.reset_angle_threadt = multiprocessing.Process(target=self.reset_angle_thread, args=("tasks",))
-        self.reset_angle_threadt.start()
-
-    def reset_angle_thread(self, arg):
-        # check_angle(0) (yani start switch) 0 verdikçe bişi yapmıyor arka planda sürekli bu switchi kontrol ediyor
-        t = multiprocessing.Process()
-        while getattr(t, "do_run", True):
-            if self.check_angle(0): # eğer switch 1 verirse motoru durduruyor ve threadi kapatıyor
-                md.stop_angle_motor()
-                self.stop_reset_angle_thread()
-
-    def stop_reset_angle_thread(self):
-        self.reset_angle_threadt.do_run = False
-        self.reset_angle_threadt.kill()
-        self.reset_angle_threadt.join()
-        self.reset_angle_threadt.close()
+        self.min_angle_event()
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
 
-    def sampling_process(self):
-        lock = multiprocessing.Lock()
-        self.t = multiprocessing.Process(target=get_force, args=("task", forces, times, sample_counter, lock))
-        self.t.start()
-        self.t.join()
-
     def get_value(self, dt):
-        self.sampling_process()
-        self.dist_current.text = str(round((float(self.dist_current.text) + 60 * (sample_time * test_speed)), 3))
+        max_angle = 30
 
-        lock = multiprocessing.Lock()
-        lock.acquire()
-        d = np.dstack((times[0:sample_counter.value:1], forces[0:sample_counter.value:1]))
-        lock.release()
-        self.plot.points = d[0]
+        if forces[-1][0] == 0:
+            self.ids.graph.xmax = 1
+        elif forces[-1][0] > self.ids.graph.xmax:
+            self.ids.graph.xmax = forces[-1][0]
 
-        self.ids.graph.xmax = 10
-        self.ids.graph.ymax = 10000
+        if len(forces) < 3:
+            self.ids.graph.ymax = 1
+        elif forces[-1][1] > self.ids.graph.ymax:
+            self.ids.graph.ymax = (forces[-1][1] * 1.1)
+        if forces[-1][1] > float(self.force_max.text):
+            self.force_max.text = str(round(forces[-1][1], 3))
+        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
 
-    # def get_value(self, dt):
-    #     max_angle = 30
-    #
-    #     d = np.dstack((times[0:sample_counter.value:1], forces[0:sample_counter.value:1]))
-    #     self.plot.points = (d[0])
-    #
-    #     last_x = self.plot.points[-1][0]
-    #
-    #     if last_x > self.ids.graph.xmax:
-    #         self.ids.graph.xmax = int(last_x)
-    #
-    #     if len(self.plot.points) < 3:
-    #         self.ids.graph.ymax = 1
-    #     elif self.plot.points[-1][1] > self.ids.graph.ymax:
-    #         self.force_max.text = str(round(self.plot.points[-1][1], 2))
-    #         self.ids.graph.ymax = int(self.plot.points[-1][1])
-    #         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
-    #
-    #     self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
-    #
-    #     self.force_current.text = str(round(self.plot.points[-1][1], 2))
-    #     max_angle += 0.1
-    #    #self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
+        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
 
-    def plotter(self, arg):
-        t = threading.currentThread()
-        while getattr(t, "do_run", True):
-            self.plot.points = forces
-       
-    def check_angle(self, switch):
-        if not switch:
-            if not gpio.input(angle_switch_start):
-                return True
-            else:
-                return False
-        else:
-            if not gpio.input(angle_switch_stop):
-                return True
-            else:
-                return False
+        self.plot.points = forces
+
+        self.force_current.text = str(round(forces[-1][1], 2))
+        max_angle += 0.1
+
+    # self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
 
     def angle_motor_rise(self):
         md.start_angle_motor_rise(angle_test_speed)
-
-        self.max_angle_threadt = multiprocessing.Process(target=self.max_angle_thread , args=("tasks",))
-        self.max_angle_threadt.start()
+        self.max_angle_event()
 
     def angle_motor_fall(self):
         md.start_angle_motor_fall(angle_test_speed)
-
-        self.reset_angle_threadt = multiprocessing.Process(target=self.reset_angle_thread, args=("tasks",))
-        self.reset_angle_threadt.start()
-
+        self.min_angle_event()
 
 
 class ScreenFive(Screen):
@@ -824,7 +764,8 @@ class ScreenFive(Screen):
         global sample_time
         global calib
         global angle_test_speed
-        json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force, sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed)
+        json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force,
+                                     sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed)
 
         test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed = json_handler.import_save()
 
@@ -849,10 +790,10 @@ class ScreenFive(Screen):
         self.ids.sample_time.text = str(sample_time)
         self.ids.calib.text = str(calib)
         self.ids.angle_test_speed.text = str(angle_test_speed)
-        json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force, sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed)
+        json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force,
+                                     sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed)
 
         test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed = json_handler.import_save()
-
 
     def clean_errors(self):
         self.error.color = (0, 0, 0, 0)
