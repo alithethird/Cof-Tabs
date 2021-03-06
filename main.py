@@ -663,7 +663,7 @@ class ScreenFour(Screen):
         forces = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        self.t = threading.Thread(target=get_force_angle, args=("task",))
+        self.t = threading.Thread(target=get_force, args=("task",))
         self.t.start()
 
         Clock.schedule_interval(self.get_value,
