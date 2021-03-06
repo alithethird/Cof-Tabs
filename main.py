@@ -3,6 +3,7 @@ from math import cos, sin
 import threading
 from time import sleep
 import RPi.GPIO as gpio
+import signal
 from kivy.config import Config
 
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
@@ -656,7 +657,10 @@ class ScreenFour(Screen):
                                                               direction=0)
         md.motor_run(drive_time, frequency, direction)
         self.max_distance_event()
-        sleep(drive_time)
+        signal.signal(signal.SIGALARM, self.angle_start)
+        signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
+
+    def angle_start(self, signum, _):
         gpio.remove_event_detect(stop_switch)
 
         global forces
