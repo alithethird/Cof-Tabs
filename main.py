@@ -334,17 +334,6 @@ class ScreenTwo(Screen):
         self.force_current.color = (0, 0, 0, 1)
         self.add_widget(self.force_current)
 
-        self.angle_current_label = Label(text="Current Angle: ")
-        self.angle_current_label.pos = (230, 155)
-        self.angle_current_label.color = (0, 0, 0, 1)
-        self.add_widget(self.angle_current_label)
-
-        self.angle_text = str(0.00)
-        self.angle_current = Label(text=self.angle_text)
-        self.angle_current.pos = (330, 155)
-        self.angle_current.color = (0, 0, 0, 1)
-        self.add_widget(self.angle_current)
-
         self.dist_current_label = Label(text="Current Distance: ")
         self.dist_current_label.pos = (230, 175)
         self.dist_current_label.color = (0, 0, 0, 1)
@@ -442,10 +431,6 @@ class ScreenTwo(Screen):
 
         self.force_current.text = str(round(forces[-1][1], 2))
 
-    def show_angle(self, angle):
-
-        angle = str(angle)
-        self.angle_current.text = angle
 
     def motor_forward(self):
         self.max_distance_event()
@@ -564,26 +549,28 @@ class ScreenThree(Screen):
         return max_static_cof, mean_static_cof
 
     def update_results(self):
-        self.max_dynamic, self.mean_dynamic, self.max_static, self.mean_static = self.create_results()
-        self.max_static_cof_text = str(self.max_static)
-        self.mean_static_cof_text = str(self.mean_static)
+        try:
+            self.max_dynamic, self.mean_dynamic, self.max_static, self.mean_static = self.create_results()
+            self.max_static_cof_text = str(self.max_static)
+            self.mean_static_cof_text = str(self.mean_static)
 
-        self.max_dynamic_cof_text = str(self.max_dynamic)
-        self.mean_dynamic_cof_text = str(self.mean_dynamic)
+            self.max_dynamic_cof_text = str(self.max_dynamic)
+            self.mean_dynamic_cof_text = str(self.mean_dynamic)
 
-        self.l_max_static.text = self.max_static_cof_text
-        self.l_mean_static.text = self.mean_static_cof_text
+            self.l_max_static.text = self.max_static_cof_text
+            self.l_mean_static.text = self.mean_static_cof_text
 
-        self.l_max_dynamic.text = self.max_dynamic_cof_text
-        self.l_mean_dynamic.text = self.mean_dynamic_cof_text
+            self.l_max_dynamic.text = self.max_dynamic_cof_text
+            self.l_mean_dynamic.text = self.mean_dynamic_cof_text
 
-        if test_mode == 0:
-            json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
-                                  sample2, test_mode, ScreenTwo.plot.points)
-        elif test_mode == 1:
-            json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
-                                  sample2, test_mode, ScreenFour.plot.points)
-
+            if test_mode == 0:
+                json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+                                      sample2, test_mode, ScreenTwo.plot.points)
+            elif test_mode == 1:
+                json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+                                      sample2, test_mode, ScreenFour.plot.points)
+        except:
+            pass
     def createPDF(self):
         self.pdf = fpdf_handler()
 
@@ -636,24 +623,24 @@ class ScreenFour(Screen):
         self.add_widget(self.force_current)
 
         self.angle_current_label = Label(text="Current Angle: ")
-        self.angle_current_label.pos = (230, 155)
+        self.angle_current_label.pos = (230, 175)
         self.angle_current_label.color = (0, 0, 0, 1)
         self.add_widget(self.angle_current_label)
 
         self.angle_text = str(0.00)
         self.angle_current = Label(text=self.angle_text)
-        self.angle_current.pos = (330, 155)
+        self.angle_current.pos = (330, 175)
         self.angle_current.color = (0, 0, 0, 1)
         self.add_widget(self.angle_current)
 
     def start(self):
 
-    #     global angle_test_distance
-    #     global angle_test_speed
-    #     angle_test_speed = 150
-    #     angle_test_distance = 200
+    #     global angle_test_normal_motor_distance
+    #     global angle_test_normal_motor_speed
+    #     angle_test_normal_motor_speed = 150
+    #     angle_test_normal_motor_distance = 200
     #
-    #     drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_distance, speed=angle_test_speed,
+    #     drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_normal_motor_distance, speed=angle_test_normal_motor_speed,
     #                                                           direction=0)
     #     md.motor_run(drive_time, frequency, direction)
     #     self.max_distance_event()

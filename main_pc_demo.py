@@ -737,7 +737,7 @@ screen_manager.add_widget(ScreenFive(name="screen_five"))
 
 class AwesomeApp(App):
     def build(self):
-        Window.clearcolor = (1, 0, 1, 1)
+        Window.clearcolor = (1, 1, 1, 1)
         Window.size = (800, 480)  # pencere boyutu
         return screen_manager
 
