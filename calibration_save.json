@@ -1,8 +1,8 @@
 {
   "Distance:": 60,
-  "Speed:": 150,
+  "Speed:": 150.0,
   "Normal_Force:": 200,
-  "Sample_Time:": 0.01,
+  "Sample_Time:": 0.1,
   "Calibration value:": 0.011772,
-  "Angle Speed:": 500
+  "Angle Speed:": 400.0
 }

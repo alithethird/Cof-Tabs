@@ -32,8 +32,12 @@ hx = HX711(5, 6)
 # hx.reset()
 # hx.tare()
 
-start_switch = 12  # start kısmındaki switch
-stop_switch = 13  # stop kısmındaki switch
+start_switch = 23  # start kısmındaki switch
+stop_switch = 25  # stop kısmındaki switch
+
+gpio.setup(start_switch, gpio.IN)
+gpio.setup(stop_switch, gpio.IN)
+
 reset_motor_speed = 200
 Builder.load_file('cof.kv')
 
@@ -70,12 +74,12 @@ global test_angle
 test_angle = 0
 global forces
 forces = [[0, 0]]
-global angular_speed  # zamanı açıya değiştirmek için
-angular_speed = 1
 global angles
 angles = [[0, 0]]
 global ip_var
 ip_var = False  # ip varsa True yoksa false
+global angular_speed  # zamanı açıya çevirmek için açısal değer
+angular_speed = 1
 
 global calib  # kalibrasyon sayısı
 
@@ -102,6 +106,29 @@ def get_force(arg):
             sleep(sleep_time)
 
 
+def get_force_angle(arg):  # need to reset angle
+    t = threading.currentThread()
+    while getattr(t, "do_run", True):
+        start_time = datetime.datetime.now()
+        val = hx.get_weight()
+        val *= calib
+        if val < 0:
+            val = 1
+        #        angle = angle_read.get_rotation(1)
+        if len(forces) > 1:
+            forces.append([forces[-1][0] + (sample_time * 5), val])
+        #           angles.append([angles[-1][0] + (sample_time * 5), angle])
+        else:
+            forces.append([0, val])
+        #          angles.append([0, angle])
+
+        sleep_time = datetime.datetime.now() - start_time
+        sleep_time = sleep_time.total_seconds()
+        sleep_time = sample_time - sleep_time
+        if sleep_time > 0:
+            sleep(sleep_time)
+
+
 def find_biggest(array):
     biggest = [0.1, 0.1]
     for i in array[:][:]:
@@ -112,10 +139,29 @@ def find_biggest(array):
     return biggest
 
 
-def find_static_angle(array):
-    time, force = find_biggest(forces)
+def find_static_angle(forces):
+    biggest = 0
+    static_angle = 0
+    for i in forces:
+        if i[1] > biggest:
+            biggest = i[1]
+            static_angle = i[0] * angular_speed
+        else:
+            pass
+    return static_angle
 
-    return time * angular_speed
+
+def find_dynamic_force():
+    # take last 20 elements of the list
+    # find the median
+    if len(forces) > 20:
+        median = 0
+        for i in range(20):
+            median += forces[-(i + 1)][1]
+        median /= 20
+        return median
+    else:
+        return 1
 
 
 def find_loose_string(
@@ -127,6 +173,8 @@ def find_loose_string(
         if forces[i - 1][1] == forces[i][1]:
             count += 1
     return count
+
+    pass
 
 
 def find_static_force_advanced():
@@ -252,6 +300,9 @@ class ScreenTwo(Screen):
 
     def __init__(self, **args):
         Screen.__init__(self, **args)
+
+        self.reset()  # ilk açılışta otomatik konum resetleme
+
         global normal_force
         global sample_time
         global test_speed
@@ -330,7 +381,27 @@ class ScreenTwo(Screen):
         drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
         md.motor_run(drive_time, frequency, direction)
 
+        self.max_distance_event()
+
+    def max_distance_event(self):
+        try:
+            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
+        except:
+            pass
+
+    def min_distance_event(self):
+        try:
+            gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
+        except:
+            pass
+
+    def stop_event(self, channel):
+        self.stop()
+
     def stop(self):
+        gpio.remove_event_detect(start_switch)
+        gpio.remove_event_detect(stop_switch)
+
         md.stop_motor()
         Clock.unschedule(self.get_value)
         try:
@@ -341,10 +412,8 @@ class ScreenTwo(Screen):
             pass
 
     def reset(self):
-        pass
-        # while start_switch:
-        #   md.motor_start(reset_motor_speed, 0)
-        # md.stop_motor()
+        self.motor_backward()
+        self.min_distance_event()
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
@@ -378,9 +447,11 @@ class ScreenTwo(Screen):
         self.angle_current.text = angle
 
     def motor_forward(self):
+        self.max_distance_event()
         md.motor_start(8000, 1)
 
     def motor_backward(self):
+        self.min_distance_event()
         md.motor_start(8000, 0)
 
 
@@ -539,6 +610,8 @@ class ScreenFour(Screen):
     def __init__(self, **args):
         Screen.__init__(self, **args)
 
+        self.reset()  # ilk açılışta otomatik açı resetleme
+
         self.force_max_label = Label(text="Peak Force: ")
         self.force_max_label.pos = (230, 215)
         self.force_max_label.color = (0, 0, 0, 1)
@@ -574,6 +647,18 @@ class ScreenFour(Screen):
 
     def start(self):
 
+        global angle_test_distance
+        global angle_test_speed
+        angle_test_speed = 150
+        angle_test_distance = 200
+
+        drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_distance, speed=angle_test_speed,
+                                                              direction=0)
+        md.motor_run(drive_time, frequency, direction)
+        self.max_distance_event()
+        sleep(drive_time)
+        gpio.remove_event_detect(stop_switch)
+
         global forces
         forces = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
@@ -582,10 +667,17 @@ class ScreenFour(Screen):
         self.t.start()
 
         Clock.schedule_interval(self.get_value,
-                                sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample kaymaya başlayınca durabilir
+                                sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample
+        # kaymaya başlayınca durabilir
 
         md.start_angle_motor_rise(angle_test_speed)
         self.max_angle_event()
+
+    def max_distance_event(self):
+        try:
+            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
+        except:
+            pass
 
     def max_angle_event(self):
         try:
@@ -624,7 +716,6 @@ class ScreenFour(Screen):
         self.ids.graph.export_to_png("graph.png")
 
     def get_value(self, dt):
-        max_angle = 30
 
         if forces[-1][0] == 0:
             self.ids.graph.xmax = 1
@@ -642,9 +733,8 @@ class ScreenFour(Screen):
         self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
 
         self.plot.points = forces
-
+        self.angle_current.text = str(round(forces[-1][0] * angular_speed, 2))
         self.force_current.text = str(round(forces[-1][1], 2))
-        max_angle += 0.1
 
     # self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
 

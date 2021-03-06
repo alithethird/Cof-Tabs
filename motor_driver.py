@@ -11,7 +11,7 @@ import RPi.GPIO as gpio
 IN1 = 26
 IN2 = 19
 
-EN = 26
+EN = 24
 DIR = 19
 STEP = 13
 CW = 1
@@ -113,8 +113,8 @@ class motor_driver:
 
     def motor_run(self, drive_time, frequency, direction):
         if self.select == 1 or self.select == 2:
-            gpio.output(EN, 0)
-            sleep(0.000005)
+            gpio.output(EN, 1)
+            sleep(0.00005)
             gpio.output(DIR, direction)
             sleep(0.000005)
             self.motor_pwm.ChangeFrequency(frequency)
@@ -150,8 +150,8 @@ class motor_driver:
 
     def motor_start(self, frequency, direction):
         if self.select == 1 or self.select == 2:
-            gpio.output(EN, 0)
-            sleep(0.000005)
+            gpio.output(EN, 1)
+            sleep(0.00005)
             gpio.output(DIR, direction)
             sleep(0.000005)
 
@@ -171,6 +171,7 @@ class motor_driver:
     def stop_motor(self):
         if self.select == 1 or self.select == 2:
             self.motor_pwm.stop()
+            sleep(0.00005)
             gpio.output(EN, 1)
         elif self.select == 3 and not self.soft:
             self.output2_pwm.stop()

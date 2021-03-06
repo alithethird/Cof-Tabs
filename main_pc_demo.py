@@ -53,7 +53,7 @@ test_angle = 0
 global forces
 forces = [[0, 0]]
 
-global calib  # kalibrasyon sayısı
+global calib # kalibrasyon sayısı
 
 
 def get_force(arg):
@@ -98,25 +98,21 @@ def find_static_force(array):
     median /= 20
     return median
 
-
-def find_loose_string(
-        array):  # finds loose string length and returns the amount of data acquired when the string is loose
+def find_loose_string(array): # finds loose string length and returns the amount of data acquired when the string is loose
     biggest = find_biggest(forces)
     index = int((biggest[0] / sample_time))
     print(index)
     count = 0
     for i in range(1, index):
-        if forces[i - 1][1] == forces[i][1]:
+        if forces[i-1][1] == forces[i][1]:
             count += 1
     return count
 
     pass
-
-
 def find_static_force_advanced():
     array = []
     array_mean = 0
-    loose = find_loose_string(forces)  # ip gergin değilken hesaplanan kuvvetlerin sayısı
+    loose = find_loose_string(forces) # ip gergin değilken hesaplanan kuvvetlerin sayısı
     for i in range(loose, int(loose + (1 / sample_time))):
         array.append(forces[i])  # statik zamanda ölçülen kuvvet listesi
 
@@ -143,7 +139,8 @@ def find_static_force_advanced():
 
 
 def find_dynamic_force_advanced():
-    loose = find_loose_string(forces)  # ip gergin değilken hesaplanan kuvvetlerin sayısı
+
+    loose = find_loose_string(forces) # ip gergin değilken hesaplanan kuvvetlerin sayısı
     array = []
     array_mean = 0
     for i in range(loose, len(forces)):
@@ -330,13 +327,12 @@ class ScreenTwo(Screen):
             sleep_time = sleep_time.total_seconds()
             sleep_time = sample_time - sleep_time
             print(sleep_time)
-            # time.sleep(sample_time)
+            #time.sleep(sample_time)
 
     def update_plot(self, arg):
         t = threading.currentThread()
         while getattr(t, "do_run", True):
             self.plot.points = forces
-
     def show_angle(self, dt):
         angle = 10
         self.angle_current.text = str(angle)
@@ -348,9 +344,9 @@ class ScreenTwo(Screen):
         md.motor_start(200, 0)
 
 
+
 class P(FloatLayout):
     pass
-
 
 class ScreenThree(Screen):
     date_today = datetime.date.today()
@@ -488,10 +484,8 @@ class ScreenThree(Screen):
         self.popupWindow = Popup(title="Popup Window", content=show, size_hint=(None, None), size=(400, 200))
 
         self.popupWindow.open()
-
     def hide_popup(self):
         self.popupWindow.close()
-
 
 class ScreenFour(Screen):
     plot = MeshLinePlot(color=[1, 0, 0, 1])
@@ -695,8 +689,7 @@ class ScreenFive(Screen):
         global sample_time
         global calib
         global angle_test_speed
-        json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force,
-                                     sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed)
+        json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force, sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed)
 
         test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed = json_handler.import_save()
 
@@ -721,10 +714,10 @@ class ScreenFive(Screen):
         self.ids.sample_time.text = str(sample_time)
         self.ids.calib.text = str(calib)
         self.ids.angle_test_speed.text = str(angle_test_speed)
-        json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force,
-                                     sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed)
+        json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force, sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed)
 
         test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed = json_handler.import_save()
+
 
     def clean_errors(self):
         self.error.color = (0, 0, 0, 0)

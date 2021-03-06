@@ -78,7 +78,7 @@ class JsonHandler:
                    "Forces:": forces
                    }
 
-        file_name = "COF Test " + date_and_time + ".json"
+        file_name = "COF_Test_" + date_and_time + ".json"
         with open(file_name, 'w', encoding='utf-8') as f:
             json.dump(dic, f, ensure_ascii=False, indent=2)
 

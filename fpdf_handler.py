@@ -85,6 +85,7 @@ class fpdf_handler(FPDF):
         print("pdf created")
         json_out.dump_time(max_static, mean_static, max_dynamic, mean_dynamic, sample1, sample2, test_mode, forces, self.date_and_time)
 
+        filename_json = "COF_Test_" + self.date_and_time + ".json"
         print("1")
         usb_dir = popen("ls " + mount_dir).read()
         usb_dir = usb_dir.split()
@@ -94,8 +95,9 @@ class fpdf_handler(FPDF):
             print("ALI'yi buldum ve silmeye calistim")
         try:
             if len(usb_dir) > 0:
-                usb_dir = usb_dir[0]
+                usb_dir = usb_dir[-1]
                 shutil.copy(filename, mount_dir + str(usb_dir))
+                shutil.copy(filename_json, mount_dir + str(usb_dir))
         except:
             print(" ")
         """
