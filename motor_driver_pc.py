@@ -81,23 +81,3 @@ class motor_driver_pc:
         pass
     def gyro_data(self):
         return 30
-
-
-        if forces[-1][0] == 0:
-            self.ids.graph.xmax = 1
-        elif forces[-1][0] > self.ids.graph.xmax:
-            self.ids.graph.xmax = forces[-1][0]
-
-        if len(forces) < 3:
-            self.ids.graph.ymax = 1
-        elif forces[-1][1] > self.ids.graph.ymax:
-            self.force_max.text = str(round(forces[-1][1], 3))
-            self.ids.graph.ymax = (forces[-1][1] * 1.1)
-
-        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
-
-        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
-
-        self.plot.points = forces
-
-        self.force_current.text = str(round(forces[-1][1], 2))

@@ -12,7 +12,6 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.lang import Builder
-from kivy.uix.label import Label
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy_garden.graph import MeshLinePlot
 from kivy.uix.popup import Popup
@@ -312,39 +311,6 @@ class ScreenTwo(Screen):
         global angle_test_speed
         test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed = json_handler.import_save()
 
-        self.force_max_label = Label(text="Peak Force: ")
-        self.force_max_label.pos = (230, 215)
-        self.force_max_label.color = (0, 0, 0, 1)
-        self.add_widget(self.force_max_label)
-
-        self.force_max_text = "0"
-        self.force_max = Label(text=self.force_max_text)
-        self.force_max.pos = (330, 215)
-        self.force_max.color = (0, 0, 0, 1)
-        self.add_widget(self.force_max)
-
-        self.force_current_label = Label(text="Current Force: ")
-        self.force_current_label.pos = (230, 195)
-        self.force_current_label.color = (0, 0, 0, 1)
-        self.add_widget(self.force_current_label)
-
-        self.force_text = "0"
-        self.force_current = Label(text=self.force_text)
-        self.force_current.pos = (330, 195)
-        self.force_current.color = (0, 0, 0, 1)
-        self.add_widget(self.force_current)
-
-        self.dist_current_label = Label(text="Current Distance: ")
-        self.dist_current_label.pos = (230, 175)
-        self.dist_current_label.color = (0, 0, 0, 1)
-        self.add_widget(self.dist_current_label)
-
-        self.dist_text = str(0)
-        self.dist_current = Label(text=self.dist_text)
-        self.dist_current.pos = (330, 175)
-        self.dist_current.color = (0, 0, 0, 1)
-        self.add_widget(self.dist_current)
-
         # self.reset()  # reset when program starts
 
     def start(self):
@@ -356,7 +322,7 @@ class ScreenTwo(Screen):
         self.t.start()
 
         Clock.schedule_interval(self.get_value, sample_time)
-        self.dist_current.text = "0"
+        self.ids.dist_current.text = "0"
 
         # if self.ids.distance_text.text == "":
         #     pass
@@ -409,8 +375,8 @@ class ScreenTwo(Screen):
         self.ids.graph.export_to_png("graph.png")
 
     def get_value(self, dt):
-        self.dist_current.text = str(
-            int(float(self.dist_current.text) + 60 * (sample_time * test_speed)))  # update current distance
+        self.ids.dist_current.text = str(
+            int(float(self.ids.dist_current.text) + 60 * (sample_time * test_speed)))  # update current distance
 
         if forces[-1][0] == 0:
             self.ids.graph.xmax = 1
@@ -420,7 +386,7 @@ class ScreenTwo(Screen):
         if len(forces) < 3:
             self.ids.graph.ymax = 1
         elif forces[-1][1] > self.ids.graph.ymax:
-            self.force_max.text = str(round(forces[-1][1], 3))
+            self.ids.force_max.text = str(round(forces[-1][1], 3))
             self.ids.graph.ymax = (forces[-1][1] * 1.1)
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
@@ -429,8 +395,7 @@ class ScreenTwo(Screen):
 
         self.plot.points = forces
 
-        self.force_current.text = str(round(forces[-1][1], 2))
-
+        self.ids.force_current.text = str(round(forces[-1][1], 2))
 
     def motor_forward(self):
         self.max_distance_event()
@@ -448,34 +413,6 @@ class P(FloatLayout):
 class ScreenThree(Screen):
     date_today = datetime.date.today()
     date_text = str(date_today)
-    date_text = date_text
-
-    def __init__(self, **args):
-        Screen.__init__(self, **args)
-
-        self.max_static_cof_text = "0"
-        self.l_max_static = Label(text=self.max_static_cof_text)
-        self.l_max_static.pos = (-90, 143)
-        self.l_max_static.color = (0, 0, 0, 1)
-        self.add_widget(self.l_max_static)
-
-        self.mean_static_cof_text = "0"
-        self.l_mean_static = Label(text=self.mean_static_cof_text)
-        self.l_mean_static.pos = (-90, 95)
-        self.l_mean_static.color = (0, 0, 0, 1)
-        self.add_widget(self.l_mean_static)
-
-        self.max_dynamic_cof_text = "0"
-        self.l_max_dynamic = Label(text=self.max_dynamic_cof_text)
-        self.l_max_dynamic.pos = (-90, 0)
-        self.l_max_dynamic.color = (0, 0, 0, 1)
-        self.add_widget(self.l_max_dynamic)
-
-        self.mean_dynamic_cof_text = "0"
-        self.l_mean_dynamic = Label(text=self.mean_dynamic_cof_text)
-        self.l_mean_dynamic.pos = (-90, -48)
-        self.l_mean_dynamic.color = (0, 0, 0, 1)
-        self.add_widget(self.l_mean_dynamic)
 
     def create_results(self):
         max_dynamic_cof, mean_dynamic_cof = self.find_dynamic_cof()
@@ -551,17 +488,12 @@ class ScreenThree(Screen):
     def update_results(self):
         try:
             self.max_dynamic, self.mean_dynamic, self.max_static, self.mean_static = self.create_results()
-            self.max_static_cof_text = str(self.max_static)
-            self.mean_static_cof_text = str(self.mean_static)
 
-            self.max_dynamic_cof_text = str(self.max_dynamic)
-            self.mean_dynamic_cof_text = str(self.mean_dynamic)
+            self.ids.l_max_static.text = str(self.max_static)
+            self.ids.l_mean_static.text = str(self.mean_static)
 
-            self.l_max_static.text = self.max_static_cof_text
-            self.l_mean_static.text = self.mean_static_cof_text
-
-            self.l_max_dynamic.text = self.max_dynamic_cof_text
-            self.l_mean_dynamic.text = self.mean_dynamic_cof_text
+            self.ids.l_max_dynamic.text = str(self.max_dynamic)
+            self.ids.l_mean_dynamic.text = str(self.mean_dynamic)
 
             if test_mode == 0:
                 json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
@@ -571,6 +503,7 @@ class ScreenThree(Screen):
                                       sample2, test_mode, ScreenFour.plot.points)
         except:
             pass
+
     def createPDF(self):
         self.pdf = fpdf_handler()
 
@@ -600,55 +533,22 @@ class ScreenFour(Screen):
 
         self.reset()  # ilk açılışta otomatik açı resetleme
 
-        self.force_max_label = Label(text="Peak Force: ")
-        self.force_max_label.pos = (230, 215)
-        self.force_max_label.color = (0, 0, 0, 1)
-        self.add_widget(self.force_max_label)
-
-        self.force_max_text = "0.00"
-        self.force_max = Label(text=self.force_max_text)
-        self.force_max.pos = (330, 215)
-        self.force_max.color = (0, 0, 0, 1)
-        self.add_widget(self.force_max)
-
-        self.force_current_label = Label(text="Current Force: ")
-        self.force_current_label.pos = (230, 195)
-        self.force_current_label.color = (0, 0, 0, 1)
-        self.add_widget(self.force_current_label)
-
-        self.force_text = "0.00"
-        self.force_current = Label(text=self.force_text)
-        self.force_current.pos = (330, 195)
-        self.force_current.color = (0, 0, 0, 1)
-        self.add_widget(self.force_current)
-
-        self.angle_current_label = Label(text="Current Angle: ")
-        self.angle_current_label.pos = (230, 175)
-        self.angle_current_label.color = (0, 0, 0, 1)
-        self.add_widget(self.angle_current_label)
-
-        self.angle_text = str(0.00)
-        self.angle_current = Label(text=self.angle_text)
-        self.angle_current.pos = (330, 175)
-        self.angle_current.color = (0, 0, 0, 1)
-        self.add_widget(self.angle_current)
-
     def start(self):
 
-    #     global angle_test_normal_motor_distance
-    #     global angle_test_normal_motor_speed
-    #     angle_test_normal_motor_speed = 150
-    #     angle_test_normal_motor_distance = 200
-    #
-    #     drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_normal_motor_distance, speed=angle_test_normal_motor_speed,
-    #                                                           direction=0)
-    #     md.motor_run(drive_time, frequency, direction)
-    #     self.max_distance_event()
-    #     signal.signal(signal.SIGALRM, self.angle_start)
-    #     signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
-    #
-    # def angle_start(self, signum, _):
-    #     gpio.remove_event_detect(stop_switch)
+        #     global angle_test_normal_motor_distance
+        #     global angle_test_normal_motor_speed
+        #     angle_test_normal_motor_speed = 150
+        #     angle_test_normal_motor_distance = 200
+        #
+        #     drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_normal_motor_distance,
+        #     speed=angle_test_normal_motor_speed, direction=0)
+        #     md.motor_run(drive_time, frequency, direction)
+        #     self.max_distance_event()
+        #     signal.signal(signal.SIGALRM, self.angle_start)
+        #     signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
+        #
+        # def angle_start(self, signum, _):
+        #     gpio.remove_event_detect(stop_switch)
 
         global forces
         forces = [[0, 0]]
@@ -688,7 +588,7 @@ class ScreenFour(Screen):
     def stop(self):
         Clock.unschedule(self.get_value)
         md.stop_angle_motor()
-        #md.stop_motor()
+        # md.stop_motor()
         gpio.remove_event_detect(angle_switch_start)
         gpio.remove_event_detect(angle_switch_stop)
 
@@ -718,15 +618,15 @@ class ScreenFour(Screen):
             self.ids.graph.ymax = 1
         elif forces[-1][1] > self.ids.graph.ymax:
             self.ids.graph.ymax = (forces[-1][1] * 1.1)
-        if forces[-1][1] > float(self.force_max.text):
-            self.force_max.text = str(round(forces[-1][1], 3))
+        if forces[-1][1] > float(self.ids.force_max.text):
+            self.ids.force_max.text = str(round(forces[-1][1], 3))
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
 
         self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
 
         self.plot.points = forces
-        self.angle_current.text = str(round(forces[-1][0] * angular_speed, 2))
-        self.force_current.text = str(round(forces[-1][1], 2))
+        self.ids.angle_current.text = str(round(forces[-1][0] * angular_speed, 2))
+        self.ids.force_current.text = str(round(forces[-1][1], 2))
 
     # self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
 
@@ -744,17 +644,13 @@ class ScreenFive(Screen):
     # calibration screen
     def __init__(self, **args):
         Screen.__init__(self, **args)
-        self.error_text = "Error! (Use only numbers) (use . not ,)"
-        self.error = Label(text=self.error_text)
-        self.error.pos = (0, 230)
-        self.error.color = (0, 0, 0, 0)
-        self.add_widget(self.error)
         self.ids.distance.text = str(test_distance)
         self.ids.speed.text = str(test_speed)
         self.ids.normal_force.text = str(normal_force)
         self.ids.sample_time.text = str(sample_time)
         self.ids.calib.text = str(calib)
         self.ids.angle_test_speed.text = str(angle_test_speed)
+        self.ids.angular_speed.text = str(angular_speed)
 
     def save(self):
         count = 0
@@ -764,10 +660,10 @@ class ScreenFive(Screen):
                 test_distance = float(self.ids.distance_text.text)
                 self.ids.distance.text = str(test_distance)
 
-                self.error.color = (0, 0, 0, 0)
+                self.ids.error.color = (0, 0, 0, 0)
             except:
-                self.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.error.color = (0, 0, 0, 1)
+                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.ids.error.color = (0, 0, 0, 1)
             else:
                 count = 1
 
@@ -776,10 +672,10 @@ class ScreenFive(Screen):
                 global test_speed
                 test_speed = float(self.ids.speed_text.text)
                 self.ids.speed.text = str(test_speed)
-                self.error.color = (0, 0, 0, 0)
+                self.ids.error.color = (0, 0, 0, 0)
             except:
-                self.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.error.color = (0, 0, 0, 1)
+                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.ids.error.color = (0, 0, 0, 1)
             else:
                 count = 1
 
@@ -788,10 +684,10 @@ class ScreenFive(Screen):
                 global normal_force
                 normal_force = float(self.ids.normal_force_text.text)
                 self.ids.normal_force.text = str(normal_force)
-                self.error.color = (0, 0, 0, 0)
+                self.ids.error.color = (0, 0, 0, 0)
             except:
-                self.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.error.color = (0, 0, 0, 1)
+                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.ids.error.color = (0, 0, 0, 1)
             else:
                 count = 1
 
@@ -800,10 +696,10 @@ class ScreenFive(Screen):
                 global sample_time
                 sample_time = float(self.ids.sample_time_text.text)
                 self.ids.sample_time.text = str(sample_time)
-                self.error.color = (0, 0, 0, 0)
+                self.ids.error.color = (0, 0, 0, 0)
             except:
-                self.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.error.color = (0, 0, 0, 1)
+                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.ids.error.color = (0, 0, 0, 1)
             else:
                 count = 1
 
@@ -812,10 +708,10 @@ class ScreenFive(Screen):
                 global calib
                 calib = float(self.ids.calib_text.text)
                 self.ids.calib.text = str(calib)
-                self.error.color = (0, 0, 0, 0)
+                self.ids.error.color = (0, 0, 0, 0)
             except:
-                self.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.error.color = (0, 0, 0, 1)
+                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.ids.error.color = (0, 0, 0, 1)
             else:
                 count = 1
 
@@ -825,18 +721,31 @@ class ScreenFive(Screen):
                 angle_test_speed = float(self.ids.angle_test_speed_text.text)
                 self.ids.angle_test_speed.text = str(angle_test_speed)
 
-                self.error.color = (0, 0, 0, 0)
+                self.ids.error.color = (0, 0, 0, 0)
             except:
-                self.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.error.color = (0, 0, 0, 1)
+                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.ids.error.color = (0, 0, 0, 1)
             else:
                 count = 1
 
-        if self.ids.speed_text.text == "" and self.ids.distance_text.text == "" and self.ids.sample_time_text.text == "" and self.ids.normal_force_text.text == "" and self.ids.calib_text.text == "" and self.ids.angle_test_speed_text.text == "":
-            self.error.color = (0, 0, 0, 0)
+        if self.ids.angular_speed_text.text != "":
+            try:
+                global angular_speed
+                angular_speed = float(self.ids.angular_speed_text.text)
+                self.ids.angular_speed.text = str(angular_speed)
+
+                self.ids.error.color = (0, 0, 0, 0)
+            except:
+                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
+                self.ids.error.color = (0, 0, 0, 1)
+            else:
+                count = 1
+
+        if self.ids.speed_text.text == "" and self.ids.distance_text.text == "" and self.ids.sample_time_text.text == "" and self.ids.normal_force_text.text == "" and self.ids.calib_text.text == "" and self.ids.angle_test_speed_text.text == "" and self.ids.angular_speed.text == "":
+            self.ids.error.color = (0, 0, 0, 0)
         if count == 1:
-            self.error.text = "Saved"
-            self.error.color = (0, 1, 0, 1)
+            self.ids.error.text = "Saved"
+            self.ids.error.color = (0, 1, 0, 1)
 
     def save_for_good(self):
         self.save()
@@ -846,10 +755,12 @@ class ScreenFive(Screen):
         global sample_time
         global calib
         global angle_test_speed
+        global angular_speed
         json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force,
-                                     sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed)
+                                     sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed,
+                                     angular_speed=angular_speed)
 
-        test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed = json_handler.import_save()
+        test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed, angular_speed = json_handler.import_save()
 
     def reset_to_factory(self):
         global test_distance
@@ -858,13 +769,15 @@ class ScreenFive(Screen):
         global sample_time
         global calib
         global angle_test_speed
+        global angular_speed
 
-        test_distance = 6000
-        test_speed = 650
+        test_distance = 60
+        test_speed = 150
         normal_force = 200
         sample_time = 0.1
         calib = 0.011772
         angle_test_speed = 500
+        angular_speed = 1
 
         self.ids.distance.text = str(test_distance)
         self.ids.speed.text = str(test_speed)
@@ -872,13 +785,15 @@ class ScreenFive(Screen):
         self.ids.sample_time.text = str(sample_time)
         self.ids.calib.text = str(calib)
         self.ids.angle_test_speed.text = str(angle_test_speed)
+        self.ids.angular_speed.text = str(angular_speed)
         json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force,
-                                     sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed)
+                                     sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed,
+                                     angular_speed=angular_speed)
 
-        test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed = json_handler.import_save()
+        test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed, angular_speed = json_handler.import_save()
 
     def clean_errors(self):
-        self.error.color = (0, 0, 0, 0)
+        self.ids.error.color = (0, 0, 0, 0)
 
 
 screen_manager = ScreenManager()

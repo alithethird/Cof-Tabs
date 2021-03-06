@@ -27,7 +27,7 @@
             text: "Motorized Test"
             pos_hint: {'center_x': 0.4, "center_y": 0.2}
             size_hint: (1/6, 1/12)
-            background_color: (0,1,1,0.8)
+            background_color: (0,1,0.5,0.8)
             on_press:
                 root.select_motorized_test()
                 root.btn_text()
@@ -38,7 +38,7 @@
             text: "Angle Test"
             pos_hint: {'center_x': 0.6, "center_y": 0.2}
             size_hint: (1/6, 1/12)
-            background_color: (9/256,126/256,199/256,0.9)
+            background_color: (0,1,0.7,0.8)
             on_press:
                 root.select_angle_test()
                 root.btn_text()
@@ -225,8 +225,38 @@
             on_press:
                 root.motor_backward()
 
+        Label:
+            text: "Peak Force: "
+            pos: 230, 215
+            color: 0, 0, 0, 1
 
+        Label:
+            id: force_max
+            text: "0.00"
+            pos: 330, 215
+            color: 0, 0, 0, 1
 
+        Label:
+            text: "Current Force: "
+            pos: 230, 195
+            color: 0, 0, 0, 1
+
+        Label:
+            id: force_current
+            text: "0.00"
+            pos: 330, 195
+            color: 0, 0, 0, 1
+
+        Label:
+            text: "Current Distance: "
+            pos: 230, 175
+            color: 0, 0, 0, 1
+
+        Label:
+            id: dist_current
+            text: "0.00"
+            pos: 330, 175
+            color: 0, 0, 0, 1
 
 
 <ScreenThree>:
@@ -254,35 +284,52 @@
                 root.manager.current = "screen_two"
 
         Label:
-            id: label_max_static_cof
             text: "Max Static Coefficient of friction: "
             color: (0,0,0,1)
             pos_hint: {"center_x": 0.19, "center_y": 0.8}
             halign: "left"
 
         Label:
-            id: label_mean_static_cof
+            id: l_max_static
+            text: "0.00"
+            pos: (-90, 143)
+            color: 0,0,0,1
+
+        Label:
             text: "Mean Static Coefficient of friction: "
             color: (0,0,0,1)
             pos_hint: {"center_x": 0.19, "center_y": 0.7}
             halign: "left"
 
+        Label:
+            id: l_mean_static
+            text: "0.00"
+            pos: -90, 95
+            color: 0,0,0,1
 
         Label:
-            id: label_max_dynamic_cof
             text: "Max Dynamic Coefficient of friction:"
             color: (0,0,0,1)
             pos_hint: {"center_x": 0.2, "center_y": 0.5}
             halign: "left"
-            
 
         Label:
-            id: label_mean_dynamic_cof
+            id: l_max_dynamic
+            text: "0.00"
+            pos: -90, 0
+            color: 0,0,0,1
+
+        Label:
             text: "Mean Dynamic Coefficient of friction:"
             color: (0,0,0,1)
             pos_hint: {"center_x": 0.2, "center_y": 0.4}
             halign: "left"
 
+        Label:
+            id: l_mean_dynamic
+            text: "0.00"
+            pos: -90, -48
+            color: 0, 0, 0, 1
         Label:
             text: "Date: "
             color: (0,0,0,1)
@@ -378,14 +425,53 @@
             on_press:
                 root.angle_motor_fall()
 
+        Label:
+            text: "Peak Force: "
+            pos: (230, 215)
+            color: (0,0,0,1)
+
+        Label:
+            id: force_max
+            text: "0.00"
+            pos: 330, 215
+            color: 0,0,0,1
+
+        Label:
+            text: "Current Force: "
+            pos: 230, 195
+            color: 0,0,0,1
+
+        Label:
+            id: force_current
+            text: "0.00"
+            pos: 330, 195
+            color: 0,0,0,1
+
+        Label:
+            text: "Current Angle: "
+            pos: 230, 175
+            color: 0,0,0,1
+
+        Label:
+            id: angle_current
+            text: "0.00"
+            pos: 330, 175
+            color: 0,0,0,1
 <ScreenFive>:
     FloatLayout:
         size: root.width, root.height
+
+        Label:
+            id: error
+            text: "Error! (Use only numbers) (use . not ,)"
+            pos: 0, 230
+            color: 0, 0, 0, 0
 
         Button:
             text: "Go back"
             pos_hint: {'center_x': 0.7, "center_y": 0.1}
             size_hint: (1/8, 1/16)
+            background_color: (200/256,137/256,85/256,0.9)
             on_press:
                 root.clean_errors()
                 root.manager.transition.direction = "right"
@@ -461,6 +547,15 @@
             font_size: 12
             size_hint: 1/7, 0.06
 
+        TextInput:
+            write_tab: False
+            multiline: False
+            id: angular_speed_text
+            hint_text: 'Angular Speed'
+            pos_hint: {'center_x': 0.1, "center_y": 0.68}
+            font_size: 12
+            size_hint: 1/7, 0.06
+
         Label:
             id: distance_label
             text: "Test Distance:"
@@ -530,13 +625,13 @@
             id: angle_test_speed_label
             text: "Angle Speed:"
             color: (0,0,0,1)
-            pos_hint: {"center_x": 0.5, "center_y": 0.68}
+            pos_hint: {"center_x": 0.8, "center_y": 0.76}
             halign: "left"
 
         Label:
             id: angle_test_speed
             color: (0,0,0,1)
-            pos_hint: {"center_x": 0.6, "center_y": 0.68}
+            pos_hint: {"center_x": 0.9, "center_y": 0.76}
             halign: "left"
 
         Label:
@@ -549,7 +644,7 @@
         Label:
             id: angular_speed
             color: (0,0,0,1)
-            pos_hint: {"center_x": 0.92, "center_y": 0.68}
+            pos_hint: {"center_x": 0.9, "center_y": 0.68}
             halign: "left"
 
 <TarePop>:
@@ -557,6 +652,7 @@
         text: "Tare Completed"
         size_hint: 0.6, 0.2
         pos_hint: {"x":0.2, "top":1}
+
 <P>:
     Label:
         text: "PDF Created"
