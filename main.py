@@ -449,11 +449,11 @@ class ScreenTwo(Screen):
 
     def motor_forward(self):
         self.max_distance_event()
-        md.motor_start(8000, 1)
+        md.motor_start(8000, 0)
 
     def motor_backward(self):
         self.min_distance_event()
-        md.motor_start(8000, 0)
+        md.motor_start(8000, 1)
 
 
 class P(FloatLayout):
@@ -648,20 +648,20 @@ class ScreenFour(Screen):
 
     def start(self):
 
-        global angle_test_distance
-        global angle_test_speed
-        angle_test_speed = 150
-        angle_test_distance = 200
-
-        drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_distance, speed=angle_test_speed,
-                                                              direction=0)
-        md.motor_run(drive_time, frequency, direction)
-        self.max_distance_event()
-        signal.signal(signal.SIGALARM, self.angle_start)
-        signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
-
-    def angle_start(self, signum, _):
-        gpio.remove_event_detect(stop_switch)
+    #     global angle_test_distance
+    #     global angle_test_speed
+    #     angle_test_speed = 150
+    #     angle_test_distance = 200
+    #
+    #     drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_distance, speed=angle_test_speed,
+    #                                                           direction=0)
+    #     md.motor_run(drive_time, frequency, direction)
+    #     self.max_distance_event()
+    #     signal.signal(signal.SIGALRM, self.angle_start)
+    #     signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
+    #
+    # def angle_start(self, signum, _):
+    #     gpio.remove_event_detect(stop_switch)
 
         global forces
         forces = [[0, 0]]
@@ -701,6 +701,7 @@ class ScreenFour(Screen):
     def stop(self):
         Clock.unschedule(self.get_value)
         md.stop_angle_motor()
+        #md.stop_motor()
         gpio.remove_event_detect(angle_switch_start)
         gpio.remove_event_detect(angle_switch_stop)
 
