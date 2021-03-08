@@ -28,7 +28,7 @@ from json_dumper import JsonHandler
 # set up the load cell
 
 hx = HX711(5, 6)
-hx.set_gain(128) # bunun olması lazım
+hx.set_gain(128)  # bunun olması lazım
 # hx.reset()
 # hx.tare()
 
@@ -553,8 +553,13 @@ class ScreenFour(Screen):
         self.reset()  # ilk açılışta otomatik açı resetleme
 
     def start(self):
+        global angle_test_normal_motor_distance
+        global angle_test_normal_motor_speed
+        angle_test_normal_motor_speed = 150
+        angle_test_normal_motor_distance = 200
+
         if gpio.input(angle_switch_start) or gpio.input(start_switch):
-           self.reset_for_test()
+            self.reset_for_test()
 
         elif gpio.input(angle_switch_start) == gpio.input(start_switch) == False:
             global forces
@@ -570,10 +575,7 @@ class ScreenFour(Screen):
 
             md.start_angle_motor_rise(angle_test_speed)
             self.max_angle_event()
-        #     global angle_test_normal_motor_distance
-        #     global angle_test_normal_motor_speed
-        #     angle_test_normal_motor_speed = 150
-        #     angle_test_normal_motor_distance = 200
+
         #
         #     drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_normal_motor_distance,
         #     speed=angle_test_normal_motor_speed, direction=0)
@@ -585,10 +587,15 @@ class ScreenFour(Screen):
         # def angle_start(self, signum, _):
         #     gpio.remove_event_detect(stop_switch)
 
-
     def max_distance_event(self):
         try:
             gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=10)
+        except:
+            pass
+
+    def min_distance_event_for_test(self):
+        try:
+            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.reset_for_test, bouncetime=10)
         except:
             pass
 
@@ -601,6 +608,12 @@ class ScreenFour(Screen):
     def min_angle_event(self):
         try:
             gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.stop_event, bouncetime=10)
+        except:
+            pass
+
+    def min_angle_event(self):
+        try:
+            gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.reset_for_test, bouncetime=10)
         except:
             pass
 
@@ -622,15 +635,27 @@ class ScreenFour(Screen):
 
     def reset(self):
 
-        md.start_angle_motor_fall(angle_test_speed)
-        md.motor_run()
-        self.min_angle_event()
+        if gpio.input(angle_switch_start):
+            md.start_angle_motor_fall(angle_test_speed)
+            self.min_angle_event()
+        # buraya hareket motoru için de reset ekle koç
 
     def reset_for_test(self):
 
-        md.start_angle_motor_fall(angle_test_speed)
+        if gpio.input(angle_switch_start):
+            md.start_angle_motor_fall(angle_test_speed)
+            self.min_angle_event_for_test()
 
-        self.min_angle_event()
+        if gpio.input(start_switch):
+            drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_normal_motor_distance,
+                                                                  speed=angle_test_normal_motor_speed, direction=1)
+            md.motor_run(drive_time, frequency, direction)
+            self.min_distance_event_for_test()
+
+        if gpio.input(angle_switch_start) == gpio.input(start_switch) == False:
+            gpio.remove_event_detect(angle_switch_start)
+            gpio.remove_event_detect(start_switch)
+            self.start()
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
