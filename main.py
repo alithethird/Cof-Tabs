@@ -28,7 +28,7 @@ from json_dumper import JsonHandler
 # set up the load cell
 
 hx = HX711(5, 6)
-
+hx.set_gain(128) # bunun olması lazım
 # hx.reset()
 # hx.tare()
 
