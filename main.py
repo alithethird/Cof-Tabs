@@ -319,20 +319,21 @@ class ScreenTwo(Screen):
         forces = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        if gpio.input(start_switch):
-            self.reset_for_test()
-        else:
-            gpio.remove_event_detect(start_switch)
-            self.t = threading.Thread(target=get_force, args=("task",))
-            self.t.start()
 
-            Clock.schedule_interval(self.get_value, sample_time)
-            self.ids.dist_current.text = "0"
+        # if gpio.input(start_switch):
+        #     self.reset_for_test()
+        # else:
+        gpio.remove_event_detect(start_switch)
+        self.t = threading.Thread(target=get_force, args=("task",))
+        self.t.start()
 
-            drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
-            md.motor_run(drive_time, frequency, direction)
+        Clock.schedule_interval(self.get_value, sample_time)
+        self.ids.dist_current.text = "0"
 
-            self.max_distance_event()
+        drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
+        md.motor_run(drive_time, frequency, direction)
+
+        self.max_distance_event()
         # if self.ids.distance_text.text == "":
         #     pass
         # else:
@@ -345,19 +346,19 @@ class ScreenTwo(Screen):
 
     def max_distance_event(self):
         try:
-            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=10)
+            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
         except:
             pass
 
     def min_distance_event(self):
         try:
-            gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.stop_event, bouncetime=10)
+            gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
         except:
             pass
 
     def min_distance_event_for_test(self):
         try:
-            gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.start, bouncetime=10)
+            gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.start, bouncetime=100)
         except:
             pass
 
@@ -378,12 +379,14 @@ class ScreenTwo(Screen):
             pass
 
     def reset(self):
-        self.motor_forward()
+
+        if gpio.input(start_switch):
+            self.motor_forward()
 
         signal.signal(signal.SIGALRM, self.reset_)
         signal.setitimer(signal.ITIMER_REAL, 0.5, 0)
 
-    def reset_(self):
+    def reset_(self, signum, _):
         md.stop_motor()
         if gpio.input(start_switch):
             self.motor_backward()
@@ -594,25 +597,25 @@ class ScreenFour(Screen):
 
     def max_distance_event(self):
         try:
-            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=10)
+            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
         except:
             pass
 
     def min_distance_event_for_test(self):
         try:
-            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.reset_for_test, bouncetime=10)
+            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.reset_for_test, bouncetime=100)
         except:
             pass
 
     def max_angle_event(self):
         try:
-            gpio.add_event_detect(angle_switch_stop, gpio.FALLING, callback=self.stop_event, bouncetime=10)
+            gpio.add_event_detect(angle_switch_stop, gpio.FALLING, callback=self.stop_event, bouncetime=100)
         except:
             pass
 
     def min_angle_event(self):
         try:
-            gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.stop_event, bouncetime=10)
+            gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.stop_event, bouncetime=100)
         except:
             pass
 
@@ -644,7 +647,7 @@ class ScreenFour(Screen):
         signal.signal(signal.SIGALRM, self.reset_)
         signal.setitimer(signal.ITIMER_REAL, 0.5, 0)
 
-    def reset_(self):
+    def reset_(self, signum, _):
         md.stop_angle_motor()
         if gpio.input(angle_switch_start):
             md.start_angle_motor_fall(angle_test_speed)
