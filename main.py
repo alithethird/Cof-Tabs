@@ -378,8 +378,11 @@ class ScreenTwo(Screen):
             pass
 
     def reset(self):
-        self.motor_backward()
-        self.min_distance_event()
+        if gpio.input(start_switch):
+            self.motor_backward()
+            self.min_distance_event()
+        else:
+            pass
 
     def reset_for_test(self):
         self.motor_backward()
@@ -412,12 +415,14 @@ class ScreenTwo(Screen):
         self.ids.force_current.text = str(round(forces[-1][1], 2))
 
     def motor_forward(self):
-        self.max_distance_event()
-        md.motor_start(8000, 0)
+        if gpio.input(stop_switch):
+            self.max_distance_event()
+            md.motor_start(8000, 0)
 
     def motor_backward(self):
-        self.min_distance_event()
-        md.motor_start(8000, 1)
+        if gpio.input(start_switch):
+            self.min_distance_event()
+            md.motor_start(8000, 1)
 
 
 class P(FloatLayout):
@@ -548,7 +553,23 @@ class ScreenFour(Screen):
         self.reset()  # ilk açılışta otomatik açı resetleme
 
     def start(self):
+        if gpio.input(angle_switch_start) or gpio.input(start_switch):
+           self.reset_for_test()
 
+        elif gpio.input(angle_switch_start) == gpio.input(start_switch) == False:
+            global forces
+            forces = [[0, 0]]
+            self.ids.graph.remove_plot(self.plot)
+            self.ids.graph.add_plot(self.plot)
+            self.t = threading.Thread(target=get_force, args=("task",))
+            self.t.start()
+
+            Clock.schedule_interval(self.get_value,
+                                    sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample
+            # kaymaya başlayınca durabilir
+
+            md.start_angle_motor_rise(angle_test_speed)
+            self.max_angle_event()
         #     global angle_test_normal_motor_distance
         #     global angle_test_normal_motor_speed
         #     angle_test_normal_motor_speed = 150
@@ -564,19 +585,6 @@ class ScreenFour(Screen):
         # def angle_start(self, signum, _):
         #     gpio.remove_event_detect(stop_switch)
 
-        global forces
-        forces = [[0, 0]]
-        self.ids.graph.remove_plot(self.plot)
-        self.ids.graph.add_plot(self.plot)
-        self.t = threading.Thread(target=get_force, args=("task",))
-        self.t.start()
-
-        Clock.schedule_interval(self.get_value,
-                                sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample
-        # kaymaya başlayınca durabilir
-
-        md.start_angle_motor_rise(angle_test_speed)
-        self.max_angle_event()
 
     def max_distance_event(self):
         try:
@@ -613,6 +621,12 @@ class ScreenFour(Screen):
             pass
 
     def reset(self):
+
+        md.start_angle_motor_fall(angle_test_speed)
+        md.motor_run()
+        self.min_angle_event()
+
+    def reset_for_test(self):
 
         md.start_angle_motor_fall(angle_test_speed)
 
