@@ -645,16 +645,20 @@ class ScreenFour(Screen):
         if gpio.input(angle_switch_start):
             md.start_angle_motor_fall(angle_test_speed)
             self.min_angle_event_for_test()
+        else:
+            md.stop_angle_motor()
+            gpio.remove_event_detect(angle_switch_start)
 
         if gpio.input(start_switch):
             drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_normal_motor_distance,
                                                                   speed=angle_test_normal_motor_speed, direction=1)
             md.motor_run(drive_time, frequency, direction)
             self.min_distance_event_for_test()
+        else:
+            md.stop_motor()
+            gpio.remove_event_detect(start_switch)
 
         if gpio.input(angle_switch_start) == gpio.input(start_switch) == False:
-            gpio.remove_event_detect(angle_switch_start)
-            gpio.remove_event_detect(start_switch)
             self.start()
 
     def save_graph(self):
