@@ -301,7 +301,8 @@ class ScreenTwo(Screen):
     def __init__(self, **args):
         Screen.__init__(self, **args)
 
-        self.reset()  # ilk açılışta otomatik konum resetleme
+        Clock.schedule_interval(self.reset, 1)
+        # self.reset()  # ilk açılışta otomatik konum resetleme
 
         global normal_force
         global sample_time
@@ -380,17 +381,19 @@ class ScreenTwo(Screen):
 
     def reset(self):
 
-        if gpio.input(start_switch):
-            self.motor_forward()
+        self.motor_forward()
 
         signal.signal(signal.SIGALRM, self.reset_)
         signal.setitimer(signal.ITIMER_REAL, 0.5, 0)
 
-    def reset_(self, signum, _):
+    def reset_(self, dt):
+
+        Clock.unschedule(self.reset_)
         md.stop_motor()
         if gpio.input(start_switch):
             self.motor_backward()
             self.min_distance_event()
+
 
     def reset_for_test(self):
         self.motor_backward()
@@ -645,13 +648,14 @@ class ScreenFour(Screen):
 
         md.start_angle_motor_rise(angle_test_speed)
         signal.signal(signal.SIGALRM, self.reset_)
-        signal.setitimer(signal.ITIMER_REAL, 0.5, 0)
+        signal.setitimer(signal.ITIMER_REAL, 1, 0)
 
     def reset_(self, signum, _):
         md.stop_angle_motor()
         if gpio.input(angle_switch_start):
             md.start_angle_motor_fall(angle_test_speed)
             self.min_angle_event()
+
         # buraya hareket motoru için de reset ekle koç
 
     def reset_for_test(self):
