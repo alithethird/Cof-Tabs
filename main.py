@@ -378,11 +378,16 @@ class ScreenTwo(Screen):
             pass
 
     def reset(self):
+        self.motor_forward()
+
+        signal.signal(signal.SIGALRM, self.reset_)
+        signal.setitimer(signal.ITIMER_REAL, 0.5, 0)
+
+    def reset_(self):
+        md.stop_motor()
         if gpio.input(start_switch):
             self.motor_backward()
             self.min_distance_event()
-        else:
-            pass
 
     def reset_for_test(self):
         self.motor_backward()
@@ -611,7 +616,7 @@ class ScreenFour(Screen):
         except:
             pass
 
-    def min_angle_event(self):
+    def min_angle_event_for_test(self):
         try:
             gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.reset_for_test, bouncetime=10)
         except:
@@ -635,6 +640,12 @@ class ScreenFour(Screen):
 
     def reset(self):
 
+        md.start_angle_motor_rise(angle_test_speed)
+        signal.signal(signal.SIGALRM, self.reset_)
+        signal.setitimer(signal.ITIMER_REAL, 0.5, 0)
+
+    def reset_(self):
+        md.stop_angle_motor()
         if gpio.input(angle_switch_start):
             md.start_angle_motor_fall(angle_test_speed)
             self.min_angle_event()
