@@ -309,7 +309,8 @@ class ScreenTwo(Screen):
         global test_distance
         global calib
         global angle_test_speed
-        test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed = json_handler.import_save()
+        global angular_speed
+        test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed, angular_speed = json_handler.import_save()
 
         # self.reset()  # reset when program starts
 
@@ -318,12 +319,20 @@ class ScreenTwo(Screen):
         forces = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        self.t = threading.Thread(target=get_force, args=("task",))
-        self.t.start()
+        if gpio.input(start_switch):
+            self.reset_for_test()
+        else:
+            gpio.remove_event_detect(start_switch)
+            self.t = threading.Thread(target=get_force, args=("task",))
+            self.t.start()
 
-        Clock.schedule_interval(self.get_value, sample_time)
-        self.ids.dist_current.text = "0"
+            Clock.schedule_interval(self.get_value, sample_time)
+            self.ids.dist_current.text = "0"
 
+            drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
+            md.motor_run(drive_time, frequency, direction)
+
+            self.max_distance_event()
         # if self.ids.distance_text.text == "":
         #     pass
         # else:
@@ -334,20 +343,21 @@ class ScreenTwo(Screen):
         # else:
         #     self.test_speed = float(self.ids.speed_text.text)
 
-        drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
-        md.motor_run(drive_time, frequency, direction)
-
-        self.max_distance_event()
-
     def max_distance_event(self):
         try:
-            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
+            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=10)
         except:
             pass
 
     def min_distance_event(self):
         try:
-            gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
+            gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.stop_event, bouncetime=10)
+        except:
+            pass
+
+    def min_distance_event_for_test(self):
+        try:
+            gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.start, bouncetime=10)
         except:
             pass
 
@@ -370,6 +380,10 @@ class ScreenTwo(Screen):
     def reset(self):
         self.motor_backward()
         self.min_distance_event()
+
+    def reset_for_test(self):
+        self.motor_backward()
+        self.min_distance_event_for_test()
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
@@ -566,19 +580,19 @@ class ScreenFour(Screen):
 
     def max_distance_event(self):
         try:
-            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
+            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=10)
         except:
             pass
 
     def max_angle_event(self):
         try:
-            gpio.add_event_detect(angle_switch_stop, gpio.FALLING, callback=self.stop_event, bouncetime=100)
+            gpio.add_event_detect(angle_switch_stop, gpio.FALLING, callback=self.stop_event, bouncetime=10)
         except:
             pass
 
     def min_angle_event(self):
         try:
-            gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.stop_event, bouncetime=100)
+            gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.stop_event, bouncetime=10)
         except:
             pass
 

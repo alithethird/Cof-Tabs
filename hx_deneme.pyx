@@ -8,7 +8,8 @@ def data():
 
     for i in range(10):
         start = datetime.datetime.now()
-        a = hx.get_weight()
+        cdef float a = hx.get_weight()
+        b = a
         stop = datetime.datetime.now()
         time_ = stop - start
         time_ = time_.total_seconds()
