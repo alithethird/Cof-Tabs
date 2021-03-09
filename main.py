@@ -29,7 +29,7 @@ from json_dumper import JsonHandler
 
 hx = HX711(5, 6)
 hx.set_gain(128)  # bunun olması lazım
-# hx.reset()
+hx.reset()
 # hx.tare()
 
 start_switch = 23  # start kısmındaki switch
@@ -301,7 +301,7 @@ class ScreenTwo(Screen):
     def __init__(self, **args):
         Screen.__init__(self, **args)
 
-        Clock.schedule_interval(self.reset, 1)
+        #Clock.schedule_interval(self.reset, 1)
         # self.reset()  # ilk açılışta otomatik konum resetleme
 
         global normal_force
@@ -321,20 +321,20 @@ class ScreenTwo(Screen):
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
 
-        # if gpio.input(start_switch):
-        #     self.reset_for_test()
-        # else:
-        gpio.remove_event_detect(start_switch)
-        self.t = threading.Thread(target=get_force, args=("task",))
-        self.t.start()
+        if gpio.input(start_switch):
+            pass
+        else:
 
-        Clock.schedule_interval(self.get_value, sample_time)
-        self.ids.dist_current.text = "0"
+            self.t = threading.Thread(target=get_force, args=("task",))
+            self.t.start()
 
-        drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
-        md.motor_run(drive_time, frequency, direction)
+            Clock.schedule_interval(self.get_value, sample_time)
+            self.ids.dist_current.text = "0"
 
-        self.max_distance_event()
+            drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
+            md.motor_run(drive_time, frequency, direction)
+
+            self.max_distance_event()
         # if self.ids.distance_text.text == "":
         #     pass
         # else:
@@ -367,11 +367,19 @@ class ScreenTwo(Screen):
         self.stop()
 
     def stop(self):
-        gpio.remove_event_detect(start_switch)
-        gpio.remove_event_detect(stop_switch)
-
+        try:
+            gpio.remove_event_detect(start_switch)
+        except:
+            pass
+        try:
+            gpio.remove_event_detect(stop_switch)
+        except:
+            pass
         md.stop_motor()
-        Clock.unschedule(self.get_value)
+        try:
+            Clock.unschedule(self.get_value)
+        except:
+            pass
         try:
             self.t.do_run = False
             self.t.join()
@@ -386,9 +394,9 @@ class ScreenTwo(Screen):
         signal.signal(signal.SIGALRM, self.reset_)
         signal.setitimer(signal.ITIMER_REAL, 0.5, 0)
 
-    def reset_(self, dt):
+    def reset_(self, signum, _):
 
-        Clock.unschedule(self.reset_)
+#        Clock.unschedule(self.reset_)
         md.stop_motor()
         if gpio.input(start_switch):
             self.motor_backward()
@@ -561,7 +569,7 @@ class ScreenFour(Screen):
     def __init__(self, **args):
         Screen.__init__(self, **args)
 
-        self.reset()  # ilk açılışta otomatik açı resetleme
+        #self.reset()  # ilk açılışta otomatik açı resetleme
 
     def start(self):
         global angle_test_normal_motor_distance
@@ -569,10 +577,10 @@ class ScreenFour(Screen):
         angle_test_normal_motor_speed = 150
         angle_test_normal_motor_distance = 200
 
-        if gpio.input(angle_switch_start) or gpio.input(start_switch):
-            self.reset_for_test()
+        #if gpio.input(angle_switch_start) or gpio.input(start_switch):
+            #self.reset_for_test()
 
-        elif gpio.input(angle_switch_start) == gpio.input(start_switch) == False:
+        if not gpio.input(angle_switch_start):
             global forces
             forces = [[0, 0]]
             self.ids.graph.remove_plot(self.plot)
@@ -632,12 +640,17 @@ class ScreenFour(Screen):
         self.stop()
 
     def stop(self):
-        Clock.unschedule(self.get_value)
+        try:
+            Clock.unschedule(self.get_value)
+        except:
+            pass
         md.stop_angle_motor()
         # md.stop_motor()
-        gpio.remove_event_detect(angle_switch_start)
-        gpio.remove_event_detect(angle_switch_stop)
-
+        try:
+            gpio.remove_event_detect(angle_switch_start)
+            gpio.remove_event_detect(angle_switch_stop)
+        except:
+            pass
         try:
             self.t.do_run = False
             self.t.join()
