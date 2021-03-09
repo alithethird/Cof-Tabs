@@ -317,26 +317,22 @@ class ScreenTwo(Screen):
 
     def start(self):
 
-        if not self.is_reset:
-            self.reset_for_test()
-        else:
-            self.is_reset = False
-            global forces
+        global forces
 
-            forces = [[0, 0]]
-            self.ids.graph.remove_plot(self.plot)
-            self.ids.graph.add_plot(self.plot)
+        forces = [[0, 0]]
+        self.ids.graph.remove_plot(self.plot)
+        self.ids.graph.add_plot(self.plot)
 
-            self.t = threading.Thread(target=get_force, args=("task",))
-            self.t.start()
+        self.t = threading.Thread(target=get_force, args=("task",))
+        self.t.start()
 
-            Clock.schedule_interval(self.get_value, sample_time)
-            self.ids.dist_current.text = "0"
+        Clock.schedule_interval(self.get_value, sample_time)
+        self.ids.dist_current.text = "0"
 
-            drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
-            md.motor_run(drive_time, frequency, direction)
+        drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
+        md.motor_run(drive_time, frequency, direction)
 
-            self.max_distance_event()
+        self.max_distance_event()
         # if self.ids.distance_text.text == "":
         #     pass
         # else:
@@ -586,23 +582,19 @@ class ScreenFour(Screen):
 
         # if gpio.input(angle_switch_start) or gpio.input(start_switch):
         # self.reset_for_test()
-        if not self.is_reset:
-            self.reset_for_test()
-        else:
-            self.is_reset = False
-            global forces
-            forces = [[0, 0]]
-            self.ids.graph.remove_plot(self.plot)
-            self.ids.graph.add_plot(self.plot)
-            self.t = threading.Thread(target=get_force, args=("task",))
-            self.t.start()
+        global forces
+        forces = [[0, 0]]
+        self.ids.graph.remove_plot(self.plot)
+        self.ids.graph.add_plot(self.plot)
+        self.t = threading.Thread(target=get_force, args=("task",))
+        self.t.start()
 
-            Clock.schedule_interval(self.get_value,
-                                    sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample
-            # kaymaya başlayınca durabilir
+        Clock.schedule_interval(self.get_value,
+                                sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample
+        # kaymaya başlayınca durabilir
 
-            md.start_angle_motor_rise(angle_test_speed)
-            self.max_angle_event()
+        md.start_angle_motor_rise(angle_test_speed)
+        self.max_angle_event()
 
     #
     #     drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_normal_motor_distance,
