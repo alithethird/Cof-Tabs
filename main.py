@@ -300,8 +300,8 @@ class ScreenTwo(Screen):
 
     def __init__(self, **args):
         Screen.__init__(self, **args)
-
-        #Clock.schedule_interval(self.reset, 1)
+        self.is_reset = False
+        # Clock.schedule_interval(self.reset, 1)
         # self.reset()  # ilk açılışta otomatik konum resetleme
 
         global normal_force
@@ -316,14 +316,16 @@ class ScreenTwo(Screen):
         # self.reset()  # reset when program starts
 
     def start(self):
-        global forces
-        forces = [[0, 0]]
-        self.ids.graph.remove_plot(self.plot)
-        self.ids.graph.add_plot(self.plot)
 
-        if gpio.input(start_switch):
-            pass
+        if not self.is_reset:
+            self.reset_for_test()
         else:
+            self.is_reset = False
+            global forces
+
+            forces = [[0, 0]]
+            self.ids.graph.remove_plot(self.plot)
+            self.ids.graph.add_plot(self.plot)
 
             self.t = threading.Thread(target=get_force, args=("task",))
             self.t.start()
@@ -386,9 +388,11 @@ class ScreenTwo(Screen):
             # self.reset()  # reset when test ends
         except:
             pass
+        if self.is_reset:
+            self.start()
 
     def reset(self):
-
+        self.is_reset = False
         self.motor_forward()
 
         signal.signal(signal.SIGALRM, self.reset_)
@@ -396,16 +400,18 @@ class ScreenTwo(Screen):
 
     def reset_(self, signum, _):
 
-#        Clock.unschedule(self.reset_)
+        #        Clock.unschedule(self.reset_)
         md.stop_motor()
         if gpio.input(start_switch):
             self.motor_backward()
             self.min_distance_event()
 
-
     def reset_for_test(self):
-        self.motor_backward()
-        self.min_distance_event_for_test()
+        self.is_reset = True
+        self.motor_forward()
+
+        signal.signal(signal.SIGALRM, self.reset_)
+        signal.setitimer(signal.ITIMER_REAL, 0.5, 0)
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
@@ -568,8 +574,9 @@ class ScreenFour(Screen):
 
     def __init__(self, **args):
         Screen.__init__(self, **args)
+        self.is_reset = False
 
-        #self.reset()  # ilk açılışta otomatik açı resetleme
+        # self.reset()  # ilk açılışta otomatik açı resetleme
 
     def start(self):
         global angle_test_normal_motor_distance
@@ -577,10 +584,12 @@ class ScreenFour(Screen):
         angle_test_normal_motor_speed = 150
         angle_test_normal_motor_distance = 200
 
-        #if gpio.input(angle_switch_start) or gpio.input(start_switch):
-            #self.reset_for_test()
-
-        if not gpio.input(angle_switch_start):
+        # if gpio.input(angle_switch_start) or gpio.input(start_switch):
+        # self.reset_for_test()
+        if not self.is_reset:
+            self.reset_for_test()
+        else:
+            self.is_reset = False
             global forces
             forces = [[0, 0]]
             self.ids.graph.remove_plot(self.plot)
@@ -595,136 +604,155 @@ class ScreenFour(Screen):
             md.start_angle_motor_rise(angle_test_speed)
             self.max_angle_event()
 
-        #
-        #     drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_normal_motor_distance,
-        #     speed=angle_test_normal_motor_speed, direction=0)
-        #     md.motor_run(drive_time, frequency, direction)
-        #     self.max_distance_event()
-        #     signal.signal(signal.SIGALRM, self.angle_start)
-        #     signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
-        #
-        # def angle_start(self, signum, _):
-        #     gpio.remove_event_detect(stop_switch)
+    #
+    #     drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_normal_motor_distance,
+    #     speed=angle_test_normal_motor_speed, direction=0)
+    #     md.motor_run(drive_time, frequency, direction)
+    #     self.max_distance_event()
+    #     signal.signal(signal.SIGALRM, self.angle_start)
+    #     signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
+    #
+    # def angle_start(self, signum, _):
+    #     gpio.remove_event_detect(stop_switch)
 
-    def max_distance_event(self):
-        try:
-            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
-        except:
-            pass
 
-    def min_distance_event_for_test(self):
-        try:
-            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.reset_for_test, bouncetime=100)
-        except:
-            pass
+def max_distance_event(self):
+    try:
+        gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
+    except:
+        pass
 
-    def max_angle_event(self):
-        try:
-            gpio.add_event_detect(angle_switch_stop, gpio.FALLING, callback=self.stop_event, bouncetime=100)
-        except:
-            pass
 
-    def min_angle_event(self):
-        try:
-            gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.stop_event, bouncetime=100)
-        except:
-            pass
+def min_distance_event_for_test(self):
+    try:
+        gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.reset_for_test, bouncetime=100)
+    except:
+        pass
 
-    def min_angle_event_for_test(self):
-        try:
-            gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.reset_for_test, bouncetime=10)
-        except:
-            pass
 
-    def stop_event(self, channel):
-        self.stop()
+def max_angle_event(self):
+    try:
+        gpio.add_event_detect(angle_switch_stop, gpio.FALLING, callback=self.stop_event, bouncetime=100)
+    except:
+        pass
 
-    def stop(self):
-        try:
-            Clock.unschedule(self.get_value)
-        except:
-            pass
-        md.stop_angle_motor()
-        # md.stop_motor()
-        try:
-            gpio.remove_event_detect(angle_switch_start)
-            gpio.remove_event_detect(angle_switch_stop)
-        except:
-            pass
-        try:
-            self.t.do_run = False
-            self.t.join()
-        except:
-            pass
 
-    def reset(self):
+def min_angle_event(self):
+    try:
+        gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.stop_event, bouncetime=100)
+    except:
+        pass
 
-        md.start_angle_motor_rise(angle_test_speed)
-        signal.signal(signal.SIGALRM, self.reset_)
-        signal.setitimer(signal.ITIMER_REAL, 1, 0)
 
-    def reset_(self, signum, _):
-        md.stop_angle_motor()
-        if gpio.input(angle_switch_start):
-            md.start_angle_motor_fall(angle_test_speed)
-            self.min_angle_event()
+def min_angle_event_for_test(self):
+    try:
+        gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.reset_for_test, bouncetime=10)
+    except:
+        pass
 
-        # buraya hareket motoru için de reset ekle koç
 
-    def reset_for_test(self):
+def stop_event(self, channel):
+    self.stop()
 
-        if gpio.input(angle_switch_start):
-            md.start_angle_motor_fall(angle_test_speed)
-            self.min_angle_event_for_test()
-        else:
-            md.stop_angle_motor()
-            gpio.remove_event_detect(angle_switch_start)
 
-        if gpio.input(start_switch):
-            drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_normal_motor_distance,
-                                                                  speed=angle_test_normal_motor_speed, direction=1)
-            md.motor_run(drive_time, frequency, direction)
-            self.min_distance_event_for_test()
-        else:
-            md.stop_motor()
-            gpio.remove_event_detect(start_switch)
+def stop(self):
+    try:
+        Clock.unschedule(self.get_value)
+    except:
+        pass
+    md.stop_angle_motor()
+    # md.stop_motor()
+    try:
+        gpio.remove_event_detect(angle_switch_start)
+        gpio.remove_event_detect(angle_switch_stop)
+    except:
+        pass
+    try:
+        self.t.do_run = False
+        self.t.join()
+    except:
+        pass
+    if self.is_reset:
+        self.start()
 
-        if gpio.input(angle_switch_start) == gpio.input(start_switch) == False:
-            self.start()
 
-    def save_graph(self):
-        self.ids.graph.export_to_png("graph.png")
+def reset(self):
+    self.is_reset = False
+    md.start_angle_motor_rise(angle_test_speed)
+    signal.signal(signal.SIGALRM, self.reset_)
+    signal.setitimer(signal.ITIMER_REAL, 1, 0)
 
-    def get_value(self, dt):
 
-        if forces[-1][0] == 0:
-            self.ids.graph.xmax = 1
-        elif forces[-1][0] > self.ids.graph.xmax:
-            self.ids.graph.xmax = forces[-1][0]
-
-        if len(forces) < 3:
-            self.ids.graph.ymax = 1
-        elif forces[-1][1] > self.ids.graph.ymax:
-            self.ids.graph.ymax = (forces[-1][1] * 1.1)
-        if forces[-1][1] > float(self.ids.force_max.text):
-            self.ids.force_max.text = str(round(forces[-1][1], 3))
-        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
-
-        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
-
-        self.plot.points = forces
-        self.ids.angle_current.text = str(round(forces[-1][0] * angular_speed, 2))
-        self.ids.force_current.text = str(round(forces[-1][1], 2))
-
-    # self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
-
-    def angle_motor_rise(self):
-        md.start_angle_motor_rise(angle_test_speed)
-        self.max_angle_event()
-
-    def angle_motor_fall(self):
+def reset_(self, signum, _):
+    md.stop_angle_motor()
+    if gpio.input(angle_switch_start):
         md.start_angle_motor_fall(angle_test_speed)
         self.min_angle_event()
+
+    # buraya hareket motoru için de reset ekle koç
+
+
+def reset_for_test(self):
+    self.is_reset = True
+    md.start_angle_motor_rise(angle_test_speed)
+    signal.signal(signal.SIGALRM, self.reset_)
+    signal.setitimer(signal.ITIMER_REAL, 1, 0)
+    #
+    # if gpio.input(angle_switch_start):
+    #     md.start_angle_motor_fall(angle_test_speed)
+    #     self.min_angle_event_for_test()
+    # else:
+    #     md.stop_angle_motor()
+    #     gpio.remove_event_detect(angle_switch_start)
+    #
+    # if gpio.input(start_switch):
+    #     drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_normal_motor_distance,
+    #                                                           speed=angle_test_normal_motor_speed, direction=1)
+    #     md.motor_run(drive_time, frequency, direction)
+    #     self.min_distance_event_for_test()
+    # else:
+    #     md.stop_motor()
+    #     gpio.remove_event_detect(start_switch)
+    #
+    # if gpio.input(angle_switch_start) == gpio.input(start_switch) == False:
+    #     self.start()
+
+
+def save_graph(self):
+    self.ids.graph.export_to_png("graph.png")
+
+
+def get_value(self, dt):
+    if forces[-1][0] == 0:
+        self.ids.graph.xmax = 1
+    elif forces[-1][0] > self.ids.graph.xmax:
+        self.ids.graph.xmax = forces[-1][0]
+
+    if len(forces) < 3:
+        self.ids.graph.ymax = 1
+    elif forces[-1][1] > self.ids.graph.ymax:
+        self.ids.graph.ymax = (forces[-1][1] * 1.1)
+    if forces[-1][1] > float(self.ids.force_max.text):
+        self.ids.force_max.text = str(round(forces[-1][1], 3))
+    self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
+
+    self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
+
+    self.plot.points = forces
+    self.ids.angle_current.text = str(round(forces[-1][0] * angular_speed, 2))
+    self.ids.force_current.text = str(round(forces[-1][1], 2))
+
+
+# self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
+
+def angle_motor_rise(self):
+    md.start_angle_motor_rise(angle_test_speed)
+    self.max_angle_event()
+
+
+def angle_motor_fall(self):
+    md.start_angle_motor_fall(angle_test_speed)
+    self.min_angle_event()
 
 
 class ScreenFive(Screen):
