@@ -968,12 +968,11 @@ class ScreenSix(Screen):
     def update_results(self):
         try:
             self.max_dynamic, self.mean_dynamic, self.max_static, self.mean_static = self.create_results()
-
-            self.ids.l_max_static.text = str(self.max_static)
-            self.ids.l_mean_static.text = str(self.mean_static)
-
-            self.ids.l_max_dynamic.text = str(self.max_dynamic)
-            self.ids.l_mean_dynamic.text = str(self.mean_dynamic)
+            self.max_dynamic = self.max_dynamic / 10
+            self.mean_dynamic = self.mean_dynamic / 10
+            self.ids.l_max_static.text = str(self.max_dynamic)
+            self.ids.l_mean_static.text = str(self.mean_dynamic)
+            # pdfe de ekle
 
             if test_mode == 0:
                 json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
