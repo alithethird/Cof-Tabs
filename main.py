@@ -1,5 +1,5 @@
 import datetime
-from math import cos, sin
+from math import cos, pow
 import threading
 from time import sleep
 import RPi.GPIO as gpio
@@ -146,7 +146,7 @@ def find_static_angle(forces):
     for i in forces:
         if i[1] > biggest:
             biggest = i[1]
-            static_angle = i[0] * angular_speed
+            static_angle = 73.85459 + (0.8731737 - 73.85459)/(1 + pow(((i[0]*0.6)/65.63023), 1.061611))
         else:
             pass
     return static_angle
@@ -720,7 +720,7 @@ class ScreenFour(Screen):
         self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
 
         self.plot.points = forces
-        self.ids.angle_current.text = str(round(forces[-1][0] * angular_speed, 2))
+        self.ids.angle_current.text = str(round(73.85459 + (0.8731737 - 73.85459)/(1 + pow(((forces[-1][0]*0.6)/65.63023), 1.061611)), 2))
         self.ids.force_current.text = str(round(forces[-1][1], 2))
 
     # self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
@@ -871,7 +871,7 @@ class ScreenFive(Screen):
         normal_force = 200
         sample_time = 0.1
         calib = 0.011772
-        angle_test_speed = 500
+        angle_test_speed = 1250
         angular_speed = 1
 
         self.ids.distance.text = str(test_distance)
