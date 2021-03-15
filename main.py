@@ -868,7 +868,7 @@ class ScreenFive(Screen):
 
         test_distance = 60
         test_speed = 150
-        normal_force = 200
+        normal_force = 199.46
         sample_time = 0.1
         calib = 0.011772
         angle_test_speed = 1250
