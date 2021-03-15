@@ -6,6 +6,7 @@ import RPi.GPIO as gpio
 import signal
 from kivy.config import Config
 
+gpio.setwarnings(False)
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 Config.set('kivy', 'keyboard_mode', 'systemanddock')
 from kivy.app import App
@@ -607,13 +608,11 @@ class ScreenFour(Screen):
     # def angle_start(self, signum, _):
     #     gpio.remove_event_detect(stop_switch)
 
-
     def max_distance_event(self):
         try:
             gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
         except:
             pass
-
 
     def min_distance_event_for_test(self):
         try:
@@ -621,13 +620,11 @@ class ScreenFour(Screen):
         except:
             pass
 
-
     def max_angle_event(self):
         try:
             gpio.add_event_detect(angle_switch_stop, gpio.FALLING, callback=self.stop_event, bouncetime=100)
         except:
             pass
-
 
     def min_angle_event(self):
         try:
@@ -635,17 +632,14 @@ class ScreenFour(Screen):
         except:
             pass
 
-
     def min_angle_event_for_test(self):
         try:
             gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.reset_for_test, bouncetime=10)
         except:
             pass
 
-
     def stop_event(self, channel):
         self.stop()
-
 
     def stop(self):
         try:
@@ -667,13 +661,11 @@ class ScreenFour(Screen):
         if self.is_reset:
             self.start()
 
-
     def reset(self):
         self.is_reset = False
         md.start_angle_motor_rise(angle_test_speed)
         signal.signal(signal.SIGALRM, self.reset_)
         signal.setitimer(signal.ITIMER_REAL, 1, 0)
-
 
     def reset_(self, signum, _):
         md.stop_angle_motor()
@@ -682,7 +674,6 @@ class ScreenFour(Screen):
             self.min_angle_event()
 
         # buraya hareket motoru için de reset ekle koç
-
 
     def reset_for_test(self):
         self.is_reset = True
@@ -709,10 +700,8 @@ class ScreenFour(Screen):
         # if gpio.input(angle_switch_start) == gpio.input(start_switch) == False:
         #     self.start()
 
-
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
-
 
     def get_value(self, dt):
         if forces[-1][0] == 0:
@@ -734,13 +723,11 @@ class ScreenFour(Screen):
         self.ids.angle_current.text = str(round(forces[-1][0] * angular_speed, 2))
         self.ids.force_current.text = str(round(forces[-1][1], 2))
 
-
     # self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
 
     def angle_motor_rise(self):
         md.start_angle_motor_rise(angle_test_speed)
         self.max_angle_event()
-
 
     def angle_motor_fall(self):
         md.start_angle_motor_fall(angle_test_speed)
@@ -903,6 +890,120 @@ class ScreenFive(Screen):
     def clean_errors(self):
         self.ids.error.color = (0, 0, 0, 0)
 
+class ScreenSix(Screen):
+    date_today = datetime.date.today()
+    date_text = str(date_today)
+
+    def create_results(self):
+        max_dynamic_cof, mean_dynamic_cof = self.find_dynamic_cof()
+        max_static_cof, mean_static_cof = self.find_static_cof()
+        return max_dynamic_cof, mean_dynamic_cof, max_static_cof, mean_static_cof
+
+    def find_dynamic_cof(self):
+        if test_mode == 0:  # motorize mod
+            max_dynamic_force, mean_dynamic_force = find_dynamic_force_advanced()
+            try:
+                mean_dynamic_cof = mean_dynamic_force / (normal_force * 9.81 * cos(test_angle))
+                mean_dynamic_cof = round(mean_dynamic_cof, 3)
+
+                max_dynamic_cof = max_dynamic_force / (normal_force * 9.81 * cos(test_angle))
+                max_dynamic_cof = round(max_dynamic_cof, 3)
+            except TypeError:
+                mean_dynamic_cof = "Testing Error (type Error)"
+                max_dynamic_cof = "Testing Error (type Error)"
+            except:
+                mean_dynamic_cof = "Testing Error something"
+                max_dynamic_cof = "Testing Error something"
+        elif test_mode == 1:  # açı mod #** ekleme yapılacak max ve mean için
+            try:
+                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos(
+                    30))  # en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
+                mean_dynamic_cof = round(dynamic_cof, 3)
+                max_dynamic_cof = round(dynamic_cof, 3)
+            except TypeError:
+                mean_dynamic_cof = "Testing Error (type Error)"
+            except:
+                mean_dynamic_cof = "Testing Error something"
+        else:
+            dynamic_cof = "Test Mode Select Error!"
+        return max_dynamic_cof, mean_dynamic_cof
+
+    def find_static_cof(self):
+        max_static_force, mean_static_force = find_static_force_advanced()
+
+        if test_mode == 0:  # motorize mod
+            try:
+                max_static_cof = max_static_force / (normal_force * 9.81 * cos(test_angle))
+                max_static_cof = round(max_static_cof, 3)
+
+                mean_static_cof = mean_static_force / (normal_force * 9.81 * cos(test_angle))
+                mean_static_cof = round(mean_static_cof, 3)
+            except TypeError:
+                max_static_cof = "Testing Error (type Error)"
+                mean_static_cof = "Testing Error (type Error)"
+            except:
+                max_static_cof = "Error!"
+                mean_static_cof = "Error!"
+
+        elif test_mode == 1:  # açı mod
+            static_angle = find_static_angle(forces)  # needs to be changed
+            try:
+                max_static_cof = max_static_force / (normal_force * 9.81 * cos(static_angle))
+                max_static_cof = round(max_static_cof, 3)
+
+                mean_static_cof = mean_static_force / (normal_force * 9.81 * cos(static_angle))
+                mean_static_cof = round(mean_static_cof, 3)
+            except TypeError:
+                max_static_cof = "Testing Error (type Error)"
+                mean_static_cof = "Testing Error (type Error)"
+            except:
+                max_static_cof = "Error!"
+                mean_static_cof = "Error!"
+        else:
+            max_static_cof = "Test Mode Select Error!"
+            mean_static_cof = "Test Mode Select Error!"
+
+        return max_static_cof, mean_static_cof
+
+    def update_results(self):
+        try:
+            self.max_dynamic, self.mean_dynamic, self.max_static, self.mean_static = self.create_results()
+
+            self.ids.l_max_static.text = str(self.max_static)
+            self.ids.l_mean_static.text = str(self.mean_static)
+
+            self.ids.l_max_dynamic.text = str(self.max_dynamic)
+            self.ids.l_mean_dynamic.text = str(self.mean_dynamic)
+
+            if test_mode == 0:
+                json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+                                      sample2, test_mode, ScreenTwo.plot.points)
+            elif test_mode == 1:
+                json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+                                      sample2, test_mode, ScreenFour.plot.points)
+        except:
+            pass
+
+    def createPDF(self):
+        self.pdf = fpdf_handler()
+
+        self.update_results()
+
+        if test_mode == 0:
+            self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+                                sample2, test_mode, ScreenTwo.plot.points)
+        else:
+            self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+                                sample2, test_mode, ScreenFour.plot.points)
+
+        self.show_popup()
+
+    def show_popup(self):
+        show = P()
+        self.popupWindow = Popup(title="PDF Saved", content=show, size_hint=(None, None), size=(400, 200))
+
+        self.popupWindow.open()
+
 
 screen_manager = ScreenManager()
 
@@ -911,6 +1012,7 @@ screen_manager.add_widget(ScreenTwo(name="screen_two"))
 screen_manager.add_widget(ScreenThree(name="screen_three"))
 screen_manager.add_widget(ScreenFour(name="screen_four"))
 screen_manager.add_widget(ScreenFive(name="screen_five"))
+screen_manager.add_widget(ScreenSix(name="screen_six"))
 
 
 class AwesomeApp(App):

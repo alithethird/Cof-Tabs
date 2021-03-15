@@ -647,6 +647,92 @@
             pos_hint: {"center_x": 0.9, "center_y": 0.68}
             halign: "left"
 
+<ScreenSix>:
+    FloatLayout:
+        size: root.width, root.height
+
+        Button:
+            text: "Calculate Results"
+            pos_hint: {'center_x': 0.2, 'center_y': 0.2}
+            size_hint: (1/5,1/16)
+            on_press: root.update_results()
+        Button:
+            text: "Create Results PDF"
+            pos_hint: {'center_x': 0.8, "center_y": 0.2}
+            size_hint: (1/5, 1/16)
+            on_press: root.createPDF()
+
+        Button:
+            text: "Go back"
+            pos_hint: {'center_x': 0.8, "center_y": 0.1}
+            size_hint: (1/8, 1/16)
+            on_press:
+                root.manager.transition.direction = "right"
+                root.manager.transition.duration = 0.5
+                root.manager.current = "screen_four"
+
+        Label:
+            text: "Max Static Coefficient of friction: "
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.19, "center_y": 0.8}
+            halign: "left"
+
+        Label:
+            id: l_max_static
+            text: "0.00"
+            pos: (-90, 143)
+            color: 0,0,0,1
+
+        Label:
+            text: "Mean Static Coefficient of friction: "
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.19, "center_y": 0.7}
+            halign: "left"
+
+        Label:
+            id: l_mean_static
+            text: "0.00"
+            pos: -90, 95
+            color: 0,0,0,1
+
+        Label:
+            text: "Max Dynamic Coefficient of friction:"
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.2, "center_y": 0.5}
+            halign: "left"
+
+        Label:
+            id: l_max_dynamic
+            text: "0.00"
+            pos: -90, 0
+            color: 0,0,0,1
+
+        Label:
+            text: "Mean Dynamic Coefficient of friction:"
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.2, "center_y": 0.4}
+            halign: "left"
+
+        Label:
+            id: l_mean_dynamic
+            text: "0.00"
+            pos: -90, -48
+            color: 0, 0, 0, 1
+        Label:
+            text: "Date: "
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.1, "center_y": 0.1}
+            halign: "left"
+
+
+        Label:
+            id: label_date
+            text: root.date_text
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.18, "center_y": 0.1}
+            halign: "left"
+
+
 <TarePop>:
     Label:
         text: "Tare Completed"
