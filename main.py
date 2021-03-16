@@ -1,5 +1,5 @@
 import datetime
-from math import cos, pow
+from math import cos, pow, radians
 import threading
 from time import sleep
 import RPi.GPIO as gpio
@@ -514,7 +514,7 @@ class ScreenThree(Screen):
                 mean_static_cof = "Error!"
 
         elif test_mode == 1:  # açı mod
-            static_angle = find_static_angle(forces)  # needs to be changed
+            static_angle = radians(find_static_angle(forces)) # needs to be changed
             try:
                 max_static_cof = max_static_force / (normal_force * 9.81 * cos(static_angle))
                 max_static_cof = round(max_static_cof, 3)
