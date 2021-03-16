@@ -598,10 +598,12 @@ class ScreenFour(Screen):
                                 sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample
         # kaymaya başlayınca durabilir
 
+        self.time_ = 0
+        Clock.schedule_interval(self.timer, 0.1)
+
         md.start_angle_motor_rise(angle_test_speed)
         self.max_angle_event()
 
-    #
     #     drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_normal_motor_distance,
     #     speed=angle_test_normal_motor_speed, direction=0)
     #     md.motor_run(drive_time, frequency, direction)
@@ -611,6 +613,10 @@ class ScreenFour(Screen):
     #
     # def angle_start(self, signum, _):
     #     gpio.remove_event_detect(stop_switch)
+
+    def timer(self, dt):
+        self.time_ += 0.1
+        self.ids.time_current.text = str(self.time_)
 
     def max_distance_event(self):
         try:
