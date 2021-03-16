@@ -84,6 +84,10 @@ angular_speed = 1
 
 global calib  # kalibrasyon sayısı
 
+def time_to_angle(angle_time):
+
+    return 73.85459 + (0.8731737 - 73.85459)/(1 + pow(((angle_time*0.6)/65.63023), 1.061611))
+
 
 def get_force(arg):
     t = threading.currentThread()
@@ -146,7 +150,7 @@ def find_static_angle(forces):
     for i in forces:
         if i[1] > biggest:
             biggest = i[1]
-            static_angle = 73.85459 + (0.8731737 - 73.85459)/(1 + pow(((i[0]*0.6)/65.63023), 1.061611))
+            static_angle = time_to_angle(i[0])
         else:
             pass
     return static_angle
@@ -720,7 +724,7 @@ class ScreenFour(Screen):
         self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
 
         self.plot.points = forces
-        self.ids.angle_current.text = str(round(73.85459 + (0.8731737 - 73.85459)/(1 + pow(((forces[-1][0]*0.6)/65.63023), 1.061611)), 2))
+        self.ids.angle_current.text = str(round(time_to_angle(forces[-1][0]), 2))
         self.ids.force_current.text = str(round(forces[-1][1], 2))
 
     # self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
