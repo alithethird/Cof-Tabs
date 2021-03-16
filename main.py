@@ -86,8 +86,11 @@ global calib  # kalibrasyon sayısı
 
 def time_to_angle(angle_time):
 
-    return 73.85459 + (0.8731737 - 73.85459)/(1 + pow(((angle_time*0.6)/65.63023), 1.061611))
-
+    #return 73.85459 + (0.8731737 - 73.85459)/(1 + pow(((angle_time*0.6)/65.63023), 1.061611))
+    # qubic from new data (fits a little bit better, RMSE = 3.173, R^2 = 0.9986 )
+    return 0.0003434*pow(angle_time, 3) - 0.03658*pow(angle_time, 2) + 2.079*angle_time - 0.1492
+    # quadratic from new data ( RMSE = 3.595, R^2 = 0.9983)
+    #return -0.02008*pow(angle_time, 2) + 1.872*angle_time + 0.367
 
 def get_force(arg):
     t = threading.currentThread()
