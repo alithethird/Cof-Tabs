@@ -484,8 +484,9 @@ class ScreenThree(Screen):
                 max_dynamic_cof = "Testing Error something"
         elif test_mode == 1:  # açı mod #** ekleme yapılacak max ve mean için
             try:
-                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos(
-                    30))  # en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
+                dynamic_angle = time_to_angle(forces[-1][0])
+                dynamic_angle = radians(dynamic_angle)
+                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos(dynamic_angle))  # en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
                 mean_dynamic_cof = round(dynamic_cof, 3)
                 max_dynamic_cof = round(dynamic_cof, 3)
             except TypeError:
