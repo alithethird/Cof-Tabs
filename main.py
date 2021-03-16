@@ -591,7 +591,7 @@ class ScreenFour(Screen):
         forces = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        self.t = threading.Thread(target=get_force, args=("task",))
+        self.t = threading.Thread(target=self.get_force, args=("task",))
         self.t.start()
 
         Clock.schedule_interval(self.get_value,
@@ -615,7 +615,7 @@ class ScreenFour(Screen):
     #     gpio.remove_event_detect(stop_switch)
 
     def timer(self, dt):
-        self.time_ += 0.1
+        self.time_ = round(self.time_ + 0.1, 2)
         self.ids.time_current.text = str(self.time_)
 
     def max_distance_event(self):
@@ -654,6 +654,8 @@ class ScreenFour(Screen):
     def stop(self):
         try:
             Clock.unschedule(self.get_value)
+            Clock.unschedule(self.timer)
+            self.time_ = 0
         except:
             pass
         md.stop_angle_motor()
@@ -712,6 +714,27 @@ class ScreenFour(Screen):
 
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
+
+    def get_force(self, arg):
+        t = threading.currentThread()
+        while getattr(t, "do_run", True):
+            start_time = datetime.datetime.now()
+            # sleep(sample_time)
+            val = hx.get_weight()
+            val *= calib
+            if val < 0:
+                val = 1
+
+            if len(forces) > 1:
+                forces.append([self.time_, val])
+            else:
+                forces.append([0, val])
+
+            sleep_time = datetime.datetime.now() - start_time
+            sleep_time = sleep_time.total_seconds()
+            sleep_time = sample_time - sleep_time
+            if sleep_time > 0:
+                sleep(sleep_time)
 
     def get_value(self, dt):
         if forces[-1][0] == 0:
