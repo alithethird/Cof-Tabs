@@ -326,13 +326,15 @@ class ScreenTwo(Screen):
     def start(self):
 
         global forces
-
+        self.time_ = 0
         forces = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
 
-        self.t = threading.Thread(target=get_force, args=("task",))
+        self.t = threading.Thread(target=self.get_force, args=("task",))
         self.t.start()
+
+        Clock.schedule_interval(self.timer, sample_time)
 
         Clock.schedule_interval(self.get_value, sample_time)
         self.ids.dist_current.text = "0"
@@ -341,6 +343,8 @@ class ScreenTwo(Screen):
         md.motor_run(drive_time, frequency, direction)
 
         self.max_distance_event()
+
+        return True
         # if self.ids.distance_text.text == "":
         #     pass
         # else:
@@ -350,6 +354,29 @@ class ScreenTwo(Screen):
         #     pass
         # else:
         #     self.test_speed = float(self.ids.speed_text.text)
+    def timer(self, dt):
+        self.time_ = round(self.time_ + 0.1, 2)
+
+    def get_force(self, arg):
+        t = threading.currentThread()
+        while getattr(t, "do_run", True):
+            start_time = datetime.datetime.now()
+            # sleep(sample_time)
+            val = hx.get_weight()
+            val *= calib
+            if val < 0:
+                val = 1
+
+            if len(forces) > 1:
+                forces.append([forces[-1][0] + (sample_time * 5), val])
+            else:
+                forces.append([0, val])
+
+            sleep_time = datetime.datetime.now() - start_time
+            sleep_time = sleep_time.total_seconds()
+            sleep_time = sample_time - sleep_time
+            if sleep_time > 0:
+                sleep(sleep_time)
 
     def max_distance_event(self):
         try:
@@ -371,8 +398,10 @@ class ScreenTwo(Screen):
 
     def stop_event(self, channel):
         self.stop()
+        return True
 
     def stop(self):
+
         try:
             gpio.remove_event_detect(start_switch)
         except:
@@ -384,6 +413,8 @@ class ScreenTwo(Screen):
         md.stop_motor()
         try:
             Clock.unschedule(self.get_value)
+            Clock.unschedule(self.timer)
+            self.time_ = 0
         except:
             pass
         try:
@@ -654,6 +685,7 @@ class ScreenFour(Screen):
 
     def stop_event(self, channel):
         self.stop()
+        return True
 
     def stop(self):
         try:
@@ -696,6 +728,7 @@ class ScreenFour(Screen):
         md.start_angle_motor_rise(angle_test_speed)
         signal.signal(signal.SIGALRM, self.reset_)
         signal.setitimer(signal.ITIMER_REAL, 1, 0)
+        return True
         #
         # if gpio.input(angle_switch_start):
         #     md.start_angle_motor_fall(angle_test_speed)
