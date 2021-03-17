@@ -328,10 +328,12 @@ class ScreenTwo(Screen):
 
         try:
             gpio.remove_event_detect(stop_switch)
+            gpio.cleanup(stop_switch)
         except:
             pass
         try:
             gpio.remove_event_detect(start_switch)
+            gpio.cleanup(start_switch)
         except:
             pass
         global forces
@@ -398,10 +400,12 @@ class ScreenTwo(Screen):
 
         try:
             gpio.remove_event_detect(stop_switch)
+            gpio.cleanup(stop_switch)
         except:
             pass
         try:
             gpio.remove_event_detect(start_switch)
+            gpio.cleanup(start_switch)
         except:
             pass
         md.stop_motor()
@@ -428,7 +432,7 @@ class ScreenTwo(Screen):
         signal.setitimer(signal.ITIMER_REAL, 0.5, 0)
 
     def reset_(self, signum, _):
-
+        self.is_reset = False
         #        Clock.unschedule(self.reset_)
         md.stop_motor()
         if gpio.input(start_switch):
@@ -480,18 +484,21 @@ class ScreenTwo(Screen):
 
     def max_distance_event(self):
         try:
+            gpio.setup(stop_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
             gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=200)
         except:
             pass
 
     def min_distance_event(self):
         try:
+            gpio.setup(start_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
             gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.stop_event, bouncetime=200)
         except:
             pass
 
     def min_distance_event_for_test(self):
         try:
+            gpio.setup(start_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
             gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.start, bouncetime=200)
         except:
             pass
