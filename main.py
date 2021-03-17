@@ -326,6 +326,14 @@ class ScreenTwo(Screen):
 
     def start(self):
 
+        try:
+            gpio.remove_event_detect(stop_switch)
+        except:
+            pass
+        try:
+            gpio.remove_event_detect(start_switch)
+        except:
+            pass
         global forces
         self.time_ = 0
         forces = [[0, 0]]
@@ -335,9 +343,9 @@ class ScreenTwo(Screen):
         self.t = threading.Thread(target=self.get_force, args=("task",))
         self.t.start()
 
-        signal.signal(signal.SIGALRM, self.timer)
-        signal.setitimer(signal.ITIMER_REAL, 0.1, 1000)
-#        Clock.schedule_interval(self.timer, sample_time)
+        #        signal.signal(signal.SIGALRM, self.timer)
+        #        signal.setitimer(signal.ITIMER_REAL, 0.1, 1000)
+        Clock.schedule_interval(self.timer, sample_time)
 
         Clock.schedule_interval(self.get_value, sample_time)
         self.ids.dist_current.text = "0"
@@ -389,11 +397,11 @@ class ScreenTwo(Screen):
     def stop(self):
 
         try:
-            gpio.remove_event_detect(start_switch)
+            gpio.remove_event_detect(stop_switch)
         except:
             pass
         try:
-            gpio.remove_event_detect(stop_switch)
+            gpio.remove_event_detect(start_switch)
         except:
             pass
         md.stop_motor()
@@ -955,7 +963,7 @@ class ScreenFive(Screen):
         test_speed = 150
         normal_force = 199.46
         sample_time = 0.1
-        calib = 0.011772
+        calib = 0.01197
         angle_test_speed = 1250
         angular_speed = 1
 
