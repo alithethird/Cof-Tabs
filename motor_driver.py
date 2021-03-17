@@ -85,7 +85,7 @@ class motor_driver:
             # dakikada 100 mm için 18000 tick
             # saniyede 300 tick
             # 0.003 saniyede 1 tick
-            mm_per_tick = 180  # kalibrasyon için
+            mm_per_tick = 180*30  # kalibrasyon için
             # 60mm için 60*180 tick
             ticks = speed * mm_per_tick
 

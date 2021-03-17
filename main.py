@@ -370,7 +370,7 @@ class ScreenTwo(Screen):
                 val = 1
 
             if len(forces) > 1:
-                forces.append([forces[-1][0] + (sample_time * 5), val])
+                forces.append([forces[-1][0] + self.time_, val])
             else:
                 forces.append([0, val])
 
@@ -949,7 +949,7 @@ class ScreenFive(Screen):
         global angle_test_speed
         global angular_speed
 
-        test_distance = 60
+        test_distance = 10
         test_speed = 150
         normal_force = 199.46
         sample_time = 0.1
