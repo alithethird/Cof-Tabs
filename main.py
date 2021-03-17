@@ -618,6 +618,14 @@ class ScreenFour(Screen):
         # self.reset()  # ilk açılışta otomatik açı resetleme
 
     def start(self):
+        try:
+            gpio.remove_event_detect(angle_switch_start)
+            gpio.remove_event_detect(angle_switch_stop)
+            gpio.remove_event_detect(start_switch)
+            gpio.remove_event_detect(stop_switch)
+        except Exception:
+            print(Exception)
+
         global angle_test_normal_motor_distance
         global angle_test_normal_motor_speed
         angle_test_normal_motor_speed = 150
@@ -672,6 +680,8 @@ class ScreenFour(Screen):
         try:
             gpio.remove_event_detect(angle_switch_start)
             gpio.remove_event_detect(angle_switch_stop)
+            gpio.remove_event_detect(start_switch)
+            gpio.remove_event_detect(stop_switch)
         except:
             pass
         try:
