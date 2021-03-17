@@ -36,8 +36,8 @@ hx.reset()
 start_switch = 23  # start kısmındaki switch
 stop_switch = 25  # stop kısmındaki switch
 
-gpio.setup(start_switch, gpio.IN)
-gpio.setup(stop_switch, gpio.IN)
+gpio.setup(start_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
+gpio.setup(stop_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
 
 reset_motor_speed = 200
 Builder.load_file('cof.kv')
@@ -45,8 +45,8 @@ Builder.load_file('cof.kv')
 angle_switch_start = 27  # açı motoru bu switch ile resetlenmeli
 angle_switch_stop = 17  # açı motoru bu switche kadar çalışmalı
 
-gpio.setup(angle_switch_start, gpio.IN)
-gpio.setup(angle_switch_stop, gpio.IN)
+gpio.setup(angle_switch_start, gpio.IN, pull_up_down=gpio.PUD_UP)
+gpio.setup(angle_switch_stop, gpio.IN, pull_up_down=gpio.PUD_UP)
 
 md = motor_driver(2, False)  # bir adet dc bir adet açı(step) motor modu seçildi, soft start kapatıldı
 json_handler = JsonHandler()
@@ -84,13 +84,14 @@ angular_speed = 1
 
 global calib  # kalibrasyon sayısı
 
-def time_to_angle(angle_time):
 
-    #return 73.85459 + (0.8731737 - 73.85459)/(1 + pow(((angle_time*0.6)/65.63023), 1.061611))
+def time_to_angle(angle_time):
+    # return 73.85459 + (0.8731737 - 73.85459)/(1 + pow(((angle_time*0.6)/65.63023), 1.061611))
     # qubic from new data (fits a little bit better, RMSE = 3.173, R^2 = 0.9986 )
-    return 0.0003434*pow(angle_time, 3) - 0.03658*pow(angle_time, 2) + 2.079*angle_time - 0.1492
+    return 0.0003434 * pow(angle_time, 3) - 0.03658 * pow(angle_time, 2) + 2.079 * angle_time - 0.1492
     # quadratic from new data ( RMSE = 3.595, R^2 = 0.9983)
-    #return -0.02008*pow(angle_time, 2) + 1.872*angle_time + 0.367
+    # return -0.02008*pow(angle_time, 2) + 1.872*angle_time + 0.367
+
 
 def get_force(arg):
     t = threading.currentThread()
@@ -354,6 +355,7 @@ class ScreenTwo(Screen):
         #     pass
         # else:
         #     self.test_speed = float(self.ids.speed_text.text)
+
     def timer(self, dt):
         self.time_ = round(self.time_ + 0.1, 2)
 
@@ -377,24 +379,6 @@ class ScreenTwo(Screen):
             sleep_time = sample_time - sleep_time
             if sleep_time > 0:
                 sleep(sleep_time)
-
-    def max_distance_event(self):
-        try:
-            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
-        except:
-            pass
-
-    def min_distance_event(self):
-        try:
-            gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
-        except:
-            pass
-
-    def min_distance_event_for_test(self):
-        try:
-            gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.start, bouncetime=100)
-        except:
-            pass
 
     def stop_event(self, channel):
         self.stop()
@@ -484,6 +468,24 @@ class ScreenTwo(Screen):
             self.min_distance_event()
             md.motor_start(8000, 1)
 
+    def max_distance_event(self):
+        try:
+            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=200)
+        except:
+            pass
+
+    def min_distance_event(self):
+        try:
+            gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.stop_event, bouncetime=200)
+        except:
+            pass
+
+    def min_distance_event_for_test(self):
+        try:
+            gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.start, bouncetime=200)
+        except:
+            pass
+
 
 class P(FloatLayout):
     pass
@@ -517,7 +519,8 @@ class ScreenThree(Screen):
             try:
                 dynamic_angle = time_to_angle(forces[-1][0])
                 dynamic_angle = radians(dynamic_angle)
-                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos(dynamic_angle))  # en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
+                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos(
+                    dynamic_angle))  # en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
                 mean_dynamic_cof = round(dynamic_cof, 3)
                 max_dynamic_cof = round(dynamic_cof, 3)
             except TypeError:
@@ -546,7 +549,7 @@ class ScreenThree(Screen):
                 mean_static_cof = "Error!"
 
         elif test_mode == 1:  # açı mod
-            static_angle = radians(find_static_angle(forces)) # needs to be changed
+            static_angle = radians(find_static_angle(forces))  # needs to be changed
             try:
                 max_static_cof = max_static_force / (normal_force * 9.81 * cos(static_angle))
                 max_static_cof = round(max_static_cof, 3)
@@ -652,36 +655,6 @@ class ScreenFour(Screen):
     def timer(self, dt):
         self.time_ = round(self.time_ + 0.1, 2)
         self.ids.time_current.text = str(self.time_)
-
-    def max_distance_event(self):
-        try:
-            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=100)
-        except:
-            pass
-
-    def min_distance_event_for_test(self):
-        try:
-            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.reset_for_test, bouncetime=100)
-        except:
-            pass
-
-    def max_angle_event(self):
-        try:
-            gpio.add_event_detect(angle_switch_stop, gpio.FALLING, callback=self.stop_event, bouncetime=100)
-        except:
-            pass
-
-    def min_angle_event(self):
-        try:
-            gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.stop_event, bouncetime=100)
-        except:
-            pass
-
-    def min_angle_event_for_test(self):
-        try:
-            gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.reset_for_test, bouncetime=10)
-        except:
-            pass
 
     def stop_event(self, channel):
         self.stop()
@@ -802,6 +775,36 @@ class ScreenFour(Screen):
     def angle_motor_fall(self):
         md.start_angle_motor_fall(angle_test_speed)
         self.min_angle_event()
+
+    def max_distance_event(self):
+        try:
+            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=200)
+        except:
+            pass
+
+    def min_distance_event_for_test(self):
+        try:
+            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.reset_for_test, bouncetime=200)
+        except:
+            pass
+
+    def max_angle_event(self):
+        try:
+            gpio.add_event_detect(angle_switch_stop, gpio.FALLING, callback=self.stop_event, bouncetime=200)
+        except:
+            pass
+
+    def min_angle_event(self):
+        try:
+            gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.stop_event, bouncetime=200)
+        except:
+            pass
+
+    def min_angle_event_for_test(self):
+        try:
+            gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.reset_for_test, bouncetime=10)
+        except:
+            pass
 
 
 class ScreenFive(Screen):
@@ -959,6 +962,7 @@ class ScreenFive(Screen):
 
     def clean_errors(self):
         self.ids.error.color = (0, 0, 0, 0)
+
 
 class ScreenSix(Screen):
     date_today = datetime.date.today()
