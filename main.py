@@ -335,7 +335,9 @@ class ScreenTwo(Screen):
         self.t = threading.Thread(target=self.get_force, args=("task",))
         self.t.start()
 
-        Clock.schedule_interval(self.timer, sample_time)
+        signal.signal(signal.SIGALRM, self.timer)
+        signal.setitimer(signal.ITIMER_REAL, 0.1, 1000)
+#        Clock.schedule_interval(self.timer, sample_time)
 
         Clock.schedule_interval(self.get_value, sample_time)
         self.ids.dist_current.text = "0"
@@ -356,7 +358,7 @@ class ScreenTwo(Screen):
         # else:
         #     self.test_speed = float(self.ids.speed_text.text)
 
-    def timer(self, dt):
+    def timer(self, signum, _):
         self.time_ = round(self.time_ + 0.1, 2)
 
     def get_force(self, arg):
