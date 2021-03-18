@@ -375,28 +375,28 @@ class ScreenTwo(Screen):
         return True
 
     def stop(self):
+        Clock.unschedule(self.get_value)
+        Clock.unschedule(self.timer)
+        self.time_ = 0
+
+        try:
+            self.t.do_run = False
+            self.t.join()
+            # self.reset()  # reset when test ends
 
         try:
             gpio.remove_event_detect(stop_switch)
             gpio.cleanup(stop_switch)
         except:
             pass
+        
         try:
             gpio.remove_event_detect(start_switch)
             gpio.cleanup(start_switch)
         except:
             pass
         md.stop_motor()
-        try:
-            Clock.unschedule(self.get_value)
-            Clock.unschedule(self.timer)
-            self.time_ = 0
-        except:
-            pass
-        try:
-            self.t.do_run = False
-            self.t.join()
-            # self.reset()  # reset when test ends
+
         except:
             pass
         if self.is_reset:
