@@ -10,7 +10,7 @@ import signal
 from kivy.config import Config
 
 gpio.cleanup()
-# gpio.setwarnings(False)
+gpio.setwarnings(False)
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 Config.set('kivy', 'keyboard_mode', 'systemanddock')
 from kivy.app import App
@@ -95,51 +95,6 @@ def time_to_angle(angle_time):
     return 0.0003434 * pow(angle_time, 3) - 0.03658 * pow(angle_time, 2) + 2.079 * angle_time - 0.1492
     # quadratic from new data ( RMSE = 3.595, R^2 = 0.9983)
     # return -0.02008*pow(angle_time, 2) + 1.872*angle_time + 0.367
-
-
-def get_force(arg, time_):
-    t = threading.currentThread()
-    while getattr(t, "do_run", True):
-        start_time = datetime.datetime.now()
-        # sleep(sample_time)
-        val = hx.get_weight()
-        val *= calib
-        if val < 0:
-            val = 1
-
-        if len(forces) > 1:
-            forces.append([forces[-1][0] + (time_), val])
-        else:
-            forces.append([0, val])
-
-        sleep_time = datetime.datetime.now() - start_time
-        sleep_time = sleep_time.total_seconds()
-        sleep_time = sample_time - sleep_time
-        if sleep_time > 0:
-            sleep(sleep_time)
-
-
-def get_force_angle(arg, time_):
-    t = threading.currentThread()
-    while getattr(t, "do_run", True):
-        start_time = datetime.datetime.now()
-        # sleep(sample_time)
-        val = hx.get_weight()
-        val *= calib
-        if val < 0:
-            val = 1
-
-        if len(forces) > 1:
-            forces.append([forces[-1][0] + time_to_angle(time_), val])
-        else:
-            forces.append([0, val])
-
-        sleep_time = datetime.datetime.now() - start_time
-        sleep_time = sleep_time.total_seconds()
-        sleep_time = sample_time - sleep_time
-        if sleep_time > 0:
-            sleep(sleep_time)
-
 
 def find_biggest(array):
     biggest = [0.1, 0.1]
@@ -326,6 +281,26 @@ class ScreenTwo(Screen):
         test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed, angular_speed = json_handler.import_save()
 
         # self.reset()  # reset when program starts
+    def get_force(arg):
+        t = threading.currentThread()
+        while getattr(t, "do_run", True):
+            start_time = datetime.datetime.now()
+            # sleep(sample_time)
+            val = hx.get_weight()
+            val *= calib
+            if val < 0:
+                val = 1
+
+            if len(forces) > 1:
+                forces.append([(self.time_), val])
+            else:
+                forces.append([0, val])
+
+            sleep_time = datetime.datetime.now() - start_time
+            sleep_time = sleep_time.total_seconds()
+            sleep_time = sample_time - sleep_time
+            if sleep_time > 0:
+                sleep(sleep_time)
 
     def start(self):
 
@@ -345,7 +320,7 @@ class ScreenTwo(Screen):
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
 
-        self.t = threading.Thread(target=get_force, args=("task", self.time_))
+        self.t = threading.Thread(target=self.get_force, args=("task",))
         self.t.start()
 
         #        signal.signal(signal.SIGALRM, self.timer)
@@ -385,7 +360,7 @@ class ScreenTwo(Screen):
                 val = 1
 
             if len(forces) > 1:
-                forces.append([forces[-1][0] + sample_time, val])
+                forces.append([self.time_, val])
             else:
                 forces.append([0, val])
 
@@ -642,6 +617,27 @@ class ScreenFour(Screen):
         self.is_reset = False
 
         # self.reset()  # ilk açılışta otomatik açı resetleme
+    
+    def get_force_angle(self, arg):
+        t = threading.currentThread()
+        while getattr(t, "do_run", True):
+            start_time = datetime.datetime.now()
+            # sleep(sample_time)
+            val = hx.get_weight()
+            val *= calib
+            if val < 0:
+                val = 0
+
+            if len(forces) > 1:
+                forces.append([time_to_angle(self.time_), val])
+            else:
+                forces.append([0, val])
+
+            sleep_time = datetime.datetime.now() - start_time
+            sleep_time = sleep_time.total_seconds()
+            sleep_time = sample_time - sleep_time
+            if sleep_time > 0:
+                sleep(sleep_time)
 
     def start(self):
         try:
@@ -672,16 +668,17 @@ class ScreenFour(Screen):
 
         self.time_ = 0
         self.angle_ = 0
+        Clock.schedule_interval(self.timer, 0.1)
+
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        self.t = threading.Thread(target=get_force_angle, args=("task", self.angle_))
+        self.t = threading.Thread(target=self.get_force_angle, args=("task",))
         self.t.start()
 
         Clock.schedule_interval(self.get_value,
                                 sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample
         # kaymaya başlayınca durabilir
 
-        Clock.schedule_interval(self.timer, 0.1)
 
         md.start_angle_motor_rise(angle_test_speed)
         self.max_angle_event()
