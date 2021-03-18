@@ -6,7 +6,8 @@ import RPi.GPIO as gpio
 import signal
 from kivy.config import Config
 
-gpio.setwarnings(False)
+gpio.cleanup()
+#gpio.setwarnings(False)
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 Config.set('kivy', 'keyboard_mode', 'systemanddock')
 from kivy.app import App
