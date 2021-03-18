@@ -384,7 +384,8 @@ class ScreenTwo(Screen):
             self.t.do_run = False
             self.t.join()
             # self.reset()  # reset when test ends
-
+        except:
+            pass
         try:
             gpio.remove_event_detect(stop_switch)
             gpio.cleanup(stop_switch)
@@ -500,34 +501,19 @@ class ScreenThree(Screen):
         return max_dynamic_cof, mean_dynamic_cof, max_static_cof, mean_static_cof
 
     def find_dynamic_cof(self):
-        if test_mode == 0:  # motorize mod
-            max_dynamic_force, mean_dynamic_force = find_dynamic_force_advanced()
-            try:
-                mean_dynamic_cof = mean_dynamic_force / (normal_force * 9.81 * cos(test_angle))
-                mean_dynamic_cof = round(mean_dynamic_cof, 3)
+        max_dynamic_force, mean_dynamic_force = find_dynamic_force_advanced()
+        try:
+            mean_dynamic_cof = mean_dynamic_force / (normal_force * 9.81)
+            mean_dynamic_cof = round(mean_dynamic_cof, 3)
 
-                max_dynamic_cof = max_dynamic_force / (normal_force * 9.81 * cos(test_angle))
-                max_dynamic_cof = round(max_dynamic_cof, 3)
-            except TypeError:
-                mean_dynamic_cof = "Testing Error (type Error)"
-                max_dynamic_cof = "Testing Error (type Error)"
-            except:
-                mean_dynamic_cof = "Testing Error something"
-                max_dynamic_cof = "Testing Error something"
-        elif test_mode == 1:  # açı mod #** ekleme yapılacak max ve mean için
-            try:
-                dynamic_angle = time_to_angle(forces[-1][0])
-                dynamic_angle = radians(dynamic_angle)
-                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos(
-                    dynamic_angle))  # en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
-                mean_dynamic_cof = round(dynamic_cof, 3)
-                max_dynamic_cof = round(dynamic_cof, 3)
-            except TypeError:
-                mean_dynamic_cof = "Testing Error (type Error)"
-            except:
-                mean_dynamic_cof = "Testing Error something"
-        else:
-            dynamic_cof = "Test Mode Select Error!"
+            max_dynamic_cof = max_dynamic_force / (normal_force * 9.81)
+            max_dynamic_cof = round(max_dynamic_cof, 3)
+        except TypeError:
+            mean_dynamic_cof = "Testing Error (type Error)"
+            max_dynamic_cof = "Testing Error (type Error)"
+        except:
+            mean_dynamic_cof = "Testing Error something"
+            max_dynamic_cof = "Testing Error something"
         return max_dynamic_cof, mean_dynamic_cof
 
     def find_static_cof(self):
