@@ -1,6 +1,7 @@
 import datetime
 import os
-os.environ['KIVY_GL_BACKEND']='gl'
+
+os.environ['KIVY_GL_BACKEND'] = 'gl'
 from math import cos, pow, radians
 import threading
 from time import sleep
@@ -9,7 +10,7 @@ import signal
 from kivy.config import Config
 
 gpio.cleanup()
-#gpio.setwarnings(False)
+# gpio.setwarnings(False)
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 Config.set('kivy', 'keyboard_mode', 'systemanddock')
 from kivy.app import App
@@ -438,7 +439,7 @@ class ScreenTwo(Screen):
         self.is_reset = False
         #        Clock.unschedule(self.reset_)
         md.stop_motor()
-        gpio.setup(start_switch, gpio.IN,pull_up_down=gpio.PUD_UP)
+        gpio.setup(start_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
         if gpio.input(start_switch):
             self.motor_backward()
             self.min_distance_event()
@@ -477,13 +478,13 @@ class ScreenTwo(Screen):
         self.ids.force_current.text = str(round(forces[-1][1], 2))
 
     def motor_forward(self):
-        gpio.setup(stop_switch, gpio.IN,pull_up_down=gpio.PUD_UP)
+        gpio.setup(stop_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
         if gpio.input(stop_switch):
             self.max_distance_event()
             md.motor_start(8000, 0)
 
     def motor_backward(self):
-        gpio.setup(start_switch, gpio.IN,pull_up_down=gpio.PUD_UP)
+        gpio.setup(start_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
         if gpio.input(start_switch):
             self.min_distance_event()
             md.motor_start(8000, 1)
@@ -643,9 +644,17 @@ class ScreenFour(Screen):
     def start(self):
         try:
             gpio.remove_event_detect(angle_switch_start)
+            gpio.cleanup(angle_switch_start)
+
             gpio.remove_event_detect(angle_switch_stop)
+            gpio.cleanup(angle_switch_stop)
+
             gpio.remove_event_detect(start_switch)
+            gpio.cleanup(start_switch)
+
             gpio.remove_event_detect(stop_switch)
+            gpio.cleanup(stop_switch)
+
         except Exception:
             print(Exception)
 
@@ -680,7 +689,7 @@ class ScreenFour(Screen):
     #     signal.signal(signal.SIGALRM, self.angle_start)
     #     signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
     #
-    # def angle_start(self, signum, _):
+    # def an1gle_start(self, signum, _):
     #     gpio.remove_event_detect(stop_switch)
 
     def timer(self, dt):
@@ -702,9 +711,17 @@ class ScreenFour(Screen):
         # md.stop_motor()
         try:
             gpio.remove_event_detect(angle_switch_start)
+            gpio.cleanup(angle_switch_start)
+
             gpio.remove_event_detect(angle_switch_stop)
+            gpio.cleanup(angle_switch_stop)
+
             gpio.remove_event_detect(start_switch)
+            gpio.cleanup(start_switch)
+
             gpio.remove_event_detect(stop_switch)
+            gpio.cleanup(stop_switch)
+
         except:
             pass
         try:
@@ -717,13 +734,17 @@ class ScreenFour(Screen):
 
     def reset(self):
         self.is_reset = False
-        md.start_angle_motor_rise(angle_test_speed)
-        signal.signal(signal.SIGALRM, self.reset_)
-        signal.setitimer(signal.ITIMER_REAL, 1, 0)
+        gpio.setup(angle_switch_start, gpio.IN, pull_up_down=gpio.PUD_UP)
+        if gpio.input(angle_switch_stop):
+            md.start_angle_motor_rise(angle_test_speed)
+            signal.signal(signal.SIGALRM, self.reset_)
+            signal.setitimer(signal.ITIMER_REAL, 1, 0)
+        else:
+            self.reset(1, 1)
 
     def reset_(self, signum, _):
         md.stop_angle_motor()
-        gpio.setup(angle_switch_start, gpio.IN,pull_up_down=gpio.PUD_UP)
+        gpio.setup(angle_switch_start, gpio.IN, pull_up_down=gpio.PUD_UP)
         if gpio.input(angle_switch_start):
             md.start_angle_motor_fall(angle_test_speed)
             self.min_angle_event()
@@ -803,39 +824,48 @@ class ScreenFour(Screen):
     # self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
 
     def angle_motor_rise(self):
-        md.start_angle_motor_rise(angle_test_speed)
-        self.max_angle_event()
+        gpio.setup(angle_switch_stop, gpio.IN, pull_up_down=gpio.PUD_UP)
+        if gpio.input(angle_switch_stop):
+            md.start_angle_motor_rise(angle_test_speed)
+            self.max_angle_event()
 
     def angle_motor_fall(self):
-        md.start_angle_motor_fall(angle_test_speed)
-        self.min_angle_event()
+        gpio.setup(angle_switch_start, gpio.IN, pull_up_down=gpio.PUD_UP)
+        if gpio.input(angle_switch_start):
+            md.start_angle_motor_fall(angle_test_speed)
+            self.min_angle_event()
 
     def max_distance_event(self):
         try:
+            gpio.setup(stop_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
             gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=200)
         except:
             pass
 
     def min_distance_event_for_test(self):
         try:
+            gpio.setup(stop_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
             gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.reset_for_test, bouncetime=200)
         except:
             pass
 
     def max_angle_event(self):
         try:
+            gpio.setup(angle_switch_stop, gpio.IN, pull_up_down=gpio.PUD_UP)
             gpio.add_event_detect(angle_switch_stop, gpio.FALLING, callback=self.stop_event, bouncetime=200)
         except:
             pass
 
     def min_angle_event(self):
         try:
+            gpio.setup(angle_switch_start, gpio.IN, pull_up_down=gpio.PUD_UP)
             gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.stop_event, bouncetime=200)
         except:
             pass
 
     def min_angle_event_for_test(self):
         try:
+            gpio.setup(angle_switch_start, gpio.IN, pull_up_down=gpio.PUD_UP)
             gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.reset_for_test, bouncetime=10)
         except:
             pass
