@@ -281,26 +281,6 @@ class ScreenTwo(Screen):
         test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed, angular_speed = json_handler.import_save()
 
         # self.reset()  # reset when program starts
-    def get_force(arg):
-        t = threading.currentThread()
-        while getattr(t, "do_run", True):
-            start_time = datetime.datetime.now()
-            # sleep(sample_time)
-            val = hx.get_weight()
-            val *= calib
-            if val < 0:
-                val = 1
-
-            if len(forces) > 1:
-                forces.append([(self.time_), val])
-            else:
-                forces.append([0, val])
-
-            sleep_time = datetime.datetime.now() - start_time
-            sleep_time = sleep_time.total_seconds()
-            sleep_time = sample_time - sleep_time
-            if sleep_time > 0:
-                sleep(sleep_time)
 
     def start(self):
 
@@ -325,9 +305,11 @@ class ScreenTwo(Screen):
 
         #        signal.signal(signal.SIGALRM, self.timer)
         #        signal.setitimer(signal.ITIMER_REAL, 0.1, 1000)
-        Clock.schedule_interval(self.timer, sample_time)
 
-        Clock.schedule_interval(self.get_value, sample_time)
+        self.timer_thread = threading.Thread(target=self.timer, args=("task",))
+        self.timer_thread.start()
+        self.value_thread = threading.Thread(target=self.get_value, args=("task",))
+        self.value_thread.start()
         self.ids.dist_current.text = "0"
 
         drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
@@ -346,9 +328,12 @@ class ScreenTwo(Screen):
         # else:
         #     self.test_speed = float(self.ids.speed_text.text)
 
-    def timer(self, dt):
-        self.time_ = round(self.time_ + 0.1, 2)
-        self.ids.time_current.text = str(self.time_)
+    def timer(self, arg):
+        t = threading.currentThread()
+        while getattr(t, "do_run", True):
+            self.time_ = round(self.time_ + 0.1, 2)
+            self.ids.time_current.text = str(self.time_)
+            sleep(0.1)
 
     def get_force(self, arg):
         t = threading.currentThread()
@@ -376,10 +361,21 @@ class ScreenTwo(Screen):
         return True
 
     def stop(self):
-        Clock.unschedule(self.get_value)
-        Clock.unschedule(self.timer)
-        self.time_ = 0
 
+        try:
+            self.value_thread.do_run = False
+            self.value_thread.join()
+            # self.reset()  # reset when test ends
+        except:
+            pass
+
+        try:
+            self.timer_thread.do_run = False
+            self.timer_thread.join()
+            # self.reset()  # reset when test ends
+        except:
+            pass
+        self.time_ = 0
         try:
             self.t.do_run = False
             self.t.join()
@@ -430,28 +426,31 @@ class ScreenTwo(Screen):
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
 
-    def get_value(self, dt):
-        self.ids.dist_current.text = str(
-            int(float(self.ids.dist_current.text) + 60 * (sample_time * test_speed)))  # update current distance
+    def get_value(self, arg):
+        t = threading.currentThread()
+        while getattr(t, "do_run", True):
+            self.ids.dist_current.text = str(
+                int(float(self.ids.dist_current.text) + 60 * (sample_time * test_speed)))  # update current distance
 
-        if forces[-1][0] == 0:
-            self.ids.graph.xmax = 1
-        elif forces[-1][0] > self.ids.graph.xmax:
-            self.ids.graph.xmax = forces[-1][0]
+            if forces[-1][0] == 0:
+                self.ids.graph.xmax = 1
+            elif forces[-1][0] > self.ids.graph.xmax:
+                self.ids.graph.xmax = forces[-1][0]
 
-        if len(forces) < 3:
-            self.ids.graph.ymax = 1
-        elif forces[-1][1] > self.ids.graph.ymax:
-            self.ids.force_max.text = str(round(forces[-1][1], 3))
-            self.ids.graph.ymax = (forces[-1][1] * 1.1)
+            if len(forces) < 3:
+                self.ids.graph.ymax = 1
+            elif forces[-1][1] > self.ids.graph.ymax:
+                self.ids.force_max.text = str(round(forces[-1][1], 3))
+                self.ids.graph.ymax = (forces[-1][1] * 1.1)
 
-        self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
+            self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
 
-        self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
+            self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
 
-        self.plot.points = forces
+            self.plot.points = forces
 
-        self.ids.force_current.text = str(round(forces[-1][1], 2))
+            self.ids.force_current.text = str(round(forces[-1][1], 2))
+            sleep(0.1)
 
     def motor_forward(self):
         gpio.setup(stop_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
