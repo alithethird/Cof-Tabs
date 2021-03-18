@@ -1048,7 +1048,7 @@ class ScreenSix(Screen):
                 mean_static_cof = "Error!"
 
         elif test_mode == 1:  # açı mod
-            static_angle = find_static_angle(forces)  # needs to be changed
+            static_angle = 40.7 # makinenin üst sınırı
             try:
                 max_static_cof = max_static_force / (normal_force * 9.81 * cos(static_angle))
                 max_static_cof = round(max_static_cof, 3)
