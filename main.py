@@ -1,4 +1,6 @@
 import datetime
+import os
+os.environ['KIVY_GL_BACKEND']='gl'
 from math import cos, pow, radians
 import threading
 from time import sleep
@@ -105,7 +107,7 @@ def get_force(arg):
             val = 1
 
         if len(forces) > 1:
-            forces.append([forces[-1][0] + (sample_time * 5), val])
+            forces.append([forces[-1][0] + (sample_time), val])
         else:
             forces.append([0, val])
 
@@ -343,7 +345,7 @@ class ScreenTwo(Screen):
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
 
-        self.t = threading.Thread(target=self.get_force, args=("task",))
+        self.t = threading.Thread(target=get_force, args=("task",))
         self.t.start()
 
         #        signal.signal(signal.SIGALRM, self.timer)
@@ -369,7 +371,7 @@ class ScreenTwo(Screen):
         # else:
         #     self.test_speed = float(self.ids.speed_text.text)
 
-    def timer(self, signum, _):
+    def timer(self, dt):
         self.time_ = round(self.time_ + 0.1, 2)
 
     def get_force(self, arg):
@@ -436,6 +438,7 @@ class ScreenTwo(Screen):
         self.is_reset = False
         #        Clock.unschedule(self.reset_)
         md.stop_motor()
+        gpio.setup(start_switch, gpio.IN,pull_up_down=gpio.PUD_UP)
         if gpio.input(start_switch):
             self.motor_backward()
             self.min_distance_event()
@@ -474,11 +477,13 @@ class ScreenTwo(Screen):
         self.ids.force_current.text = str(round(forces[-1][1], 2))
 
     def motor_forward(self):
+        gpio.setup(stop_switch, gpio.IN,pull_up_down=gpio.PUD_UP)
         if gpio.input(stop_switch):
             self.max_distance_event()
             md.motor_start(8000, 0)
 
     def motor_backward(self):
+        gpio.setup(start_switch, gpio.IN,pull_up_down=gpio.PUD_UP)
         if gpio.input(start_switch):
             self.min_distance_event()
             md.motor_start(8000, 1)
@@ -655,7 +660,7 @@ class ScreenFour(Screen):
         forces = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        self.t = threading.Thread(target=self.get_force, args=("task",))
+        self.t = threading.Thread(target=get_force, args=("task",))
         self.t.start()
 
         Clock.schedule_interval(self.get_value,
@@ -718,6 +723,7 @@ class ScreenFour(Screen):
 
     def reset_(self, signum, _):
         md.stop_angle_motor()
+        gpio.setup(angle_switch_start, gpio.IN,pull_up_down=gpio.PUD_UP)
         if gpio.input(angle_switch_start):
             md.start_angle_motor_fall(angle_test_speed)
             self.min_angle_event()
