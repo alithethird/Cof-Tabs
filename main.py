@@ -383,7 +383,7 @@ class ScreenTwo(Screen):
                 val = 1
 
             if len(forces) > 1:
-                forces.append([forces[-1][0] + self.time_, val])
+                forces.append([forces[-1][0] + sample_time, val])
             else:
                 forces.append([0, val])
 
@@ -764,7 +764,7 @@ class ScreenFour(Screen):
                 val = 1
 
             if len(forces) > 1:
-                forces.append([self.time_, val])
+                forces.append([forces[-1][0] + sample_time, val])
             else:
                 forces.append([0, val])
 
