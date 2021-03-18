@@ -669,16 +669,18 @@ class ScreenFour(Screen):
         # self.reset_for_test()
         global forces
         forces = [[0, 0]]
+
+        self.time_ = 0
+        self.angle_ = 0
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        self.t = threading.Thread(target=get_force_angle, args=("task",self.time_))
+        self.t = threading.Thread(target=get_force_angle, args=("task", self.angle_))
         self.t.start()
 
         Clock.schedule_interval(self.get_value,
                                 sample_time)  # burada açı test edilebilir, maksimuma geldiğinde durabilir ya da sample
         # kaymaya başlayınca durabilir
 
-        self.time_ = 0
         Clock.schedule_interval(self.timer, 0.1)
 
         md.start_angle_motor_rise(angle_test_speed)
@@ -782,27 +784,6 @@ class ScreenFour(Screen):
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
 
-    def get_force(self, arg):
-        t = threading.currentThread()
-        while getattr(t, "do_run", True):
-            start_time = datetime.datetime.now()
-            # sleep(sample_time)
-            val = hx.get_weight()
-            val *= calib
-            if val < 0:
-                val = 1
-
-            if len(forces) > 1:
-                forces.append([forces[-1][0] + sample_time, val])
-            else:
-                forces.append([0, val])
-
-            sleep_time = datetime.datetime.now() - start_time
-            sleep_time = sleep_time.total_seconds()
-            sleep_time = sample_time - sleep_time
-            if sleep_time > 0:
-                sleep(sleep_time)
-
     def get_value(self, dt):
         if forces[-1][0] == 0:
             self.ids.graph.xmax = 1
@@ -820,7 +801,8 @@ class ScreenFour(Screen):
         self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
 
         self.plot.points = forces
-        self.ids.angle_current.text = str(round(time_to_angle(forces[-1][0]), 2))
+        self.angle_ = round(time_to_angle(forces[-1][0]), 2)
+        self.ids.angle_current.text = str(self.angle_)
         self.ids.force_current.text = str(round(forces[-1][1], 2))
 
     # self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
