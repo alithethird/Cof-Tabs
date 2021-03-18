@@ -348,6 +348,7 @@ class ScreenTwo(Screen):
 
     def timer(self, dt):
         self.time_ = round(self.time_ + 0.1, 2)
+        self.ids.time_current.text = str(self.time_)
 
     def get_force(self, arg):
         t = threading.currentThread()
@@ -396,9 +397,6 @@ class ScreenTwo(Screen):
         except:
             pass
         md.stop_motor()
-
-        except:
-            pass
         if self.is_reset:
             self.start()
 
