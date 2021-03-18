@@ -97,7 +97,7 @@ def time_to_angle(angle_time):
     # return -0.02008*pow(angle_time, 2) + 1.872*angle_time + 0.367
 
 
-def get_force(arg):
+def get_force(arg, time_):
     t = threading.currentThread()
     while getattr(t, "do_run", True):
         start_time = datetime.datetime.now()
@@ -108,7 +108,7 @@ def get_force(arg):
             val = 1
 
         if len(forces) > 1:
-            forces.append([forces[-1][0] + (sample_time), val])
+            forces.append([forces[-1][0] + (time_), val])
         else:
             forces.append([0, val])
 
@@ -119,21 +119,20 @@ def get_force(arg):
             sleep(sleep_time)
 
 
-def get_force_angle(arg):  # need to reset angle
+def get_force_angle(arg, time_):
     t = threading.currentThread()
     while getattr(t, "do_run", True):
         start_time = datetime.datetime.now()
+        # sleep(sample_time)
         val = hx.get_weight()
         val *= calib
         if val < 0:
             val = 1
-        #        angle = angle_read.get_rotation(1)
+
         if len(forces) > 1:
-            forces.append([forces[-1][0] + (sample_time * 5), val])
-        #           angles.append([angles[-1][0] + (sample_time * 5), angle])
+            forces.append([forces[-1][0] + time_to_angle(time_), val])
         else:
             forces.append([0, val])
-        #          angles.append([0, angle])
 
         sleep_time = datetime.datetime.now() - start_time
         sleep_time = sleep_time.total_seconds()
@@ -346,7 +345,7 @@ class ScreenTwo(Screen):
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
 
-        self.t = threading.Thread(target=get_force, args=("task",))
+        self.t = threading.Thread(target=get_force, args=("task", self.time_))
         self.t.start()
 
         #        signal.signal(signal.SIGALRM, self.timer)
@@ -672,7 +671,7 @@ class ScreenFour(Screen):
         forces = [[0, 0]]
         self.ids.graph.remove_plot(self.plot)
         self.ids.graph.add_plot(self.plot)
-        self.t = threading.Thread(target=get_force, args=("task",))
+        self.t = threading.Thread(target=get_force_angle, args=("task",self.time_))
         self.t.start()
 
         Clock.schedule_interval(self.get_value,
@@ -737,13 +736,13 @@ class ScreenFour(Screen):
 
     def reset(self):
         self.is_reset = False
-        gpio.setup(angle_switch_start, gpio.IN, pull_up_down=gpio.PUD_UP)
+        gpio.setup(angle_switch_stop, gpio.IN, pull_up_down=gpio.PUD_UP)
         if gpio.input(angle_switch_stop):
             md.start_angle_motor_rise(angle_test_speed)
             signal.signal(signal.SIGALRM, self.reset_)
             signal.setitimer(signal.ITIMER_REAL, 1, 0)
         else:
-            self.reset(1, 1)
+            self.reset_(1, 1)
 
     def reset_(self, signum, _):
         md.stop_angle_motor()
@@ -1109,8 +1108,8 @@ class ScreenSix(Screen):
     def update_results(self):
         try:
             self.max_dynamic, self.mean_dynamic, self.max_static, self.mean_static = self.create_results()
-            self.max_dynamic = self.max_dynamic / 10
-            self.mean_dynamic = self.mean_dynamic / 10
+            self.max_dynamic = round(self.max_dynamic / 10, 3)
+            self.mean_dynamic = round(self.mean_dynamic / 10, 3)
             self.ids.l_max_static.text = str(self.max_dynamic)
             self.ids.l_mean_static.text = str(self.mean_dynamic)
             # pdfe de ekle
