@@ -11,7 +11,7 @@ from kivy.config import Config
 
 gpio.cleanup()
 gpio.setwarnings(False)
-Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
+#Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 Config.set('kivy', 'keyboard_mode', 'systemanddock')
 from kivy.app import App
 from kivy.clock import Clock
