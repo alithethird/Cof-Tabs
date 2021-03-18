@@ -429,11 +429,14 @@ class ScreenTwo(Screen):
             self.start()
 
     def reset(self):
-        self.is_reset = False
-        self.motor_forward()
-
-        signal.signal(signal.SIGALRM, self.reset_)
-        signal.setitimer(signal.ITIMER_REAL, 0.5, 0)
+        self.is_reset = False 
+        gpio.setup(stop_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
+        if gpio.input(stop_switch):
+            self.motor_forward()
+            signal.signal(signal.SIGALRM, self.reset_)
+            signal.setitimer(signal.ITIMER_REAL, 0.5, 0)
+        else:
+            self.reset_(1,1)
 
     def reset_(self, signum, _):
         self.is_reset = False
