@@ -967,8 +967,8 @@ class ScreenFive(Screen):
         global angle_test_speed
         global angular_speed
 
-        test_distance = 10
-        test_speed = 150
+        test_distance = 24
+        test_speed = 24
         normal_force = 199.46
         sample_time = 0.1
         calib = 0.01197
