@@ -637,6 +637,9 @@ class ScreenFive(Screen):
         self.ids.error.color = (0, 0, 0, 0)
 
 
+class ScreenSix(Screen):
+    date_text = "1"
+    pass
 screen_manager = ScreenManager()
 """
 ScreenThree.add_widget(ScreenThree.l_static)
@@ -647,6 +650,7 @@ screen_manager.add_widget(ScreenTwo(name="screen_two"))
 screen_manager.add_widget(ScreenThree(name="screen_three"))
 screen_manager.add_widget(ScreenFour(name="screen_four"))
 screen_manager.add_widget(ScreenFive(name="screen_five"))
+screen_manager.add_widget(ScreenSix(name="screen_six"))
 
 
 class AwesomeApp(App):

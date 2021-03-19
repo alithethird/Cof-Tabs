@@ -2,7 +2,7 @@ import datetime
 import os
 
 os.environ['KIVY_GL_BACKEND'] = 'gl'
-from math import cos, pow, radians
+from math import cos, pow, radians, sin, tan
 import threading
 from time import sleep
 import RPi.GPIO as gpio
@@ -997,14 +997,14 @@ class ScreenSix(Screen):
     date_text = str(date_today)
 
     def create_results(self):
-        max_dynamic_cof, mean_dynamic_cof = self.find_dynamic_cof()
+        max_dynamic_cof, mean_dynamic_cof = self.find_dynamic_cof_angle_test()
         max_static_cof, mean_static_cof = self.find_static_cof()
         return max_dynamic_cof, mean_dynamic_cof, max_static_cof, mean_static_cof
 
     def find_dynamic_cof(self):
         if test_mode == 1:  # açı mod #** ekleme yapılacak max ve mean için
             try:
-                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos(radians(40.7)) )  # en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
+                dynamic_cof = (1000*normal_force * 9.81 * sin(radians(40.7)) - forces[-1][1]) / (1000*normal_force * 9.81 * cos(radians(40.7)) )  # en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
                 mean_dynamic_cof = round(dynamic_cof, 3)
                 max_dynamic_cof = round(dynamic_cof, 3)
             except TypeError:
@@ -1016,55 +1016,51 @@ class ScreenSix(Screen):
         return max_dynamic_cof, mean_dynamic_cof
 
     def find_static_cof(self):
-        max_static_force, mean_static_force = find_static_force_advanced()
+        # find peak
+        static_angle = 0
+        past = [[0, 0]]
+        for i in forces:
+            if past[1] > 0:
+                if (i[1] - past[1]) > 10:
+                    static_angle = i[0]
 
-        if test_mode == 0:  # motorize mod
-            try:
-                max_static_cof = max_static_force / (normal_force * 9.81 * cos(test_angle))
-                max_static_cof = round(max_static_cof, 3)
+            past = i
 
-                mean_static_cof = mean_static_force / (normal_force * 9.81 * cos(test_angle))
-                mean_static_cof = round(mean_static_cof, 3)
-            except TypeError:
-                max_static_cof = "Testing Error (type Error)"
-                mean_static_cof = "Testing Error (type Error)"
-            except:
-                max_static_cof = "Error!"
-                mean_static_cof = "Error!"
-
-        elif test_mode == 1:  # açı mod
-            static_angle = 40.7 # makinenin üst sınırı
-            try:
-                max_static_cof = max_static_force / (normal_force * 9.81 * cos(static_angle))
-                max_static_cof = round(max_static_cof, 3)
-
-                mean_static_cof = mean_static_force / (normal_force * 9.81 * cos(static_angle))
-                mean_static_cof = round(mean_static_cof, 3)
-            except TypeError:
-                max_static_cof = "Testing Error (type Error)"
-                mean_static_cof = "Testing Error (type Error)"
-            except:
-                max_static_cof = "Error!"
-                mean_static_cof = "Error!"
-        else:
-            max_static_cof = "Test Mode Select Error!"
-            mean_static_cof = "Test Mode Select Error!"
+        static_cof = tan(static_angle)
+        return static_cof
 
         return max_static_cof, mean_static_cof
 
+    def find_static_cof_advanced(self):
+        # find peak
+        static_angle = 0
+        past = [[0, 0]]
+        arr = [[0,0]]
+
+        for i in forces:
+            arr.append([past[1] - i[1], i[0]])
+            past = i
+        cof_angle, biggest_diff = find_biggest(arr)
+        static_cof = tan(cof_angle)
+        return static_cof, cof_angle
+
+
     def update_results(self):
         try:
-            self.max_dynamic, self.mean_dynamic, self.max_static, self.mean_static = self.create_results()
-            self.max_dynamic = round(self.max_dynamic / 10, 3)
-            self.mean_dynamic = round(self.mean_dynamic / 10, 3)
-            self.ids.l_max_static.text = str(self.max_dynamic)
-            # pdfe de ekle
+            self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic = 0, 0, 0, 0
+            self.static_cof = self.find_static_cof()
+            self.static_cof_adv, cof_angle = self.find_static_cof_advanced()
+            self.static_cof = round(self.static_cof / 10, 3)
+            cof_angle = round(cof_angle / 10, 2)
+            self.static_cof_adv = round(self.static_cof_adv / 10, 3)
+            self.ids.l_max_static.text = str(self.static_cof)
+            self.ids.l_mean_static.text = str(self.static_cof_adv)
+            self.ids.l_static_angle.text = str(cof_angle)
 
-            if test_mode == 0:
-                json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
-                                      sample2, test_mode, ScreenTwo.plot.points)
-            elif test_mode == 1:
-                json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+            # pdfe de ekle
+            self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic = self.static_cof, self.static_cof, self.static_cof, self.static_cof
+
+            json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
                                       sample2, test_mode, ScreenFour.plot.points)
         except:
             pass

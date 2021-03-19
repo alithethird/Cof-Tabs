@@ -674,19 +674,22 @@
 
         Button:
             text: "Calculate Results"
-            pos_hint: {'center_x': 0.2, 'center_y': 0.2}
-            size_hint: (1/5,1/16)
+            pos_hint: {'center_x': 0.2, 'center_y': 0.4}
+            size_hint: (1/5,1/8)
+            background_color: (0,1,1,0.8)
             on_press: root.update_results()
         Button:
             text: "Create Results PDF"
-            pos_hint: {'center_x': 0.8, "center_y": 0.2}
-            size_hint: (1/5, 1/16)
+            pos_hint: {'center_x': 0.8, "center_y": 0.4}
+            size_hint: (1/5, 1/8)
+            background_color: (0,1,0.7,0.8)
             on_press: root.createPDF()
 
         Button:
             text: "Go back"
-            pos_hint: {'center_x': 0.8, "center_y": 0.1}
-            size_hint: (1/8, 1/16)
+            pos_hint: {'center_x': 0.5, "center_y": 0.2}
+            size_hint: (1/5, 1/8)
+            background_color: (0,1,0.5,0.8)
             on_press:
                 root.manager.transition.direction = "right"
                 root.manager.transition.duration = 0.5
@@ -695,15 +698,44 @@
         Label:
             text: "Static Coefficient of friction: "
             color: (0,0,0,1)
-            pos_hint: {"center_x": 0.19, "center_y": 0.8}
+            pos_hint: {"center_x": 0.29, "center_y": 0.8}
+            font_size:24
             halign: "left"
 
         Label:
             id: l_max_static
             text: "0.00"
-            pos: (-90, 143)
+            pos: (20, 143)
+            font_size:24
             color: 0,0,0,1
 
+        Label:
+            text: "Advanced Static Coefficient of friction: "
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.29, "center_y": 0.6}
+            font_size:24
+            halign: "left"
+
+        Label:
+            id: l_mean_static
+            text: "0.00"
+            pos: (70, 46)
+            font_size:24
+            color: 0,0,0,1
+
+        Label:
+            text: "Advanced Static Angle: "
+            color: (0,0,0,1)
+            pos_hint: {"center_x": 0.29, "center_y": 0.5}
+            font_size:24
+            halign: "left"
+
+        Label:
+            id: l_static_angle
+            text: "0.00"
+            pos: (70, 0)
+            font_size:24
+            color: 0,0,0,1
         Label:
             text: "Date: "
             color: (0,0,0,1)
