@@ -131,14 +131,17 @@ def find_dynamic_force():
         return 1
 
 
-def find_loose_string(array):  # finds loose string length and returns the amount of data acquired when the string is loose
+def find_loose_string(
+        array):  # finds loose string length and returns the amount of data acquired when the string is loose
     biggest = find_biggest(forces)
     index = int(((biggest[0] / sample_time)))
     count = 0
     for i in range(1, index):
-        if forces[i - 1][1] == 1:
-            count = i
+        if forces[i - 1][1] == forces[i][1]:
+            count += 1
     return count
+
+    pass
 
 
 def find_static_force_advanced():
@@ -149,9 +152,9 @@ def find_static_force_advanced():
     else:
         loose = 0  # ip gergin değilken hesaplanan kuvvetlerin sayısı
 
-    for i in range(loose, int(loose + (1 / sample_time))):
+    for i in range(loose, int(loose + (3 / sample_time))):
         array.append(forces[i])  # statik zamanda ölçülen kuvvet listesi
-
+    
     _, max_static_force = find_biggest(array)
     for i in array:
         if i[1] == array[-1][1]:
@@ -164,17 +167,14 @@ def find_static_force_advanced():
         for i in array:
             if (array[-1][1] * 1.1) > i[1] > (array[-1][1] * 0.9):
                 index = i[0]
-    if index == 0:
-        for i in array:
-            if (array[-1][1] * 1.3) > i[1] > (array[-1][1] * 0.7):
-                index = i[0]
     # start from index and calculate mean of array
     index = int(index / sample_time)
 
-    for i in range(index, len(array)):
+    for i in range(5, len(array)):
         array_mean += array[i][1]
-
-    mean_static_force = array_mean / (len(array) - 1)
+    print("loose:", loose)
+    print("index:", index)
+    mean_static_force = array_mean / (len(array) - 5)
 
     return max_static_force, mean_static_force
 
@@ -188,7 +188,7 @@ def find_dynamic_force_advanced():
 
     array = []
     array_mean = 0
-    for i in range(loose, len(forces)):
+    for i in range(loose, (len(forces)*(6/10))):
         array_mean += forces[i][1]
         array.append(forces[i])
 
@@ -309,9 +309,9 @@ class ScreenTwo(Screen):
         self.value_thread.start()
         self.ids.dist_current.text = "0"
 
-        drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
-        md.motor_run(drive_time, frequency, direction)
-
+        self.drive_time, frequency, direction = md.calculate_ticks(distance=test_distance, speed=test_speed, direction=0)
+        md.motor_run(self.drive_time, frequency, direction)
+      
         self.max_distance_event()
 
         return True
@@ -319,8 +319,7 @@ class ScreenTwo(Screen):
     def timer(self, arg):
         t = threading.currentThread()
         while getattr(t, "do_run", True):
-            self.time_ = round(self.time_ + 0.1, 2)
-            self.ids.time_current.text = str(self.time_)
+            self.time_ = round(self.time_ + 0.12, 2)
             sleep(0.1)
 
     def get_force(self, arg):
@@ -337,12 +336,14 @@ class ScreenTwo(Screen):
                 forces.append([self.time_, val])
             else:
                 forces.append([0, val])
-
+            
             sleep_time = datetime.datetime.now() - start_time
             sleep_time = sleep_time.total_seconds()
             sleep_time = sample_time - sleep_time
             if sleep_time > 0:
                 sleep(sleep_time)
+            if self.time_ > (59):
+                self.stop()
 
     def stop_event(self, channel):
         self.stop()
@@ -411,7 +412,7 @@ class ScreenTwo(Screen):
         t = threading.currentThread()
         while getattr(t, "do_run", True):
             self.ids.dist_current.text = str(
-                int(float(self.ids.dist_current.text) + 60 * (sample_time * test_speed)))  # update current distance
+                int(float(self.ids.dist_current.text) + 60 * (sample_time * test_speed*1.66)))  # update current distance
 
             if forces[-1][0] == 0:
                 self.ids.graph.xmax = 1
@@ -422,15 +423,13 @@ class ScreenTwo(Screen):
                 self.ids.graph.ymax = 1
             elif forces[-1][1] > self.ids.graph.ymax:
                 self.ids.graph.ymax = (forces[-1][1] * 1.1)
-            biggest = find_biggest(forces)
-            self.ids.force_max.text = str(round(biggest[1], 3))
+
             self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
 
             self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
 
             self.plot.points = forces
 
-            self.ids.force_current.text = str(round(forces[-1][1], 2))
             sleep(0.1)
 
     def motor_forward(self):
@@ -650,7 +649,6 @@ class ScreenFour(Screen):
 
     def timer(self, dt):
         self.time_ = round(self.time_ + 0.1, 2)
-        self.ids.time_current.text = str(self.time_)
 
     def stop_event(self, channel):
         self.stop()
@@ -724,7 +722,6 @@ class ScreenFour(Screen):
         self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
 
         self.plot.points = forces
-        self.ids.force_current.text = str(round(forces[-1][1], 2))
 
     def max_angle_event(self):
         try:
@@ -746,58 +743,18 @@ class ScreenFive(Screen):
     # calibration screen
     def __init__(self, **args):
         Screen.__init__(self, **args)
-        self.ids.distance.text = str(test_distance)
-        self.ids.speed.text = str(test_speed)
         self.ids.normal_force.text = str(normal_force)
-        self.ids.sample_time.text = str(sample_time)
         self.ids.calib.text = str(calib)
-        self.ids.angle_test_speed.text = str(angle_test_speed)
-        self.ids.angular_speed.text = str(angular_speed)
 
     def save(self):
         count = 0
-        if self.ids.distance_text.text != "":
-            try:
-                global test_distance
-                test_distance = float(self.ids.distance_text.text)
-                self.ids.distance.text = str(test_distance)
 
-                self.ids.error.color = (0, 0, 0, 0)
-            except:
-                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.ids.error.color = (0, 0, 0, 1)
-            else:
-                count = 1
-
-        if self.ids.speed_text.text != "":
-            try:
-                global test_speed
-                test_speed = float(self.ids.speed_text.text)
-                self.ids.speed.text = str(test_speed)
-                self.ids.error.color = (0, 0, 0, 0)
-            except:
-                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.ids.error.color = (0, 0, 0, 1)
-            else:
-                count = 1
 
         if self.ids.normal_force_text.text != "":
             try:
                 global normal_force
                 normal_force = float(self.ids.normal_force_text.text)
                 self.ids.normal_force.text = str(normal_force)
-                self.ids.error.color = (0, 0, 0, 0)
-            except:
-                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.ids.error.color = (0, 0, 0, 1)
-            else:
-                count = 1
-
-        if self.ids.sample_time_text.text != "":
-            try:
-                global sample_time
-                sample_time = float(self.ids.sample_time_text.text)
-                self.ids.sample_time.text = str(sample_time)
                 self.ids.error.color = (0, 0, 0, 0)
             except:
                 self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
@@ -817,33 +774,7 @@ class ScreenFive(Screen):
             else:
                 count = 1
 
-        if self.ids.angle_test_speed_text.text != "":
-            try:
-                global angle_test_speed
-                angle_test_speed = float(self.ids.angle_test_speed_text.text)
-                self.ids.angle_test_speed.text = str(angle_test_speed)
-
-                self.ids.error.color = (0, 0, 0, 0)
-            except:
-                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.ids.error.color = (0, 0, 0, 1)
-            else:
-                count = 1
-
-        if self.ids.angular_speed_text.text != "":
-            try:
-                global angular_speed
-                angular_speed = float(self.ids.angular_speed_text.text)
-                self.ids.angular_speed.text = str(angular_speed)
-
-                self.ids.error.color = (0, 0, 0, 0)
-            except:
-                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.ids.error.color = (0, 0, 0, 1)
-            else:
-                count = 1
-
-        if self.ids.speed_text.text == "" and self.ids.distance_text.text == "" and self.ids.sample_time_text.text == "" and self.ids.normal_force_text.text == "" and self.ids.calib_text.text == "" and self.ids.angle_test_speed_text.text == "" and self.ids.angular_speed.text == "":
+        if self.ids.normal_force_text.text == "" and self.ids.calib_text.text == "" :
             self.ids.error.color = (0, 0, 0, 0)
         if count == 1:
             self.ids.error.text = "Saved"
@@ -881,13 +812,8 @@ class ScreenFive(Screen):
         angle_test_speed = 1250
         angular_speed = 1
 
-        self.ids.distance.text = str(test_distance)
-        self.ids.speed.text = str(test_speed)
         self.ids.normal_force.text = str(normal_force)
-        self.ids.sample_time.text = str(sample_time)
         self.ids.calib.text = str(calib)
-        self.ids.angle_test_speed.text = str(angle_test_speed)
-        self.ids.angular_speed.text = str(angular_speed)
         json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force,
                                      sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed,
                                      angular_speed=angular_speed)
@@ -903,13 +829,14 @@ class ScreenSix(Screen):
     date_text = str(date_today)
 
     def create_results(self):
-        static_cof = round(self.find_static_cof(), 3)
+        static_cof = str(round(self.find_static_cof(), 3))
         return static_cof
 
     def find_static_cof(self):
         # find peak
         print(cof_angle_xyz)     
-        static_cof = 10*(sin((3.1415*cof_angle_xyz)/180)/cos((3.1415*cof_angle_xyz)/180))
+        static_cof = (sin((3.1415*cof_angle_xyz)/180)/cos((3.1415*cof_angle_xyz)/180))
+        print(static_cof)
         return static_cof
 
     def update_results(self):

@@ -485,58 +485,18 @@ class ScreenFive(Screen):
     # calibration screen
     def __init__(self, **args):
         Screen.__init__(self, **args)
-        self.ids.distance.text = str(test_distance)
-        self.ids.speed.text = str(test_speed)
         self.ids.normal_force.text = str(normal_force)
-        self.ids.sample_time.text = str(sample_time)
         self.ids.calib.text = str(calib)
-        self.ids.angle_test_speed.text = str(angle_test_speed)
-        self.ids.angular_speed.text = str(angular_speed)
 
     def save(self):
         count = 0
-        if self.ids.distance_text.text != "":
-            try:
-                global test_distance
-                test_distance = float(self.ids.distance_text.text)
-                self.ids.distance.text = str(test_distance)
 
-                self.ids.error.color = (0, 0, 0, 0)
-            except:
-                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.ids.error.color = (0, 0, 0, 1)
-            else:
-                count = 1
-
-        if self.ids.speed_text.text != "":
-            try:
-                global test_speed
-                test_speed = float(self.ids.speed_text.text)
-                self.ids.speed.text = str(test_speed)
-                self.ids.error.color = (0, 0, 0, 0)
-            except:
-                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.ids.error.color = (0, 0, 0, 1)
-            else:
-                count = 1
 
         if self.ids.normal_force_text.text != "":
             try:
                 global normal_force
                 normal_force = float(self.ids.normal_force_text.text)
                 self.ids.normal_force.text = str(normal_force)
-                self.ids.error.color = (0, 0, 0, 0)
-            except:
-                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.ids.error.color = (0, 0, 0, 1)
-            else:
-                count = 1
-
-        if self.ids.sample_time_text.text != "":
-            try:
-                global sample_time
-                sample_time = float(self.ids.sample_time_text.text)
-                self.ids.sample_time.text = str(sample_time)
                 self.ids.error.color = (0, 0, 0, 0)
             except:
                 self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
@@ -556,33 +516,7 @@ class ScreenFive(Screen):
             else:
                 count = 1
 
-        if self.ids.angle_test_speed_text.text != "":
-            try:
-                global angle_test_speed
-                angle_test_speed = float(self.ids.angle_test_speed_text.text)
-                self.ids.angle_test_speed.text = str(angle_test_speed)
-
-                self.ids.error.color = (0, 0, 0, 0)
-            except:
-                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.ids.error.color = (0, 0, 0, 1)
-            else:
-                count = 1
-
-        if self.ids.angular_speed_text.text != "":
-            try:
-                global angular_speed
-                angular_speed = float(self.ids.angular_speed_text.text)
-                self.ids.angular_speed.text = str(angular_speed)
-
-                self.ids.error.color = (0, 0, 0, 0)
-            except:
-                self.ids.error.text = "Error! (Use only numbers) (use . not ,)"
-                self.ids.error.color = (0, 0, 0, 1)
-            else:
-                count = 1
-
-        if self.ids.speed_text.text == "" and self.ids.distance_text.text == "" and self.ids.sample_time_text.text == "" and self.ids.normal_force_text.text == "" and self.ids.calib_text.text == "" and self.ids.angle_test_speed_text.text == "" and self.ids.angular_speed.text == "":
+        if self.ids.normal_force_text.text == "" and self.ids.calib_text.text == "" :
             self.ids.error.color = (0, 0, 0, 0)
         if count == 1:
             self.ids.error.text = "Saved"
@@ -612,21 +546,16 @@ class ScreenFive(Screen):
         global angle_test_speed
         global angular_speed
 
-        test_distance = 60
-        test_speed = 150
-        normal_force = 200
+        test_distance = 24
+        test_speed = 24
+        normal_force = 199.46
         sample_time = 0.1
-        calib = 0.011772
-        angle_test_speed = 500
+        calib = 0.01197
+        angle_test_speed = 1250
         angular_speed = 1
 
-        self.ids.distance.text = str(test_distance)
-        self.ids.speed.text = str(test_speed)
         self.ids.normal_force.text = str(normal_force)
-        self.ids.sample_time.text = str(sample_time)
         self.ids.calib.text = str(calib)
-        self.ids.angle_test_speed.text = str(angle_test_speed)
-        self.ids.angular_speed.text = str(angular_speed)
         json_handler.dump_calib_save(distance=test_distance, speed=test_speed, normal_force=normal_force,
                                      sample_time=sample_time, calib=calib, angle_test_speed=angle_test_speed,
                                      angular_speed=angular_speed)

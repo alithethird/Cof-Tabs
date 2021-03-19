@@ -26,7 +26,7 @@
         Button:
             text: "Motorized Test"
             pos_hint: {'center_x': 0.4, "center_y": 0.2}
-            size_hint: (1/6, 1/12)
+            size_hint: (1/6, 1/8)
             background_color: (0,1,0.5,0.8)
             on_press:
                 root.select_motorized_test()
@@ -37,7 +37,7 @@
         Button:
             text: "Angle Test"
             pos_hint: {'center_x': 0.6, "center_y": 0.2}
-            size_hint: (1/6, 1/12)
+            size_hint: (1/6, 1/8)
             background_color: (0,1,0.7,0.8)
             on_press:
                 root.select_angle_test()
@@ -49,14 +49,14 @@
         Button:
             text: "Tare"
             pos_hint: {'center_x': 0.4, "center_y": 0.4}
-            size_hint: (1/6, 1/12)
+            size_hint: (1/6, 1/8)
             background_color: (9/256,126/256,199/256,0.9)
             on_press:
                 root.tare()
         Button:
             text: "Calibration"
             pos_hint: {'center_x': 0.6, "center_y": 0.4}
-            size_hint: (1/6, 1/12)
+            size_hint: (1/6, 1/8)
             background_color: (0,1,1,0.8)
             on_press:
                 root.manager.transition.direction = "left"
@@ -178,24 +178,28 @@
 
         Button:
             text: "Start the test"
-            pos_hint: {'center_x': 0.08, "center_y": 0.88}
-            size_hint: (1/8, 1/16)
+            pos_hint: {'center_x': 0.3, "center_y": 0.94}
+            size_hint: (1/6, 1/13)
+            background_color: (0.1,0.5,0.8)
             on_press: root.start()
 
         Button:
             text: "Stop the test"
-            pos_hint: {'center_x': 0.22, "center_y": 0.88}
-            size_hint: (1/8, 1/16)
+            pos_hint: {'center_x': 0.5, "center_y": 0.94}
+            size_hint: (1/6, 1/13)
+            background_color: (9/256,126/256,199/256,0.9)
             on_press: root.stop()
         Button:
             text: "Reset Position"
-            pos_hint: {'center_x': 0.36, "center_y": 0.88}
-            size_hint: (1/8, 1/16)
+            pos_hint: {'center_x': 0.5, "center_y": 0.85}
+            size_hint: (1/6, 1/13)
+            background_color: (0,1,0.6,0.8)
             on_press: root.reset()
         Button:
             text: "Go back"
-            pos_hint: {'center_x': 0.5, "center_y": 0.84}
-            size_hint: (1/8, 1/16)
+            pos_hint: {'center_x': 0.7, "center_y": 0.85}
+            size_hint: (1/6, 1/13)
+            background_color: (200/256,137/256,85/256,0.9)
             on_press:
                 root.manager.transition.direction = "right"
                 root.manager.transition.duration = 0.5
@@ -203,71 +207,25 @@
         Button:
             id: btn
             text: "Results"
-            pos_hint: {'center_x': 0.5, "center_y": 0.92}
-            size_hint: (1/8, 1/16)
+            pos_hint: {'center_x': 0.7, "center_y": 0.94}
+            size_hint: (1/6, 1/13)
+            background_color: (0,1,1,0.8)
             on_press:
                 root.save_graph()
                 root.manager.transition.direction = "left"
                 root.manager.transition.duration = 0.5
                 root.manager.current = "screen_three"
 
-        Button:
-            text: "Forward"
-            pos_hint: {'center_x': 0.64, "center_y": 0.92}
-            size_hint: (1/8, 1/16)
-            on_press:
-                root.motor_forward()
-
-        Button:
-            text: "Backward"
-            pos_hint: {'center_x': 0.64, "center_y": 0.84}
-            size_hint: (1/8, 1/16)
-            on_press:
-                root.motor_backward()
-
-        Label:
-            text: "Peak Force: "
-            pos: 230, 215
-            color: 0, 0, 0, 1
-
-        Label:
-            id: force_max
-            text: "0.00"
-            pos: 330, 215
-            color: 0, 0, 0, 1
-
-        Label:
-            text: "Current Force: "
-            pos: 230, 195
-            color: 0, 0, 0, 1
-
-        Label:
-            id: force_current
-            text: "0.00"
-            pos: 330, 195
-            color: 0, 0, 0, 1
-
         Label:
             text: "Current Distance: "
-            pos: 230, 175
+            pos: -220, 165
             color: 0, 0, 0, 1
 
         Label:
             id: dist_current
             text: "0.00"
-            pos: 330, 175
+            pos: -120, 165
             color: 0, 0, 0, 1
-
-        Label:
-            text: "Time: "
-            pos: 230, 155
-            color: 0,0,0,1
-
-        Label:
-            id: time_current
-            text: "0.00"
-            pos: 330, 155
-            color: 0,0,0,1
 
 <ScreenThree>:
     FloatLayout:
@@ -275,19 +233,22 @@
 
         Button:
             text: "Calculate Results"
-            pos_hint: {'center_x': 0.2, 'center_y': 0.2}
-            size_hint: (1/5,1/16)
+            pos_hint: {'center_x': 0.2, 'center_y': 0.25}
+            size_hint: (1/4,1/8)
+            background_color: (0,1,1,0.8)
             on_press: root.update_results()
         Button:
-            text: "Create Results PDF"
-            pos_hint: {'center_x': 0.8, "center_y": 0.2}
-            size_hint: (1/5, 1/16)
+            text: "Create PDF"
+            pos_hint: {'center_x': 0.75, "center_y": 0.4}
+            background_color: (0,1,0.5,0.8)
+            size_hint: (1/4, 1/8)
             on_press: root.createPDF()
 
         Button:
             text: "Go back"
-            pos_hint: {'center_x': 0.8, "center_y": 0.1}
-            size_hint: (1/8, 1/16)
+            pos_hint: {'center_x': 0.75, "center_y": 0.2}
+            size_hint: (1/4, 1/8)
+            background_color: (200/256,137/256,85/256,1)
             on_press:
                 root.manager.transition.direction = "right"
                 root.manager.transition.duration = 0.5
@@ -386,26 +347,37 @@
 
         Button:
             text: "Start the test"
-            pos_hint: {'center_x': 0.1, "center_y": 0.94}
+            pos_hint: {'center_x': 0.3, "center_y": 0.94}
             size_hint: (1/6, 1/13)
+            background_color: (0,1,0.5,0.8)
             on_press: root.start()
 
         Button:
-            text: "Stop the test"
-            pos_hint: {'center_x': 0.30, "center_y": 0.94}
+            text: "Ready for Test"
+            pos_hint: {'center_x': 0.3, "center_y": 0.85}
             size_hint: (1/6, 1/13)
+            background_color: (9/256,126/256,199/256,0.9)
+            on_press:
+                root.ready_for_test()
+        Button:
+            text: "Stop the test"
+            pos_hint: {'center_x': 0.5, "center_y": 0.94}
+            size_hint: (1/6, 1/13)
+            background_color: (9/256,126/256,199/256,0.9)
             on_press: root.stop()
 
         Button:
             text: "Reset Position"
-            pos_hint: {'center_x': 0.30, "center_y": 0.85}
+            pos_hint: {'center_x': 0.5, "center_y": 0.85}
             size_hint: (1/6, 1/13)
+            background_color: (0,1,0.6,0.8)
             on_press: root.reset()
 
         Button:
             text: "Go back"
-            pos_hint: {'center_x': 0.9, "center_y": 0.85}
+            pos_hint: {'center_x': 0.7, "center_y": 0.85}
             size_hint: (1/6, 1/13)
+            background_color: (200/256,137/256,85/256,0.9)
             on_press:
                 root.manager.transition.direction = "right"
                 root.manager.transition.duration = 0.5
@@ -413,31 +385,17 @@
         Button:
             id: btn
             text: "Results"
-            pos_hint: {'center_x': 0.9, "center_y": 0.94}
+            pos_hint: {'center_x': 0.7, "center_y": 0.94}
             size_hint: (1/6, 1/13)
+            background_color: (0,1,1,0.8)
             on_press:
                 root.save_graph()
                 root.manager.transition.direction = "left"
                 root.manager.transition.duration = 0.5
                 root.manager.current = "screen_six"
 
-        Button:
-            text: "Ready for Test"
-            pos_hint: {'center_x': 0.1, "center_y": 0.85}
-            size_hint: (1/6, 1/13)
-            on_press:
-                root.ready_for_test()
 
-        Label:
-            text: "Current Force: "
-            pos: 0, 195
-            color: 0,0,0,1
 
-        Label:
-            id: force_current
-            text: "0.00"
-            pos: 100, 195
-            color: 0,0,0,1
 
 
 <ScreenFive>:
@@ -452,8 +410,8 @@
 
         Button:
             text: "Go back"
-            pos_hint: {'center_x': 0.7, "center_y": 0.1}
-            size_hint: (1/8, 1/16)
+            pos_hint: {'center_x': 0.8, "center_y": 0.2}
+            size_hint: (1/8, 1/8)
             background_color: (200/256,137/256,85/256,0.9)
             on_press:
                 root.clean_errors()
@@ -463,52 +421,26 @@
 
         Button:
             text: "Save"
-            pos_hint: {'center_x': 0.86, "center_y": 0.1}
-            size_hint: (1/8, 1/16)
+            pos_hint: {'center_x': 0.8, "center_y": 0.4}
+            size_hint: (1/8, 1/8)
             background_color: (9/256,126/256,199/256,0.9)
             on_press:
                 root.save_for_good()
 
         Button:
             text: "Reset to Factory Settings"
-            pos_hint: {'center_x': 0.78, "center_y": 0.4}
-            size_hint: (1/4, 1/16)
+            pos_hint: {'center_x': 0.2, "center_y": 0.4}
+            size_hint: (1/4, 1/8)
             background_color: (1,0,0,0.9)
             on_press:
                 root.reset_to_factory()
-        TextInput:
-            write_tab: False
-            multiline: False
-            id: speed_text
-            hint_text: 'Speed(mm/min)'
-            pos_hint: {'center_x': 0.1, "center_y": 0.92}
-            font_size:12
-            size_hint: 1/7, 0.06
-
-        TextInput:
-            write_tab: False
-            multiline: False
-            id: distance_text
-            hint_text: 'Distance(mm)'
-            pos_hint: {'center_x': 0.25, "center_y": 0.92}
-            font_size: 12
-            size_hint: 1/7, 0.06
 
         TextInput:
             write_tab: False
             multiline: False
             id: normal_force_text
             hint_text: 'Normal Force(N)'
-            pos_hint: {'center_x': 0.1, "center_y": 0.84}
-            font_size: 12
-            size_hint: 1/7, 0.06
-
-        TextInput:
-            write_tab: False
-            multiline: False
-            id: sample_time_text
-            hint_text: 'Sample time (s)'
-            pos_hint: {'center_x': 0.25, "center_y": 0.84}
+            pos_hint: {'center_x': 0.2, "center_y": 0.84}
             font_size: 12
             size_hint: 1/7, 0.06
 
@@ -517,53 +449,10 @@
             multiline: False
             id: calib_text
             hint_text: 'Force Calibration'
-            pos_hint: {'center_x': 0.1, "center_y": 0.76}
+            pos_hint: {'center_x': 0.2, "center_y": 0.76}
             font_size: 12
             size_hint: 1/7, 0.06
 
-        TextInput:
-            write_tab: False
-            multiline: False
-            id: angle_test_speed_text
-            hint_text: 'Angle Speed'
-            pos_hint: {'center_x': 0.25, "center_y": 0.76}
-            font_size: 12
-            size_hint: 1/7, 0.06
-
-        TextInput:
-            write_tab: False
-            multiline: False
-            id: angular_speed_text
-            hint_text: 'Angular Speed'
-            pos_hint: {'center_x': 0.1, "center_y": 0.68}
-            font_size: 12
-            size_hint: 1/7, 0.06
-
-        Label:
-            id: distance_label
-            text: "Test Distance:"
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.8, "center_y": 0.92}
-            halign: "left"
-
-        Label:
-            id: distance
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.9, "center_y": 0.92}
-            halign: "left"
-
-        Label:
-            id: speed_label
-            text: "Test Speed:"
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.5, "center_y": 0.92}
-            halign: "left"
-
-        Label:
-            id: speed
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.6, "center_y": 0.92}
-            halign: "left"
 
         Label:
             id: normal_force_label
@@ -579,19 +468,6 @@
             halign: "left"
 
         Label:
-            id: sample_time_label
-            text: "Sample Time:"
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.8, "center_y": 0.84}
-            halign: "left"
-
-        Label:
-            id: sample_time
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.9, "center_y": 0.84}
-            halign: "left"
-
-        Label:
             id: calib_label
             text: "Force Calibration:"
             color: (0,0,0,1)
@@ -604,31 +480,6 @@
             pos_hint: {"center_x": 0.62, "center_y": 0.76}
             halign: "left"
 
-        Label:
-            id: angle_test_speed_label
-            text: "Angle Speed:"
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.8, "center_y": 0.76}
-            halign: "left"
-
-        Label:
-            id: angle_test_speed
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.9, "center_y": 0.76}
-            halign: "left"
-
-        Label:
-            id: angular_speed_label
-            text: "Angular Speed:"
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.8, "center_y": 0.68}
-            halign: "left"
-
-        Label:
-            id: angular_speed
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.9, "center_y": 0.68}
-            halign: "left"
 
 <ScreenSix>:
     FloatLayout:
