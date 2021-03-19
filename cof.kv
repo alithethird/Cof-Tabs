@@ -386,26 +386,26 @@
 
         Button:
             text: "Start the test"
-            pos_hint: {'center_x': 0.08, "center_y": 0.92}
-            size_hint: (1/8, 1/16)
+            pos_hint: {'center_x': 0.1, "center_y": 0.94}
+            size_hint: (1/6, 1/13)
             on_press: root.start()
 
         Button:
             text: "Stop the test"
-            pos_hint: {'center_x': 0.22, "center_y": 0.92}
-            size_hint: (1/8, 1/16)
+            pos_hint: {'center_x': 0.30, "center_y": 0.94}
+            size_hint: (1/6, 1/13)
             on_press: root.stop()
 
         Button:
             text: "Reset Position"
-            pos_hint: {'center_x': 0.36, "center_y": 0.92}
-            size_hint: (1/8, 1/16)
+            pos_hint: {'center_x': 0.30, "center_y": 0.85}
+            size_hint: (1/6, 1/13)
             on_press: root.reset()
 
         Button:
             text: "Go back"
-            pos_hint: {'center_x': 0.5, "center_y": 0.84}
-            size_hint: (1/8, 1/16)
+            pos_hint: {'center_x': 0.9, "center_y": 0.85}
+            size_hint: (1/6, 1/13)
             on_press:
                 root.manager.transition.direction = "right"
                 root.manager.transition.duration = 0.5
@@ -413,8 +413,8 @@
         Button:
             id: btn
             text: "Results"
-            pos_hint: {'center_x': 0.5, "center_y": 0.92}
-            size_hint: (1/8, 1/16)
+            pos_hint: {'center_x': 0.9, "center_y": 0.94}
+            size_hint: (1/6, 1/13)
             on_press:
                 root.save_graph()
                 root.manager.transition.direction = "left"
@@ -422,62 +422,24 @@
                 root.manager.current = "screen_six"
 
         Button:
-            text: "Forward"
-            pos_hint: {'center_x': 0.64, "center_y": 0.92}
-            size_hint: (1/8, 1/16)
+            text: "Ready for Test"
+            pos_hint: {'center_x': 0.1, "center_y": 0.85}
+            size_hint: (1/6, 1/13)
             on_press:
-                root.angle_motor_rise()
-
-        Button:
-            text: "Backward"
-            pos_hint: {'center_x': 0.64, "center_y": 0.84}
-            size_hint: (1/8, 1/16)
-            on_press:
-                root.angle_motor_fall()
-
-        Label:
-            text: "Peak Force: "
-            pos: (230, 215)
-            color: (0,0,0,1)
-
-        Label:
-            id: force_max
-            text: "0.00"
-            pos: 330, 215
-            color: 0,0,0,1
+                root.ready_for_test()
 
         Label:
             text: "Current Force: "
-            pos: 230, 195
+            pos: 0, 195
             color: 0,0,0,1
 
         Label:
             id: force_current
             text: "0.00"
-            pos: 330, 195
+            pos: 100, 195
             color: 0,0,0,1
 
-        Label:
-            text: "Current Angle: "
-            pos: 230, 175
-            color: 0,0,0,1
 
-        Label:
-            id: angle_current
-            text: "0.00"
-            pos: 330, 175
-            color: 0,0,0,1
-
-        Label:
-            text: "Time: "
-            pos: 230, 155
-            color: 0,0,0,1
-
-        Label:
-            id: time_current
-            text: "0.00"
-            pos: 330, 155
-            color: 0,0,0,1
 <ScreenFive>:
     FloatLayout:
         size: root.width, root.height
@@ -703,39 +665,13 @@
             halign: "left"
 
         Label:
-            id: l_max_static
+            id: l_static
             text: "0.00"
             pos: (20, 143)
             font_size:24
             color: 0,0,0,1
 
-        Label:
-            text: "Advanced Static Coefficient of friction: "
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.29, "center_y": 0.6}
-            font_size:24
-            halign: "left"
 
-        Label:
-            id: l_mean_static
-            text: "0.00"
-            pos: (70, 46)
-            font_size:24
-            color: 0,0,0,1
-
-        Label:
-            text: "Advanced Static Angle: "
-            color: (0,0,0,1)
-            pos_hint: {"center_x": 0.29, "center_y": 0.5}
-            font_size:24
-            halign: "left"
-
-        Label:
-            id: l_static_angle
-            text: "0.00"
-            pos: (70, 0)
-            font_size:24
-            color: 0,0,0,1
         Label:
             text: "Date: "
             color: (0,0,0,1)

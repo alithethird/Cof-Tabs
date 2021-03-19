@@ -268,8 +268,6 @@ class ScreenTwo(Screen):
     def __init__(self, **args):
         Screen.__init__(self, **args)
         self.is_reset = False
-        # Clock.schedule_interval(self.reset, 1)
-        # self.reset()  # ilk açılışta otomatik konum resetleme
 
         global normal_force
         global sample_time
@@ -279,8 +277,6 @@ class ScreenTwo(Screen):
         global angle_test_speed
         global angular_speed
         test_distance, test_speed, normal_force, sample_time, calib, angle_test_speed, angular_speed = json_handler.import_save()
-
-        # self.reset()  # reset when program starts
 
     def start(self):
 
@@ -318,15 +314,6 @@ class ScreenTwo(Screen):
         self.max_distance_event()
 
         return True
-        # if self.ids.distance_text.text == "":
-        #     pass
-        # else:
-        #     self.test_distance = float(self.ids.distance_text.text)
-        #
-        # if self.ids.speed_text.text == "":
-        #     pass
-        # else:
-        #     self.test_speed = float(self.ids.speed_text.text)
 
     def timer(self, arg):
         t = threading.currentThread()
@@ -416,13 +403,6 @@ class ScreenTwo(Screen):
             self.motor_backward()
             self.min_distance_event()
 
-    def reset_for_test(self):
-        self.is_reset = True
-        self.motor_forward()
-
-        signal.signal(signal.SIGALRM, self.reset_)
-        signal.setitimer(signal.ITIMER_REAL, 0.5, 0)
-
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
 
@@ -440,9 +420,9 @@ class ScreenTwo(Screen):
             if len(forces) < 3:
                 self.ids.graph.ymax = 1
             elif forces[-1][1] > self.ids.graph.ymax:
-                self.ids.force_max.text = str(round(forces[-1][1], 3))
                 self.ids.graph.ymax = (forces[-1][1] * 1.1)
-
+            biggest = find_biggest(forces)
+            self.ids.force_max.text = str(round(biggest[1], 3))
             self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
 
             self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
@@ -475,13 +455,6 @@ class ScreenTwo(Screen):
         try:
             gpio.setup(start_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
             gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.stop_event, bouncetime=200)
-        except:
-            pass
-
-    def min_distance_event_for_test(self):
-        try:
-            gpio.setup(start_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
-            gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.start, bouncetime=200)
         except:
             pass
 
@@ -615,12 +588,19 @@ class ScreenFour(Screen):
                 forces.append([time_to_angle(self.time_), val])
             else:
                 forces.append([0, val])
-
+            if (forces[-1][1]) > 150:
+                global cof_angle_xyz
+                cof_angle_xyz = forces[-1][0]
+                self.stop()
             sleep_time = datetime.datetime.now() - start_time
             sleep_time = sleep_time.total_seconds()
             sleep_time = sample_time - sleep_time
             if sleep_time > 0:
                 sleep(sleep_time)
+
+    def ready_for_test(self):
+        drive_time, frequency, direction = md.calculate_ticks(distance=test_distance/2, speed=test_speed, direction=0)
+        md.motor_run(drive_time, frequency, direction)
 
     def start(self):
         try:
@@ -666,15 +646,6 @@ class ScreenFour(Screen):
         md.start_angle_motor_rise(angle_test_speed)
         self.max_angle_event()
 
-    #     drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_normal_motor_distance,
-    #     speed=angle_test_normal_motor_speed, direction=0)
-    #     md.motor_run(drive_time, frequency, direction)
-    #     self.max_distance_event()
-    #     signal.signal(signal.SIGALRM, self.angle_start)
-    #     signal.setitimer(signal.ITIMER_REAL, drive_time, 0)
-    #
-    # def an1gle_start(self, signum, _):
-    #     gpio.remove_event_detect(stop_switch)
 
     def timer(self, dt):
         self.time_ = round(self.time_ + 0.1, 2)
@@ -733,34 +704,6 @@ class ScreenFour(Screen):
             md.start_angle_motor_fall(angle_test_speed)
             self.min_angle_event()
 
-        # buraya hareket motoru için de reset ekle koç
-
-    def reset_for_test(self):
-        self.is_reset = True
-        md.start_angle_motor_rise(angle_test_speed)
-        signal.signal(signal.SIGALRM, self.reset_)
-        signal.setitimer(signal.ITIMER_REAL, 1, 0)
-        return True
-        #
-        # if gpio.input(angle_switch_start):
-        #     md.start_angle_motor_fall(angle_test_speed)
-        #     self.min_angle_event_for_test()
-        # else:
-        #     md.stop_angle_motor()
-        #     gpio.remove_event_detect(angle_switch_start)
-        #
-        # if gpio.input(start_switch):
-        #     drive_time, frequency, direction = md.calculate_ticks(distance=angle_test_normal_motor_distance,
-        #                                                           speed=angle_test_normal_motor_speed, direction=1)
-        #     md.motor_run(drive_time, frequency, direction)
-        #     self.min_distance_event_for_test()
-        # else:
-        #     md.stop_motor()
-        #     gpio.remove_event_detect(start_switch)
-        #
-        # if gpio.input(angle_switch_start) == gpio.input(start_switch) == False:
-        #     self.start()
-
     def save_graph(self):
         self.ids.graph.export_to_png("graph.png")
 
@@ -774,44 +717,13 @@ class ScreenFour(Screen):
             self.ids.graph.ymax = 1
         elif forces[-1][1] > self.ids.graph.ymax:
             self.ids.graph.ymax = (forces[-1][1] * 1.1)
-        if forces[-1][1] > float(self.ids.force_max.text):
-            self.ids.force_max.text = str(round(forces[-1][1], 3))
+
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax / 11, -1)
 
         self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
 
         self.plot.points = forces
-        self.angle_ = round(time_to_angle(forces[-1][0]), 2)
-        self.ids.angle_current.text = str(self.angle_)
         self.ids.force_current.text = str(round(forces[-1][1], 2))
-
-    # self.angle_current.text = str(round(angle_read.get_rotation(1), 2))
-
-    def angle_motor_rise(self):
-        gpio.setup(angle_switch_stop, gpio.IN, pull_up_down=gpio.PUD_UP)
-        if gpio.input(angle_switch_stop):
-            md.start_angle_motor_rise(angle_test_speed)
-            self.max_angle_event()
-
-    def angle_motor_fall(self):
-        gpio.setup(angle_switch_start, gpio.IN, pull_up_down=gpio.PUD_UP)
-        if gpio.input(angle_switch_start):
-            md.start_angle_motor_fall(angle_test_speed)
-            self.min_angle_event()
-
-    def max_distance_event(self):
-        try:
-            gpio.setup(stop_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
-            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=200)
-        except:
-            pass
-
-    def min_distance_event_for_test(self):
-        try:
-            gpio.setup(stop_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
-            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.reset_for_test, bouncetime=200)
-        except:
-            pass
 
     def max_angle_event(self):
         try:
@@ -824,13 +736,6 @@ class ScreenFour(Screen):
         try:
             gpio.setup(angle_switch_start, gpio.IN, pull_up_down=gpio.PUD_UP)
             gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.stop_event, bouncetime=200)
-        except:
-            pass
-
-    def min_angle_event_for_test(self):
-        try:
-            gpio.setup(angle_switch_start, gpio.IN, pull_up_down=gpio.PUD_UP)
-            gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.reset_for_test, bouncetime=10)
         except:
             pass
 
@@ -997,76 +902,26 @@ class ScreenSix(Screen):
     date_text = str(date_today)
 
     def create_results(self):
-        max_dynamic_cof, mean_dynamic_cof = self.find_dynamic_cof_angle_test()
-        max_static_cof, mean_static_cof = self.find_static_cof()
-        return max_dynamic_cof, mean_dynamic_cof, max_static_cof, mean_static_cof
-
-    def find_dynamic_cof(self):
-        if test_mode == 1:  # açı mod #** ekleme yapılacak max ve mean için
-            try:
-                dynamic_cof = (1000*normal_force * 9.81 * sin(radians(40.7)) - forces[-1][1]) / (1000*normal_force * 9.81 * cos(radians(40.7)) )  # en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
-                mean_dynamic_cof = round(dynamic_cof, 3)
-                max_dynamic_cof = round(dynamic_cof, 3)
-            except TypeError:
-                mean_dynamic_cof = "Testing Error (type Error)"
-            except:
-                mean_dynamic_cof = "Testing Error something"
-        else:
-            dynamic_cof = "Test Mode Select Error!"
-        return max_dynamic_cof, mean_dynamic_cof
+        static_cof = round(self.find_static_cof(), 3)
+        return static_cof
 
     def find_static_cof(self):
         # find peak
-        static_angle = 0
-        past = [[0, 0]]
-        for i in ScreenFour.plot.points:
-            if past[0] > 5:
-                if (i[1] - past[1]) > 30:
-                    static_angle = i[0]
-
-            past = i
-
-        static_cof = tan(radians(static_angle))
+        print(cof_angle_xyz)     
+        static_cof = 10*(sin((3.1415*cof_angle_xyz)/180)/cos((3.1415*cof_angle_xyz)/180))
         return static_cof
-
-        return max_static_cof, mean_static_cof
-
-    def find_static_cof_advanced(self):
-        # find peak
-        static_angle = 0
-        past = [[0, 0]]
-        arr = [[0,0]]
-
-        for i in ScreenFour.plot.points:
-            if past[0] > 5:
-                arr.append([past[1] - i[1], i[0]])
-            past = i
-
-        cof_angle, biggest_diff = find_biggest(arr)
-        static_cof = tan(radians(cof_angle))
-        return static_cof, cof_angle
-
 
     def update_results(self):
         try:
-            self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic = 0, 0, 0, 0
-            self.static_cof = self.find_static_cof()
-            self.static_cof_adv, cof_angle = self.find_static_cof_advanced()
-            self.static_cof = round(self.static_cof / 10, 3)
-            cof_angle = round(cof_angle / 10, 2)
-            self.static_cof_adv = round(self.static_cof_adv / 10, 3)
-            self.ids.l_max_static.text = str(self.static_cof)
-            self.ids.l_mean_static.text = str(self.static_cof_adv)
-            self.ids.l_static_angle.text = str(cof_angle)
-
-            # pdfe de ekle
+            print(cof_angle_xyz)
+            self.ids.l_static.text = self.create_results()
+            # pdfe de ekle, json düzenle
             self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic = self.static_cof, self.static_cof, self.static_cof, self.static_cof
 
             json_handler.dump_all(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
                                       sample2, test_mode, ScreenFour.plot.points)
         except:
             pass
-
     def createPDF(self):
         self.pdf = fpdf_handler()
 
