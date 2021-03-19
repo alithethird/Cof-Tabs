@@ -124,6 +124,44 @@ class fpdf_handler(FPDF):
         except:
             pass
             """
+
+    def create_pdf_angle(self, max_static, mean_static, max_dynamic, mean_dynamic, sample1, sample2, test_mode, forces):
+
+        self.set_time()
+        self.add_page()
+        self.set_font('Times', '', 12)
+        if sample2.name == "":
+            self.single_table_angle(sample1, max_static, mean_static, max_dynamic, mean_dynamic, test_mode)
+            self.graph_to_pdf(1)
+        else:
+            self.diff_table_angle(sample1, sample2, max_static, mean_static, max_dynamic, mean_dynamic, test_mode)
+            self.graph_to_pdf(2)
+
+        filename = "COF_Test_" + self.date_and_time + ".pdf"
+        mount_dir = "/media/pi/"
+        self.output(filename)
+        self.close()
+        print("pdf created")
+        json_out.dump_time(max_static, mean_static, max_dynamic, mean_dynamic, sample1, sample2, test_mode, forces,
+                           self.date_and_time)
+
+        filename_json = "COF_Test_" + self.date_and_time + ".json"
+        print("1")
+        usb_dir = popen("ls " + mount_dir).read()
+        usb_dir = usb_dir.split()
+        print(usb_dir)
+        if usb_dir.count("ALI") > 0:
+            usb_dir = usb_dir.remove("ALI")
+            print("ALI'yi buldum ve silmeye calistim")
+        try:
+            if len(usb_dir) > 0:
+                usb_dir = usb_dir[-1]
+                shutil.copy(filename, mount_dir + str(usb_dir))
+                shutil.copy(filename_json, mount_dir + str(usb_dir))
+        except:
+            print(" ")
+
+
     def single_table(self, sample, max_static, mean_static, max_dynamic, mean_dynamic, test_mode):
         if test_mode == 1:
             test_mode = "Angle Test"
@@ -177,6 +215,63 @@ class fpdf_handler(FPDF):
                 ['Mean Static Coefficient of Friction: ', str(mean_static)],
                 ['Max Dynamic Coefficient of Friction: ', str(max_dynamic)],
                 ['Mean Dynamic Coefficient of Friction: ', str(mean_dynamic)]
+                ]
+        spacing = 2
+        self.set_font("Arial", size=12)
+        col_width = self.w / 2.2
+        row_height = self.font_size
+        for row in data:
+            for item in row:
+                self.cell(col_width, row_height * spacing,
+                          txt=item, border=0)
+            self.ln(row_height * spacing)
+
+
+    def single_table_angle(self, sample, max_static, mean_static, max_dynamic, mean_dynamic, test_mode):
+        if test_mode == 1:
+            test_mode = "Angle Test"
+        elif test_mode == 0:
+            test_mode = "Motorized Test"
+        data = [['Standard: ', "ISO 8295"],
+                ['Company Name: ', str(sample.company_name)],
+                ['Operator Name: ', str(sample.operator_name)],
+                ['Testing Weight(gr): ', str(sample.testing_weight)],
+                ['Test Mode: ', str(test_mode)],
+                ['Sample Name: ', str(sample.name)],
+                ['Sample Width(mm): ', str(sample.width)],
+                ['Sample Height(mm): ', str(sample.height)],
+                ['Sample Age(months): ', str(sample.age)],
+                ['Testing Against: ', 'The same sample'],
+                ['Static Coefficient of Friction: ', str(max_static)]
+                ]
+        spacing = 2
+        self.set_font("Arial", size=12)
+        col_width = self.w / 2.2
+        row_height = self.font_size
+        for row in data:
+            for item in row:
+                self.cell(col_width, row_height * spacing,
+                          txt=item, border=0)
+            self.ln(row_height * spacing)
+
+    def diff_table_angle(self, sample1, sample2, max_static, mean_static, max_dynamic, mean_dynamic, test_mode):
+
+        test_mode = "Angle Test"
+        data = [['Standard: ', "ISO 8295"],
+                ['Company Name: ', str(sample1.company_name)],
+                ['Operator Name: ', str(sample1.operator_name)],
+                ['Testing Weight(gr): ', str(sample1.testing_weight)],
+                ['Test Mode: ', str(test_mode)],
+                ['Sample Name: ', str(sample1.name)],
+                ['Sample Width(mm): ', str(sample1.width)],
+                ['Sample Height(mm): ', str(sample1.height)],
+                ['Sample Age: ', str(sample1.age)],
+                ['Testing Against: ', 'Different Sample'],
+                ['Second Sample Name: ', str(sample2.name)],
+                ['Second Sample Width(mm): ', str(sample2.width)],
+                ['Second Sample Height(mm): ', str(sample2.height)],
+                ['Second Sample Age(months): ', str(sample2.age)],
+                ['Static Coefficient of Friction: ', str(max_static)]
                 ]
         spacing = 2
         self.set_font("Arial", size=12)

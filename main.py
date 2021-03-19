@@ -736,13 +736,28 @@ class ScreenFour(Screen):
     def motor_forward(self):
         gpio.setup(stop_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
         if gpio.input(stop_switch):
+            self.max_distance_event()
             md.motor_start(8000, 0)
 
     def motor_backward(self):
         gpio.setup(start_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
         if gpio.input(start_switch):
+            self.min_distance_event()
             md.motor_start(8000, 1)
 
+    def max_distance_event(self):
+        try:
+            gpio.setup(stop_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
+            gpio.add_event_detect(stop_switch, gpio.FALLING, callback=self.stop_event, bouncetime=200)
+        except:
+            pass
+
+    def min_distance_event(self):
+        try:
+            gpio.setup(start_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
+            gpio.add_event_detect(start_switch, gpio.FALLING, callback=self.stop_event, bouncetime=200)
+        except:
+            pass
 
 class ScreenFive(Screen):
     # distance#, speed#, sample time, normal force
@@ -848,6 +863,7 @@ class ScreenSix(Screen):
     def update_results(self):
         try:
             print(cof_angle_xyz)
+            self.static_cof = self.create_results()
             self.ids.l_static.text = self.create_results()
             # pdfe de ekle, json düzenle
             self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic = self.static_cof, self.static_cof, self.static_cof, self.static_cof
@@ -856,16 +872,14 @@ class ScreenSix(Screen):
                                       sample2, test_mode, ScreenFour.plot.points)
         except:
             pass
+
     def createPDF(self):
         self.pdf = fpdf_handler()
 
         self.update_results()
 
-        if test_mode == 0:
-            self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
-                                sample2, test_mode, ScreenTwo.plot.points)
-        else:
-            self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
+
+        self.pdf.create_pdf_angle(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
                                 sample2, test_mode, ScreenFour.plot.points)
 
         self.show_popup()
