@@ -1019,7 +1019,7 @@ class ScreenSix(Screen):
         # find peak
         static_angle = 0
         past = [[0, 0]]
-        for i in forces:
+        for i in ScreenFour.plot.points:
             if past[0] > 5:
                 if (i[1] - past[1]) > 30:
                     static_angle = i[0]
@@ -1037,7 +1037,7 @@ class ScreenSix(Screen):
         past = [[0, 0]]
         arr = [[0,0]]
 
-        for i in forces:
+        for i in ScreenFour.plot.points:
             if past[0] > 5:
                 arr.append([past[1] - i[1], i[0]])
             past = i
