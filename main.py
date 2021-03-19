@@ -131,17 +131,14 @@ def find_dynamic_force():
         return 1
 
 
-def find_loose_string(
-        array):  # finds loose string length and returns the amount of data acquired when the string is loose
+def find_loose_string(array):  # finds loose string length and returns the amount of data acquired when the string is loose
     biggest = find_biggest(forces)
     index = int(((biggest[0] / sample_time)))
     count = 0
     for i in range(1, index):
-        if forces[i - 1][1] == forces[i][1]:
-            count += 1
+        if forces[i - 1][1] == 1:
+            count = i
     return count
-
-    pass
 
 
 def find_static_force_advanced():
@@ -167,10 +164,14 @@ def find_static_force_advanced():
         for i in array:
             if (array[-1][1] * 1.1) > i[1] > (array[-1][1] * 0.9):
                 index = i[0]
+    if index == 0:
+        for i in array:
+            if (array[-1][1] * 1.3) > i[1] > (array[-1][1] * 0.7):
+                index = i[0]
     # start from index and calculate mean of array
     index = int(index / sample_time)
 
-    for i in range(index - 1, len(array)):
+    for i in range(index, len(array)):
         array_mean += array[i][1]
 
     mean_static_force = array_mean / (len(array) - 1)
