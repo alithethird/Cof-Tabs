@@ -1026,7 +1026,7 @@ class ScreenSix(Screen):
 
             past = i
 
-        static_cof = tan(static_angle)
+        static_cof = tan(radians(static_angle))
         return static_cof
 
         return max_static_cof, mean_static_cof
@@ -1043,7 +1043,7 @@ class ScreenSix(Screen):
             past = i
 
         cof_angle, biggest_diff = find_biggest(arr)
-        static_cof = tan(cof_angle)
+        static_cof = tan(radians(cof_angle))
         return static_cof, cof_angle
 
 
