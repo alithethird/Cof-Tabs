@@ -188,7 +188,7 @@ def find_dynamic_force_advanced():
 
     array = []
     array_mean = 0
-    for i in range(loose, (len(forces)*(6/10))):
+    for i in range(loose, int(len(forces)*(6/10))):
         array_mean += forces[i][1]
         array.append(forces[i])
 
@@ -411,8 +411,7 @@ class ScreenTwo(Screen):
     def get_value(self, arg):
         t = threading.currentThread()
         while getattr(t, "do_run", True):
-            self.ids.dist_current.text = str(
-                int(float(self.ids.dist_current.text) + 60 * (sample_time * test_speed*1.66)))  # update current distance
+            self.ids.dist_current.text = str(round(self.time_*1.66, 2))  # update current distance
 
             if forces[-1][0] == 0:
                 self.ids.graph.xmax = 1
@@ -598,10 +597,6 @@ class ScreenFour(Screen):
             if sleep_time > 0:
                 sleep(sleep_time)
 
-    def ready_for_test(self):
-        drive_time, frequency, direction = md.calculate_ticks(distance=test_distance/2, speed=test_speed, direction=0)
-        md.motor_run(drive_time, frequency, direction)
-
     def start(self):
         try:
             gpio.remove_event_detect(angle_switch_start)
@@ -661,6 +656,7 @@ class ScreenFour(Screen):
             self.time_ = 0
         except:
             pass
+        md.stop_motor()
         md.stop_angle_motor()
         # md.stop_motor()
         try:
@@ -736,6 +732,16 @@ class ScreenFour(Screen):
             gpio.add_event_detect(angle_switch_start, gpio.FALLING, callback=self.stop_event, bouncetime=200)
         except:
             pass
+
+    def motor_forward(self):
+        gpio.setup(stop_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
+        if gpio.input(stop_switch):
+            md.motor_start(8000, 0)
+
+    def motor_backward(self):
+        gpio.setup(start_switch, gpio.IN, pull_up_down=gpio.PUD_UP)
+        if gpio.input(start_switch):
+            md.motor_start(8000, 1)
 
 
 class ScreenFive(Screen):
