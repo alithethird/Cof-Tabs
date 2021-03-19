@@ -1020,8 +1020,8 @@ class ScreenSix(Screen):
         static_angle = 0
         past = [[0, 0]]
         for i in forces:
-            if past[1] > 0:
-                if (i[1] - past[1]) > 10:
+            if past[0] > 5:
+                if (i[1] - past[1]) > 30:
                     static_angle = i[0]
 
             past = i
@@ -1038,8 +1038,10 @@ class ScreenSix(Screen):
         arr = [[0,0]]
 
         for i in forces:
-            arr.append([past[1] - i[1], i[0]])
+            if past[0] > 5:
+                arr.append([past[1] - i[1], i[0]])
             past = i
+
         cof_angle, biggest_diff = find_biggest(arr)
         static_cof = tan(cof_angle)
         return static_cof, cof_angle
