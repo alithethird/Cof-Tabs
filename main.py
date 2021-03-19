@@ -1002,24 +1002,9 @@ class ScreenSix(Screen):
         return max_dynamic_cof, mean_dynamic_cof, max_static_cof, mean_static_cof
 
     def find_dynamic_cof(self):
-        if test_mode == 0:  # motorize mod
-            max_dynamic_force, mean_dynamic_force = find_dynamic_force_advanced()
+        if test_mode == 1:  # açı mod #** ekleme yapılacak max ve mean için
             try:
-                mean_dynamic_cof = mean_dynamic_force / (normal_force * 9.81 * cos(test_angle))
-                mean_dynamic_cof = round(mean_dynamic_cof, 3)
-
-                max_dynamic_cof = max_dynamic_force / (normal_force * 9.81 * cos(test_angle))
-                max_dynamic_cof = round(max_dynamic_cof, 3)
-            except TypeError:
-                mean_dynamic_cof = "Testing Error (type Error)"
-                max_dynamic_cof = "Testing Error (type Error)"
-            except:
-                mean_dynamic_cof = "Testing Error something"
-                max_dynamic_cof = "Testing Error something"
-        elif test_mode == 1:  # açı mod #** ekleme yapılacak max ve mean için
-            try:
-                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos(
-                    30))  # en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
+                dynamic_cof = ScreenFour.plot.points[-1][1] / (normal_force * 9.81 * cos(radians(40.7)) )  # en sondaki kuvvet ile o açıdaki normal kuvveti birbirine bölerek
                 mean_dynamic_cof = round(dynamic_cof, 3)
                 max_dynamic_cof = round(dynamic_cof, 3)
             except TypeError:
@@ -1073,7 +1058,6 @@ class ScreenSix(Screen):
             self.max_dynamic = round(self.max_dynamic / 10, 3)
             self.mean_dynamic = round(self.mean_dynamic / 10, 3)
             self.ids.l_max_static.text = str(self.max_dynamic)
-            self.ids.l_mean_static.text = str(self.mean_dynamic)
             # pdfe de ekle
 
             if test_mode == 0:
