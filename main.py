@@ -548,14 +548,12 @@ class ScreenThree(Screen):
 
         self.update_results()
 
-        if test_mode == 0:
+        try:
             self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
                                 sample2, test_mode, ScreenTwo.plot.points)
-        else:
-            self.pdf.create_pdf(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
-                                sample2, test_mode, ScreenFour.plot.points)
-
-        self.show_popup()
+            self.show_popup()
+        except:
+            pass
 
     def show_popup(self):
         show = P()
@@ -878,11 +876,13 @@ class ScreenSix(Screen):
 
         self.update_results()
 
-
+        
         self.pdf.create_pdf_angle(self.max_static, self.mean_static, self.max_dynamic, self.mean_dynamic, sample1,
                                 sample2, test_mode, ScreenFour.plot.points)
-
         self.show_popup()
+        
+        
+
 
     def show_popup(self):
         show = P()

@@ -29,7 +29,7 @@ class fpdf_handler(FPDF):
 
     def header(self):
         # Set up a logo
-        self.image('mini_logo.png', 10, 8, 33)
+        self.image('/home/pi/Cof-Tabs/mini_logo.png', 10, 8, 33)
 
         self.set_font('Arial', 'I', 15)
 
@@ -50,18 +50,17 @@ class fpdf_handler(FPDF):
         self.set_y(-10)
 
         self.set_font('Arial', 'I', 12)
-
         self.set_line_width(1)
         self.line(x1=10, y1=285, x2=200, y2=285)
 
         self.cell(0, 10,
-                  "Alarge Laboratory Test Teknology - https://www.alarge.com.tr/en/ - info@alarge.com.tr")
+                  "Alarge Laboratory Test Technology - https://www.alarge.com.tr/en/ - info@alarge.com.tr")
 
     def graph_to_pdf(self, choise):
         if choise == 1:
-            self.image('graph.png', x=30, y=160, w=150)
+            self.image('/home/pi/Cof-Tabs/graph.png', x=30, y=160, w=150)
         else:
-            self.image('graph.png', x=30, y=190, w=150)
+            self.image('/home/pi/Cof-Tabs/graph.png', x=30, y=190, w=150)
 
     def print_obj(self, obj):
         print(obj.name)
@@ -78,52 +77,20 @@ class fpdf_handler(FPDF):
             self.diff_table(sample1, sample2, max_static, mean_static, max_dynamic, mean_dynamic, test_mode)
             self.graph_to_pdf(2)
 
-        filename = "COF_Test_" + self.date_and_time + ".pdf"
-        mount_dir = "/media/pi/"
+        filename = "/home/pi/Cof-Tabs/COF_Test_" + self.date_and_time + ".pdf"
+        mount_dir = "/media/usb0"
         self.output(filename)
         self.close()
         print("pdf created")
         json_out.dump_time(max_static, mean_static, max_dynamic, mean_dynamic, sample1, sample2, test_mode, forces, self.date_and_time)
 
-        filename_json = "COF_Test_" + self.date_and_time + ".json"
+        filename_json = "/home/pi/Cof-Tabs/COF_Test_" + self.date_and_time + ".json"
         print("1")
-        usb_dir = popen("ls " + mount_dir).read()
-        usb_dir = usb_dir.split()
-        print(usb_dir)
-        if usb_dir.count("ALI") > 0:
-            usb_dir = usb_dir.remove("ALI")
-            print("ALI'yi buldum ve silmeye calistim")
         try:
-            if len(usb_dir) > 0:
-                usb_dir = usb_dir[-1]
-                shutil.copy(filename, mount_dir + str(usb_dir))
-                shutil.copy(filename_json, mount_dir + str(usb_dir))
+            shutil.copy(filename, mount_dir)
+            shutil.copy(filename_json, mount_dir)
         except:
             print(" ")
-        """
-        if usb_dir.count("media/pi/ALI") > 0:
-            usb_dir = usb_dir.remove("/media/pi/ALI")
-            print("ALI'yi buldum ve silmeye calistim")
-        try:
-            print("3")
-            print(usb_dir)
-            usb_dir = usb_dir[0]
-            print(usb_dir)
-            destination = usb_dir + filename
-
-            popen("cp " + source + " " + str(destination) +"/")
-            print("4")
-            try:
-                print(source)
-                shutil.copy(source, str(destination))
-                print("5")
-            except shutil.Error as e:
-                print("Error: %s" % e)
-            except IOError as e:
-                print("Error: %s" % e.strerror)
-        except:
-            pass
-            """
 
     def create_pdf_angle(self, max_static, mean_static, max_dynamic, mean_dynamic, sample1, sample2, test_mode, forces):
 
@@ -137,27 +104,21 @@ class fpdf_handler(FPDF):
             self.diff_table_angle(sample1, sample2, max_static, mean_static, max_dynamic, mean_dynamic, test_mode)
             self.graph_to_pdf(2)
 
-        filename = "COF_Test_" + self.date_and_time + ".pdf"
-        mount_dir = "/media/pi/"
+        filename = "/home/pi/Cof-Tabs/COF_Test_" + self.date_and_time + ".pdf"
+        mount_dir = "/media/usb0/"
+        
         self.output(filename)
         self.close()
         print("pdf created")
         json_out.dump_time(max_static, mean_static, max_dynamic, mean_dynamic, sample1, sample2, test_mode, forces,
                            self.date_and_time)
 
-        filename_json = "COF_Test_" + self.date_and_time + ".json"
+        filename_json = "/home/pi/Cof-Tabs/COF_Test_" + self.date_and_time + ".json"
         print("1")
-        usb_dir = popen("ls " + mount_dir).read()
-        usb_dir = usb_dir.split()
-        print(usb_dir)
-        if usb_dir.count("ALI") > 0:
-            usb_dir = usb_dir.remove("ALI")
-            print("ALI'yi buldum ve silmeye calistim")
+        
         try:
-            if len(usb_dir) > 0:
-                usb_dir = usb_dir[-1]
-                shutil.copy(filename, mount_dir + str(usb_dir))
-                shutil.copy(filename_json, mount_dir + str(usb_dir))
+            shutil.copy(filename, mount_dir)
+            shutil.copy(filename_json, mount_dir)
         except:
             print(" ")
 

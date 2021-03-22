@@ -38,7 +38,7 @@ class JsonHandler:
                    "Mean Dynamic Coefficient of Friction:": mean_dynamic,
                    "Forces:": forces
                    }
-        with open('data.json', 'w', encoding='utf-8') as f:
+        with open('/home/pi/Cof-Tabs/data.json', 'w', encoding='utf-8') as f:
             json.dump(dic, f, ensure_ascii=False, indent=2)
 
     def dump_time(self, max_static, mean_static, max_dynamic, mean_dynamic, sample1, sample2, test_mode, forces,
@@ -80,7 +80,7 @@ class JsonHandler:
                    "Forces:": forces
                    }
 
-        file_name = "COF_Test_" + date_and_time + ".json"
+        file_name = "/home/pi/Cof-Tabs/COF_Test_" + date_and_time + ".json"
         with open(file_name, 'w', encoding='utf-8') as f:
             json.dump(dic, f, ensure_ascii=False, indent=2)
 
@@ -136,12 +136,12 @@ class JsonHandler:
                "Angular Speed:": angular_speed
                }
 
-        file_name = "calibration_save.json"
+        file_name = "/home/pi/Cof-Tabs/calibration_save.json"
         with open(file_name, 'w', encoding='utf-8') as f:
             json.dump(dic, f, ensure_ascii=False, indent=2)
 
     def import_save(self):
-        file_name = "calibration_save.json"
+        file_name = "/home/pi/Cof-Tabs/calibration_save.json"
         with open(file_name) as json_file:
             data = json.load(json_file)
             return data["Distance:"], data["Speed:"], data["Normal_Force:"], data["Sample_Time:"], data[
