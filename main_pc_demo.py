@@ -19,7 +19,7 @@ from kivy.uix.floatlayout import FloatLayout
 
 from fpdf_handler import fpdf_handler
 from motor_driver_pc import motor_driver_pc
-from json_dumper import JsonHandler
+from json_dumper_pc import JsonHandler
 
 Builder.load_file('cof.kv')
 
