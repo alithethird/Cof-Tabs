@@ -188,7 +188,7 @@ def find_dynamic_force_advanced():
 
     array = []
     array_mean = 0
-    for i in range(loose, int(len(forces)*(6/10))):
+    for i in range(int(loose + (3 / sample_time)), int(len(forces)*(6/10))):
         array_mean += forces[i][1]
         array.append(forces[i])
 
