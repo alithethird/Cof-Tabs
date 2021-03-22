@@ -587,7 +587,7 @@ class ScreenFour(Screen):
                 forces.append([0, val])
             if (forces[-1][1]) > 150:
                 global cof_angle_xyz
-                cof_angle_xyz = forces[-1][0]
+                cof_angle_xyz = forces[-1][0] - 0.7 # calibration
                 self.stop()
             sleep_time = datetime.datetime.now() - start_time
             sleep_time = sleep_time.total_seconds()
@@ -853,14 +853,13 @@ class ScreenSix(Screen):
 
     def find_static_cof(self):
         # find peak
-        print(cof_angle_xyz)     
+        print(cof_angle_xyz)
         static_cof = (sin((3.1415*cof_angle_xyz)/180)/cos((3.1415*cof_angle_xyz)/180))
         print(static_cof)
         return static_cof
 
     def update_results(self):
         try:
-            print(cof_angle_xyz)
             self.static_cof = self.create_results()
             self.ids.l_static.text = self.create_results()
             # pdfe de ekle, json düzenle
