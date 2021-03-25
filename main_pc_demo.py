@@ -17,7 +17,7 @@ from kivy_garden.graph import MeshLinePlot
 from kivy.uix.popup import Popup
 from kivy.uix.floatlayout import FloatLayout
 
-from fpdf_handler import fpdf_handler
+from fpdf_handler_pc import fpdf_handler
 from motor_driver_pc import motor_driver_pc
 from json_dumper_pc import JsonHandler
 
@@ -276,7 +276,6 @@ class ScreenTwo(Screen):
             if len(forces) < 3:
                 self.ids.graph.ymax = 1
             elif forces[-1][1] > self.ids.graph.ymax:
-                self.ids.force_max.text = str(round(forces[-1][1], 3))
                 self.ids.graph.ymax = forces[-1][1]
 
             self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
@@ -284,7 +283,6 @@ class ScreenTwo(Screen):
             self.plot.points = forces
 
             self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) / 10
-            self.ids.force_current.text = str(round(self.plot.points[-1][1], 3))
             sleep_time = datetime.datetime.now() - start_time
             sleep_time = sleep_time.total_seconds()
             sleep_time = sample_time - sleep_time
@@ -458,13 +456,11 @@ class ScreenFour(Screen):
         if forces[-1][1] == 0:
             self.ids.graph.ymax = 1
         elif forces[-1][1] > self.ids.graph.ymax:
-            self.ids.force_max.text = str(round(forces[-1][1], 3))
             self.ids.graph.ymax = forces[-1][1]
 
         self.ids.graph.y_ticks_major = round(self.ids.graph.ymax, -1) / 10
         self.plot.points = forces
         self.ids.graph.x_ticks_major = round(self.ids.graph.xmax, -1) * sample_time
-        self.ids.force_current.text = str(round(self.plot.points[-1][1], 3))
         """
         if forces[-1]*2 > self.ids.graph.ymax:
             self.ids.graph.ymax = forces[-1] * 2

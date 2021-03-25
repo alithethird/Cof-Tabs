@@ -406,7 +406,7 @@ class ScreenTwo(Screen):
             self.min_distance_event()
 
     def save_graph(self):
-        self.ids.graph.export_to_png("graph.png")
+        self.ids.graph.export_to_png("/home/pi/Cof-Tabs/graph.png")
 
     def get_value(self, arg):
         t = threading.currentThread()
@@ -698,7 +698,7 @@ class ScreenFour(Screen):
             self.min_angle_event()
 
     def save_graph(self):
-        self.ids.graph.export_to_png("graph.png")
+        self.ids.graph.export_to_png("/home/pi/Cof-Tabs/graph.png")
 
     def get_value(self, dt):
         if forces[-1][0] == 0:
